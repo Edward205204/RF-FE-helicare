@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.bat eol=crlf
+*.ps1 eol=crlf
+* text=auto eol=lf
+*.{js,jsx,ts,tsx,css,scss,md,json,yml,yaml,html} text eol=lf
+*.bat text eol=crlf
