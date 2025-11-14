@@ -24,8 +24,11 @@ class Request {
 
     this.instance.interceptors.request.use((config) => {
       if ((this.accessToken || this.accessToken === "") && config.headers) {
-        config.headers.Authorization = this.accessToken;
-        return config;
+        config.headers.Authorization = `Bearer ${this.accessToken}`;
+      }
+      // Nếu là FormData, không set Content-Type để browser tự set với boundary
+      if (config.data instanceof FormData && config.headers) {
+        delete config.headers["Content-Type"];
       }
       return config;
     });

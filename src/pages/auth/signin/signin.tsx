@@ -12,10 +12,12 @@ import { login } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import { AppContext } from "@/contexts/app.context";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { setProfileToLS } from "@/utils/local-storage";
+import { UserRole } from "@/constants/user-role";
 
 const Signin = () => {
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useContext(AppContext);
+  const { setIsAuthenticated, setProfile } = useContext(AppContext);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,12 +36,37 @@ const Signin = () => {
 
     login(data)
       .then((res) => {
-        toast.success(res.data.message);
+        console.log("Login success, full response:", res); // Debug
+        toast.success(res.message);
+        const userData = res.data.user;
+        console.log("User data:", userData); // Debug
+
+        // SET STATE cho AppContext - BẮT BUỘC để RejectedRoute hoạt động
+        setProfile(userData);
         setIsAuthenticated(true);
-        // setProfile(res.data.data.user);
-        navigate(path.home);
+        console.log("Set context state done"); // Debug
+
+        // Xác định target path
+        const userRole = (userData as any).role;
+        console.log("User role:", userRole); // Debug
+
+        let targetPath: string = path.home;
+        if (
+          userRole === UserRole.Staff ||
+          userRole === UserRole.Admin ||
+          userRole === UserRole.RootAdmin
+        ) {
+          targetPath = path.residentList;
+        } else if (userRole === UserRole.Family) {
+          targetPath = path.familyNewsFeed;
+        }
+
+        console.log("Navigating to:", targetPath); // Debug
+        navigate(targetPath, { replace: true });
       })
       .catch((err) => {
+        console.error("Login error:", err);
+
         if (err.response?.status === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
           const formErrors = err.response.data?.errors;
           console.log(formErrors);

@@ -1,6 +1,17 @@
 import request from "@/utils/request";
 import { SigninFormData, SignupFormData } from "@/utils/zod";
 
+export interface CheckUserByEmailResponse {
+  user_id: string;
+  email: string;
+  role: string;
+  status: string;
+  familyProfile: {
+    full_name: string;
+    phone?: string;
+  } | null;
+}
+
 export const login = async (data: SigninFormData) => {
   const response = await request.post("/auth/login", data);
   return response.data;
@@ -44,6 +55,13 @@ export const resetPassword = async (data: {
 export const resendEmailVerify = async (email: string) => {
   const response = await request.post("/auth/resend-email-verify", {
     email,
+  });
+  return response.data;
+};
+
+export const checkUserByEmail = async (email: string) => {
+  const response = await request.get("/auth/check-user-by-email", {
+    params: { email },
   });
   return response.data;
 };

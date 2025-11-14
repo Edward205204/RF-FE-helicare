@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/index";
 import { toast } from "react-toastify";
 import { verifyForgotPassword } from "@/apis/auth.api";
 import path from "@/constants/path";
