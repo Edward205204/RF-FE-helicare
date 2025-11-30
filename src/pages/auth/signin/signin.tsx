@@ -12,7 +12,6 @@ import { login } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import { AppContext } from "@/contexts/app.context";
 import { HTTP_STATUS } from "@/constants/http-status";
-import { setProfileToLS } from "@/utils/local-storage";
 import { UserRole } from "@/constants/user-role";
 
 const Signin = () => {
@@ -50,7 +49,7 @@ const Signin = () => {
         const userRole = (userData as any).role;
         console.log("User role:", userRole); // Debug
 
-        let targetPath: string = path.home;
+        let targetPath: string = path.familyHome; // Default to family home
         if (
           userRole === UserRole.Staff ||
           userRole === UserRole.Admin ||
@@ -58,7 +57,9 @@ const Signin = () => {
         ) {
           targetPath = path.residentList;
         } else if (userRole === UserRole.Family) {
-          targetPath = path.familyNewsFeed;
+          // Always redirect to home first (safe page)
+          // Guard will handle redirect to appropriate page based on institution access
+          targetPath = path.familyHome;
         }
 
         console.log("Navigating to:", targetPath); // Debug
@@ -117,15 +118,15 @@ const Signin = () => {
 
           <div className="mb-4">
             <Label
-              htmlFor="email"
+              htmlFor="emailOrUsername"
               className="block mb-2 font-medium text-left text-gray-700"
             >
-              Email address
+              Email
             </Label>
             <Input
               id="email"
-              type="email"
-              placeholder="example@gmail.com"
+              type="text"
+              placeholder="Email"
               {...register("email")}
               className={
                 errors.email

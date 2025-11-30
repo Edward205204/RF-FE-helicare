@@ -14,6 +14,9 @@ export interface CreateAssessmentData {
   respiratory_rate?: number;
   oxygen_saturation?: number;
   notes?: string;
+  measured_at?: string;
+  measurement_shift?: string;
+  measurement_by?: string;
 }
 
 export interface AssessmentResponse {
@@ -32,6 +35,9 @@ export interface AssessmentResponse {
   respiratory_rate?: number;
   oxygen_saturation?: number;
   notes?: string;
+  measured_at?: string;
+  measurement_shift?: string;
+  measurement_by?: string;
   created_at: string;
 }
 
@@ -115,14 +121,80 @@ export const createAssessment = async (
 // Cập nhật assessment
 export const updateAssessment = async (
   assessmentId: string,
-  data: Partial<CreateAssessmentData>
+  data: Partial<CreateAssessmentData> & { correction_reason?: string }
 ) => {
-  // Backend expects data wrapped in 'assessment' object
+  const { correction_reason, ...assessment } = data;
   const response = await request.put(
     `/api/assessments/update-assessment/${assessmentId}`,
-    { assessment: data }
+    { assessment, correction_reason }
   );
   return response.data;
+};
+
+export interface HealthIndicator {
+  id: string;
+  label: string;
+  value: number;
+  unit?: string;
+  severity: "normal" | "warning" | "critical";
+  description: string;
+}
+
+export interface HealthAlert {
+  id: string;
+  severity: "info" | "warning" | "critical";
+  message: string;
+  recommendation: string;
+}
+
+export interface HealthSummaryResponse {
+  resident: {
+    resident_id: string;
+    full_name: string;
+    gender: string;
+    date_of_birth: string;
+    age: number;
+    room?: {
+      room_number: string;
+    } | null;
+    institution?: {
+      institution_id: string;
+      name: string;
+    } | null;
+    chronicDiseases: Array<{ id: string; name: string; severity?: string | null }>;
+    allergies: Array<{ id: string; substance: string; severity?: string | null }>;
+  };
+  vitals: {
+    latest: AssessmentResponse | null;
+    history: AssessmentResponse[];
+  };
+  careLogs: {
+    recent: Array<{
+      care_log_id: string;
+      type: string;
+      title: string;
+      status: string;
+      start_time: string;
+      notes?: string | null;
+    }>;
+  };
+  indicators: HealthIndicator[];
+  alerts: HealthAlert[];
+  meta: {
+    engine_version: string;
+    generated_at: string;
+    lookback_days: number;
+  };
+}
+
+export const getHealthSummary = async (residentId: string) => {
+  const response = await request.get(
+    `/api/assessments/health-summary/${residentId}`
+  );
+  return response.data as {
+    message: string;
+    data: HealthSummaryResponse;
+  };
 };
 
 // Xóa assessment

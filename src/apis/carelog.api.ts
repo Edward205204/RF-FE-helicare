@@ -88,6 +88,22 @@ export const getCareLogsByResident = async (residentId: string) => {
   return response.data;
 };
 
+export const getMealCareLogsByResident = async (
+  residentId: string,
+  params?: {
+    start_date?: string;
+    end_date?: string;
+    take?: number;
+    skip?: number;
+  }
+) => {
+  const response = await request.get(
+    `/api/carelogs/resident/${residentId}/meals`,
+    { params }
+  );
+  return response.data;
+};
+
 // Lấy care logs theo staff
 export const getCareLogsByStaff = async (staffId: string) => {
   const response = await request.get(`/api/carelogs/staff/${staffId}`);
@@ -103,7 +119,7 @@ export const getCareLogById = async (careLogId: string) => {
 // Cập nhật care log
 export const updateCareLog = async (
   careLogId: string,
-  data: Partial<CreateCareLogData>
+  data: Partial<CreateCareLogData> & { correction_reason?: string }
 ) => {
   const response = await request.put(`/api/carelogs/${careLogId}`, data);
   return response.data;
@@ -112,10 +128,12 @@ export const updateCareLog = async (
 // Cập nhật status của care log
 export const updateCareLogStatus = async (
   careLogId: string,
-  status: "pending" | "in_progress" | "completed"
+  status: "pending" | "in_progress" | "completed",
+  correction_reason?: string
 ) => {
   const response = await request.patch(`/api/carelogs/${careLogId}/status`, {
     status,
+    correction_reason,
   });
   return response.data;
 };

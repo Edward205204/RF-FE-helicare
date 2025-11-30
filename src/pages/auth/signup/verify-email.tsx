@@ -54,7 +54,7 @@ export default function VerifyEmail() {
   };
 
   const handleGoToHome = () => {
-    navigate(path.home);
+    navigate(path.familyHome);
   };
 
   const renderContent = () => {

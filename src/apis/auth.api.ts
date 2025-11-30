@@ -1,5 +1,5 @@
 import request from "@/utils/request";
-import { SigninFormData, SignupFormData } from "@/utils/zod";
+import { SigninFormData, SignupFormData, ResidentSigninFormData } from "@/utils/zod";
 
 export interface CheckUserByEmailResponse {
   user_id: string;
@@ -14,6 +14,11 @@ export interface CheckUserByEmailResponse {
 
 export const login = async (data: SigninFormData) => {
   const response = await request.post("/auth/login", data);
+  return response.data;
+};
+
+export const residentLogin = async (data: ResidentSigninFormData) => {
+  const response = await request.post("/auth/resident/login", data);
   return response.data;
 };
 
@@ -63,5 +68,14 @@ export const checkUserByEmail = async (email: string) => {
   const response = await request.get("/auth/check-user-by-email", {
     params: { email },
   });
+  return response.data;
+};
+
+export const changePassword = async (data: {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}) => {
+  const response = await request.post("/auth/change-password", data);
   return response.data;
 };

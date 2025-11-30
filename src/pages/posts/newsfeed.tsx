@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
+import { Input } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from "@/components/ui";
 import { useNavigate, useLocation } from "react-router-dom";
 import ResidentSelector from "@/components/shared/resident-selector";
 import path from "@/constants/path";
@@ -39,7 +39,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui";
 
 const NewsFeed: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);

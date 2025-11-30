@@ -23,8 +23,10 @@ class Request {
     });
 
     this.instance.interceptors.request.use((config) => {
-      if ((this.accessToken || this.accessToken === "") && config.headers) {
-        config.headers.Authorization = `Bearer ${this.accessToken}`;
+      // Update access token from localStorage on each request
+      const token = getAccessTokenFromLS();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
       // Nếu là FormData, không set Content-Type để browser tự set với boundary
       if (config.data instanceof FormData && config.headers) {
@@ -35,7 +37,7 @@ class Request {
     this.instance.interceptors.response.use(
       (response) => {
         const { url } = response.config;
-        if (url === "/auth/login") {
+        if (url === "/auth/login" || url === "/auth/resident/login") {
           this.accessToken = response.data.data.access_token;
           setAccessTokenToLS(this.accessToken);
           setProfileToLS(response.data.data.user);

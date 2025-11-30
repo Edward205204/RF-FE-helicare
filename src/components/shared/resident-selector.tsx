@@ -1,8 +1,6 @@
 // search and select residents component
 import React, { useState, useEffect } from "react";
-import { Input } from "../ui";
-import { Checkbox } from "../ui/checkbox";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui";
 
 interface Resident {
   id: string;

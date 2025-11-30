@@ -11,8 +11,8 @@ import {
   type AssessmentResponse,
 } from "@/apis/assessment.api";
 import { toast } from "react-toastify";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import {
   Table,
   TableHeader,
@@ -20,7 +20,7 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
+} from "@/components/ui";
 import { ArrowLeft, User, Calendar, Phone, Mail, MapPin } from "lucide-react";
 import path from "@/constants/path";
 
@@ -134,7 +134,7 @@ export default function ResidentDetail(): React.JSX.Element {
             <div className="flex items-center gap-4 mb-4">
               <button
                 onClick={() => navigate(path.residentList)}
-                className="flex items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Quay lại</span>

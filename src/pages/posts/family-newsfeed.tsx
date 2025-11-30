@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
+import { Input } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui";
 import {
   Select,
   SelectTrigger,
@@ -319,7 +319,6 @@ const FamilyNewsFeed: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Actions Menu - Chỉ có Report cho Family */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button

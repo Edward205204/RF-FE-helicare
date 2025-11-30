@@ -1,31 +1,12 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  Users,
-  User,
-  Activity,
-  Pill,
-  Calendar,
-  Plus,
-  Eye,
-  QrCode,
-  MessageSquare,
-  Utensils,
-  ChefHat,
-  Bed,
-  Wrench,
-  AlertTriangle,
-  FileText,
-  BarChart3,
-  UserCircle,
-  Cog,
-  LogOut,
-} from "lucide-react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import path from "@/constants/path";
 import { removeLocalStorage } from "@/utils/local-storage";
-
+import { staffMenu } from "@/constants/staff-menu";
 export type CareEvent = {
   id: string;
+  name: string;
   priority: string;
   resident?: string;
   datetimeISO: string;
@@ -75,202 +56,45 @@ export function useStaffLayoutContext() {
   return context;
 }
 
-// Type cho menu item
-type StaffMenuItem = {
-  label: string;
+export type StaffMenuItem = {
   path?: string;
   icon?: React.ReactNode;
-  children?: StaffMenuItem[];
+  label?: string;
 };
 
-const staffMenu: StaffMenuItem[] = [
-  {
-    label: "Resident & Health Records",
-    children: [
-      {
-        label: "Resident List",
-        path: path.residentList,
-        icon: <Users size={20} />,
-      },
-      {
-        label: "Resident Profile",
-        path: path.residentInformation,
-        icon: <User size={20} />,
-      },
-      {
-        label: "Vital Signs Input",
-        path: path.vitalSignForm,
-        icon: <Activity size={20} />,
-      },
-      // {
-      //   label: "Medication & Care Plan",
-      //   // path: path.carePlanForm,
-      //   path: "#",
-      //   icon: <Pill size={20} />,
-      // },
-    ],
-  },
-  {
-    label: "Schedule & Activities",
-    children: [
-      {
-        label: "Daily Schedule",
-        path: path.staffManageEvent,
-        icon: <Calendar size={20} />,
-      },
-      {
-        label: "Create Event",
-        path: path.staffCreateEvent,
-        icon: <Plus size={20} />,
-      },
-      // { label: "Manage Events", path: "/setting-event", icon: <Settings size={20} /> },
-    ],
-  },
-  {
-    label: "Visits & Family",
-    children: [
-      // { label: "Visit Requests", path: "/staff/visits", icon: <Eye size={20} /> },
-      // {
-      //   label: "QR Check-in",
-      //   path: "#",
-      //   icon: <QrCode size={20} />,
-      // },
-      {
-        label: "Family Communication",
-        path: path.newsFeed,
-        icon: <MessageSquare size={20} />,
-      },
-    ],
-  },
-  {
-    label: "Team & Access",
-    children: [
-      {
-        label: "Staff Onboarding",
-        path: path.staffOnboard,
-        icon: <UserCircle size={20} />,
-      },
-    ],
-  },
-  // {
-  //   label: "Nutrition & Diet",
-  //   children: [
-  //     {
-  //       label: "Diet Plans",
-  //       path: "/staff/diet-plans",
-  //       icon: <Utensils size={20} />,
-  //     },
-  //     {
-  //       label: "Meal Tracking",
-  //       path: "/staff/meal-tracking",
-  //       icon: <ChefHat size={20} />,
-  //     },
-  //   ],
-  // },
-  {
-    label: "Rooms & Beds",
-    children: [
-      {
-        label: "Room Allocation",
-        path: path.roomManagement,
-        icon: <Bed size={20} />,
-      },
-      // {
-      //   label: "Maintenance Tickets",
-      //   path: "/staff/maintenance",
-      //   icon: <Wrench size={20} />,
-      // },
-    ],
-  },
-  // {
-  //   label: "SOS & Incidents",
-  //   children: [
-  //     {
-  //       label: "Live SOS Alerts",
-  //       path: "/staff/sos-alerts",
-  //       icon: <AlertTriangle size={20} />,
-  //     },
-  //     {
-  //       label: "Incident Reports",
-  //       path: "/staff/incidents",
-  //       icon: <FileText size={20} />,
-  //     },
-  //   ],
-  // },
-  // {
-  //   label: "Reports & Analytics",
-  //   children: [
-  //     {
-  //       label: "Resident Reports",
-  //       path: "/staff/resident-reports",
-  //       icon: <BarChart3 size={20} />,
-  //     },
-  //     {
-  //       label: "Operations Dashboard",
-  //       path: "/staff/operations-dashboard",
-  //       icon: <BarChart3 size={20} />,
-  //     },
-  //   ],
-  // },
-  // {
-  //   label: "Account & Settings",
-  //   children: [
-  //     {
-  //       label: "My Profile",
-  //       path: "/staff/profile",
-  //       icon: <UserCircle size={20} />,
-  //     },
-  //     { label: "Settings", path: "/staff/settings", icon: <Cog size={20} /> },
-  //   ],
-  // },
-];
-
 const MenuItem: React.FC<{ item: StaffMenuItem }> = ({ item }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
-  if (item.children) {
-    return (
-      <div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center px-4 py-2 text-left hover:bg-gray-100 transition-colors"
-        >
-          {item.icon && <span className="mr-3">{item.icon}</span>}
-          <span className="flex-1">{item.label}</span>
-          <span className="ml-2 text-gray-500">{isOpen ? "▼" : "▶"}</span>
-        </button>
-        {isOpen && (
-          <div className="ml-6">
-            {item.children.map((child, index) => (
-              <NavLink
-                key={index}
-                to={child.path || "#"}
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 hover:bg-gray-100 transition-colors ${
-                    isActive
-                      ? "bg-blue-100 text-blue-700 font-semibold"
-                      : "text-gray-700"
-                  }`
-                }
-              >
-                {child.icon && <span className="mr-3">{child.icon}</span>}
-                <span>{child.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
+  // Check if path is exactly active (not just prefix match)
+  const isExactActive = (pathToCheck: string | undefined) => {
+    if (!pathToCheck) return false;
+    const currentPath = location.pathname;
 
+    // For /staff, only match exactly (not /staff/onboard, /staff/:id, etc.)
+    if (pathToCheck === path.staffList) {
+      return currentPath === path.staffList;
+    }
+
+    // For paths with params like /staff/:staff_id, check pattern match
+    if (pathToCheck.includes(":")) {
+      // Convert /staff/:staff_id to regex pattern
+      const pattern = pathToCheck.replace(/:[^/]+/g, "[^/]+");
+      const regex = new RegExp(`^${pattern}$`);
+      return regex.test(currentPath);
+    }
+
+    // For exact paths, match exactly
+    return currentPath === pathToCheck;
+  };
+
+  const isActive = isExactActive(item.path);
   return (
     <NavLink
       to={item.path || "#"}
-      className={({ isActive }) =>
-        `flex items-center px-4 py-2 hover:bg-gray-100 transition-colors ${
-          isActive ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-700"
-        }`
-      }
+      className={`flex items-center px-4 py-2 hover:bg-gray-100 transition-colors ${
+        isActive ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-700"
+      }`}
     >
       {item.icon && <span className="mr-3">{item.icon}</span>}
       <span>{item.label}</span>
@@ -278,14 +102,12 @@ const MenuItem: React.FC<{ item: StaffMenuItem }> = ({ item }) => {
   );
 };
 
-// Main component
 const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [care, setCare] = useState<CareEvent[]>([]);
   const [visits, setVisits] = useState<FamilyVisit[]>([]);
   const navigate = useNavigate();
   const role = "staff";
 
-  // Handle logout
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
       removeLocalStorage();
@@ -293,7 +115,6 @@ const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-  // Load data from localStorage on mount
   useEffect(() => {
     const storedCare = localStorage.getItem("careEvents");
     const storedVisits = localStorage.getItem("familyVisits");
@@ -301,17 +122,10 @@ const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (storedVisits) setVisits(JSON.parse(storedVisits));
   }, []);
 
-  // Save data to localStorage when it changes
   useEffect(() => {
     localStorage.setItem("careEvents", JSON.stringify(care));
     localStorage.setItem("familyVisits", JSON.stringify(visits));
   }, [care, visits]);
-
-  // Simple helper to allow child routes to add notifications via Outlet context.
-  // Replace console.log with real notification/toast logic as needed.
-  const addNotification = (message: string) => {
-    console.log("Notification:", message);
-  };
 
   const contextValue: StaffLayoutContextType = {
     care,
@@ -331,21 +145,8 @@ const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* Menu */}
         <nav className="mt-4">
-          {staffMenu.map((section, index) => (
-            <div key={index} className="mb-4">
-              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                {section.label}
-              </h3>
-              {section.children ? (
-                <div>
-                  {section.children.map((item, idx) => (
-                    <MenuItem key={idx} item={item} />
-                  ))}
-                </div>
-              ) : (
-                <MenuItem item={section} />
-              )}
-            </div>
+          {staffMenu.map((item, index) => (
+            <MenuItem key={index} item={item} />
           ))}
         </nav>
 

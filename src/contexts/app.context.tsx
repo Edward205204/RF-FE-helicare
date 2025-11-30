@@ -15,6 +15,8 @@ export interface AppContextInterface {
   emailToVerify: string | null;
   setEmailToVerify: React.Dispatch<React.SetStateAction<string | null>>;
   reset: () => void;
+  familyUnreadNotifications?: number;
+  setFamilyUnreadNotifications?: React.Dispatch<React.SetStateAction<number>>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -26,6 +28,8 @@ export const getInitialAppContext: () => AppContextInterface = () => ({
   emailToVerify: null,
   setEmailToVerify: () => null,
   reset: () => null,
+  familyUnreadNotifications: 0,
+  setFamilyUnreadNotifications: () => null,
 });
 const initialState = getInitialAppContext();
 // eslint-disable-next-line react-refresh/only-export-components
@@ -45,6 +49,8 @@ export const AppProvider = ({
   const [emailToVerify, setEmailToVerify] = useState<string | null>(
     defaultValue.emailToVerify
   );
+  const [familyUnreadNotifications, setFamilyUnreadNotifications] =
+    useState<number>(defaultValue.familyUnreadNotifications ?? 0);
   const reset = () => {
     setIsAuthenticated(false);
     setProfile(null);
@@ -70,6 +76,8 @@ export const AppProvider = ({
         emailToVerify,
         setEmailToVerify,
         reset,
+        familyUnreadNotifications,
+        setFamilyUnreadNotifications,
       }}
     >
       {children}

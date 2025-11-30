@@ -1,189 +1,115 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+} from "@/components/ui";
+import { Input } from "@/components/ui";
+import { Textarea } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Label } from "@/components/ui";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Clock, QrCode } from "lucide-react";
+} from "@/components/ui";
+import { Badge } from "@/components/ui";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { FamilyVisit, CareEvent } from "@/layouts/staff-layout";
-import { useStaffLayoutContext } from "@/layouts/staff-layout";
 import MultiSelect from "react-select";
-import { createCareLog } from "@/apis/carelog.api";
 import { getResidents, type ResidentResponse } from "@/apis/resident.api";
 import { toast } from "react-toastify";
-import { createSchedule, type CreateScheduleData } from "@/apis/schedule.api";
 import {
-  createActivity,
-  getActivities,
-  type ActivityType as ActivityTypeEnum,
-} from "@/apis/activity.api";
-import { visitApi } from "@/apis/visit";
-import { getStaffList, type StaffResponse } from "@/apis/staff.api";
+  createEvent,
+  type CreateEventData,
+  type EventType,
+  type CareSubType,
+  type EventFrequency,
+  type CareConfiguration,
+} from "@/apis/event.api";
 import { getRooms, type RoomResponse } from "@/apis/room.api";
-
-// import { Checkbox } from "../components/ui/checkbox";
-import { Checkbox } from "@/components/ui/checkbox";
 import path from "@/constants/path";
 
-type EventKind = "care" | "visit";
-type CareType = "vital_check" | "medication" | "hygiene" | "therapy" | "meal";
-type Frequency = "none" | "daily" | "weekly" | "monthly";
+// --- Types & Constants ---
+type EventKind = "Care" | "Entertainment" | "Other";
+type CareSubTypeLocal =
+  | "VitalCheck"
+  | "Therapy"
+  | "MedicationAdmin"
+  | "Hygiene"
+  | "Meal"
+  | "Other";
+type Frequency = "OneTime" | "Daily" | "Weekly" | "Monthly";
 
-type StaffOption = { id: string; name: string };
-
-// Map care types to activity types
-const CARE_TYPE_TO_ACTIVITY_TYPE: Record<CareType, ActivityTypeEnum> = {
-  vital_check: "medical_checkup",
-  medication: "medical_checkup",
-  hygiene: "other",
-  therapy: "therapy",
-  meal: "meal_time",
+const CARE_SUBTYPE_MAP: Record<string, CareSubType> = {
+  vital_check: "VitalCheck",
+  medication: "MedicationAdmin",
+  hygiene: "Hygiene",
+  therapy: "Therapy",
+  meal: "Meal",
 };
 
-// Map frequency to schedule frequency
-const FREQ_TO_SCHEDULE_FREQ: Record<
-  Frequency,
-  "daily" | "weekly" | "monthly" | "one_time" | "custom"
-> = {
-  none: "one_time",
-  daily: "daily",
-  weekly: "weekly",
-  monthly: "monthly",
+const FREQ_MAP: Record<string, EventFrequency> = {
+  OneTime: "OneTime",
+  Daily: "Daily",
+  Weekly: "Weekly",
+  Monthly: "Monthly",
 };
 
 export default function StaffCreateEvent(): React.JSX.Element {
   const navigate = useNavigate();
-  const { setCare, setVisits } = useStaffLayoutContext();
 
-  const [kind, setKind] = useState<EventKind>("care");
+  // --- State Management ---
+  const [eventType, setEventType] = useState<EventKind>("Care");
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [endAt, setEndAt] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
   const [eventName, setEventName] = useState<string>("");
-  const [activeButton, setActiveButton] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Care-only fields
-  const [careType, setCareType] = useState<CareType>("vital_check");
-  const [quantity, setQuantity] = useState<number>(1);
-  const [assignedStaffIds, setAssignedStaffIds] = useState<string[]>([]);
-  const [priority, setPriority] = useState<"low" | "normal" | "high">("normal");
-  const [roomId, setRoomId] = useState<string>("");
-  const [freq, setFreq] = useState<Frequency>("none");
-  const [medName, setMedName] = useState<string>("");
-  const [medDose, setMedDose] = useState<string>("");
+  const [careSubType, setCareSubType] =
+    useState<CareSubTypeLocal>("VitalCheck");
+  const [roomIds, setRoomIds] = useState<string[]>([]);
+  const [freq, setFreq] = useState<Frequency>("OneTime");
+  const [location, setLocation] = useState<string>("");
 
-  // Visit-only fields
-  const [createQR, setCreateQR] = useState<boolean>(true);
-  const [familyUserId, setFamilyUserId] = useState<string>("");
-  const [residentId, setResidentId] = useState<string>("");
-  const [residents, setResidents] = useState<ResidentResponse[]>([]);
-  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [rooms, setRooms] = useState<RoomResponse[]>([]);
 
-  // Check if care type is health-related (needs room selection)
-  const isHealthRelated =
-    careType === "vital_check" || careType === "medication";
+  // --- Refs for UX Improvement (Date Pickers) ---
+  const scheduledAtRef = useRef<HTMLInputElement>(null);
+  const endAtRef = useRef<HTMLInputElement>(null);
 
-  // Fetch staff and rooms on mount
+  // --- Effects ---
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [staffResponse, roomsResponse, residentsResponse] =
-          await Promise.all([getStaffList(), getRooms(), getResidents()]);
-
-        const staffList = staffResponse.data || [];
-        setStaffOptions(
-          staffList.map((s: StaffResponse) => ({
-            id: s.user_id,
-            name: s.full_name || s.email,
-          }))
-        );
-
+        const roomsResponse = await getRooms();
         setRooms(roomsResponse.data || []);
-        setResidents(residentsResponse.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Failed to load staff/rooms data");
+        toast.error("Failed to load rooms data");
       }
     };
     fetchData();
   }, []);
 
   const valid = useMemo(() => {
-    if (!scheduledAt || !endAt) return false;
-    if (kind === "care") {
-      if (!assignedStaffIds.length) return false;
-      if (!eventName.trim()) return false;
-      if (careType === "medication" && (!medName.trim() || !medDose.trim()))
-        return false;
-      // Room is optional, but if health-related, it's recommended
-    } else {
-      if (!familyUserId || !residentId) return false;
-    }
+    if (!scheduledAt || !endAt || !eventName.trim()) return false;
+    if (eventType === "Care" && !careSubType) return false;
     return true;
-  }, [
-    scheduledAt,
-    endAt,
-    kind,
-    assignedStaffIds,
-    careType,
-    medName,
-    medDose,
-    familyUserId,
-    residentId,
-    eventName,
-  ]);
+  }, [scheduledAt, endAt, eventType, careSubType, eventName]);
 
-  // Helper function to get or create activity
-  const getOrCreateActivity = async (
-    name: string,
-    type: ActivityTypeEnum,
-    description?: string
-  ): Promise<string> => {
-    try {
-      // Try to find existing activity
-      const activitiesResponse = await getActivities({
-        search: name,
-        type,
-        is_active: true,
-        take: 1,
-      });
-
-      if (activitiesResponse.data?.activities?.length > 0) {
-        return activitiesResponse.data.activities[0].activity_id;
-      }
-
-      // Create new activity if not found
-      const activityResponse = await createActivity({
-        name,
-        type,
-        description,
-        max_participants: quantity || undefined,
-      });
-
-      return activityResponse.data.activity_id;
-    } catch (error) {
-      console.error("Error getting/creating activity:", error);
-      throw error;
-    }
-  };
-
+  // --- Submit Handler ---
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!valid || isSubmitting) return;
@@ -192,135 +118,37 @@ export default function StaffCreateEvent(): React.JSX.Element {
     try {
       const startISO = new Date(scheduledAt).toISOString();
       const endISO = new Date(endAt).toISOString();
-      const label = new Date(scheduledAt).toLocaleString();
 
-      if (kind === "care") {
-        // Map care type to activity type
-        const activityType = CARE_TYPE_TO_ACTIVITY_TYPE[careType];
-        const activityName =
-          eventName || `${careType} - ${new Date().toLocaleDateString()}`;
+      const eventData: CreateEventData = {
+        name: eventName,
+        type: eventType,
+        start_time: startISO,
+        end_time: endISO,
+        location: location || undefined, // Will default to institution name on backend
+        room_ids: roomIds.length > 0 ? roomIds : undefined,
+      };
 
-        // Get or create activity
-        const activityId = await getOrCreateActivity(
-          activityName,
-          activityType,
-          notes ||
-            `Care event: ${careType}${
-              medName ? ` - ${medName} ${medDose}` : ""
-            }`
-        );
-
-        // Create schedule
-        const scheduleData: CreateScheduleData = {
-          activity_id: activityId,
-          staff_id: assignedStaffIds[0], // Use first staff for now (can be extended to support multiple)
-          title: activityName,
-          description: notes || undefined,
-          start_time: startISO,
-          end_time: endISO,
-          frequency: FREQ_TO_SCHEDULE_FREQ[freq],
-          is_recurring: freq !== "none",
-          recurring_until: freq !== "none" && endAt ? endISO : undefined,
-          status: "planned",
-          notes:
-            medName && medDose
-              ? `Medication: ${medName} ${medDose}`
-              : notes || undefined,
+      // Add care configuration only for Care events
+      if (eventType === "Care") {
+        const careConfig: CareConfiguration = {
+          subType: CARE_SUBTYPE_MAP[careSubType.toLowerCase()] || "VitalCheck",
+          frequency: freq !== "OneTime" ? FREQ_MAP[freq] : undefined,
         };
-
-        if (residentId) {
-          scheduleData.resident_id = residentId;
-        }
-
-        const scheduleResponse = await createSchedule(scheduleData);
-        toast.success("Care event created successfully!");
-
-        // Update local state for immediate UI update
-        const newEventCare: CareEvent = {
-          id: scheduleResponse.data.schedule_id,
-          priority,
-          datetimeISO: startISO,
-          dateISO: startISO.split("T")[0],
-          datetimeLabel: label,
-          staffName:
-            staffOptions
-              .filter((s) => assignedStaffIds.includes(s.id))
-              .map((s) => s.name)
-              .join(", ") || "Staff",
-          location: roomId
-            ? `Room ${
-                rooms.find((r) => r.room_id === roomId)?.room_number || ""
-              }`
-            : "",
-          type: careType,
-          eventName: activityName,
-          quantity: quantity || 0,
-          notes,
-        };
-
-        setCare((prev) => [newEventCare, ...prev]);
-        navigate(path.staffManageEvent, { state: { newEvent: newEventCare } });
-      } else {
-        // Family visit - use Visit API
-        const visitData = {
-          resident_id: residentId,
-          visit_date: startISO.split("T")[0],
-          visit_time: new Date(scheduledAt).toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }),
-          duration: Math.round(
-            (new Date(endAt).getTime() - new Date(scheduledAt).getTime()) /
-              (1000 * 60)
-          ),
-          purpose: "Family visit",
-          notes: notes || undefined,
-        };
-
-        // Note: Visit API is typically called by family members
-        // For staff creating visit, we might need a different endpoint
-        // For now, we'll create a schedule with social_interaction activity
-        const activityId = await getOrCreateActivity(
-          "Family Visit",
-          "social_interaction",
-          `Family visit for resident`
-        );
-
-        const scheduleData: CreateScheduleData = {
-          activity_id: activityId,
-          resident_id: residentId,
-          title: "Family Visit",
-          description: notes || undefined,
-          start_time: startISO,
-          end_time: endISO,
-          frequency: "one_time",
-          is_recurring: false,
-          status: "planned",
-          notes: notes || undefined,
-        };
-
-        const scheduleResponse = await createSchedule(scheduleData);
-        toast.success("Family visit scheduled successfully!");
-
-        const newEventVisit: FamilyVisit = {
-          id: scheduleResponse.data.schedule_id,
-          priority: "Normal",
-          resident:
-            residents.find((r) => r.resident_id === residentId)?.full_name ||
-            "",
-          family: familyUserId,
-          qr: createQR,
-          date: startISO.split("T")[0],
-          datetimeISO: startISO,
-          datetime: label,
-          endDatetime: endISO,
-          notes,
-        };
-
-        setVisits((prev) => [newEventVisit, ...prev]);
-        navigate(path.staffManageEvent, { state: { newEvent: newEventVisit } });
+        eventData.care_configuration = careConfig;
       }
+
+      console.log("📤 [createEvent] Sending event data:", eventData);
+      const response = await createEvent(eventData);
+      console.log("✅ [createEvent] Event created successfully!");
+      console.log("📦 [createEvent] Response:", response);
+      console.log("📦 [createEvent] Response.data:", response.data);
+      
+      toast.success("Event created successfully!");
+
+      console.log("🧭 [createEvent] Navigating to manage-event with state:", {
+        newEvent: response.data,
+      });
+      navigate(path.staffManageEvent, { state: { newEvent: response.data } });
     } catch (error: any) {
       console.error("Error creating event:", error);
       toast.error(
@@ -333,510 +161,339 @@ export default function StaffCreateEvent(): React.JSX.Element {
   }
 
   return (
-    <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
-      <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl ring-1 ring-gray-200 shadow-lg overflow-hidden flex flex-col">
-          <header className="px-6 py-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <ArrowLeft
-                  className="h-5 w-5 text-slate-700 cursor-pointer"
-                  onClick={() => navigate(path.staffManageEvent)}
-                />
-                <div>
-                  <h1
-                    className="text-2xl font-bold"
-                    style={{ color: "#5985d8" }}
-                  >
-                    Create Event
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    {new Date().toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </header>
+    <div className="relative flex flex-col min-h-screen font-sans text-slate-900 bg-gray-50/50">
+      {/* --- Background Decoration (Match UI Management) --- */}
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-transparent opacity-50 pointer-events-none"></div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            <form
-              onSubmit={onCreate}
-              className="grid grid-cols-1 gap-6 lg:grid-cols-3"
-            >
-              {/* Left column */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card className="rounded-2xl">
-                  <CardHeader>
-                    <CardTitle>Event details</CardTitle>
-                    <CardDescription>
-                      Choose type and fill required information
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-4 md:grid-cols-2">
-                    {/* event kind  */}
-                    <div className="flex flex-col gap-1">
-                      <Label>Event kind</Label>
-                      <Select
-                        value={kind}
-                        onValueChange={(v) => setKind(v as EventKind)}
-                      >
-                        <SelectTrigger className="border border-gray-200 bg-white">
-                          <SelectValue placeholder="Select kind" />
-                        </SelectTrigger>
-                        <SelectContent className="border border-gray-200 bg-white">
-                          <SelectItem value="care">Care event</SelectItem>
-                          <SelectItem value="visit">Family visit</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* quantity */}
-                    {kind === "care" && (
-                      <div className="flex flex-col gap-1">
-                        <Label>Quantity (Maximum) *</Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={quantity === 0 ? "" : String(quantity)}
-                          onChange={(e) =>
-                            setQuantity(Number(e.target.value) || 0)
-                          }
-                          onBlur={() => setQuantity(quantity || 1)}
-                          placeholder="Enter quantity"
-                          className="appearance-none border border-gray-200"
-                        />
-                      </div>
-                    )}
-
-                    {/* Resident selection only for visit */}
-                    {kind === "visit" && (
-                      <div className="flex flex-col gap-1">
-                        <Label>Resident *</Label>
-                        <Select
-                          value={residentId}
-                          onValueChange={setResidentId}
-                        >
-                          <SelectTrigger className="border border-gray-200 bg-white">
-                            <SelectValue placeholder="Select resident" />
-                          </SelectTrigger>
-                          <SelectContent className="border border-gray-200 bg-white">
-                            {residents.map((r) => (
-                              <SelectItem
-                                key={r.resident_id}
-                                value={r.resident_id}
-                              >
-                                {r.full_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                    {/* Hide event name field when family name is selected */}
-                    {kind !== "visit" && (
-                      <div className="flex flex-col gap-1 md:col-span-2">
-                        <Label>Event name *</Label>
-                        <Input
-                          value={eventName}
-                          onChange={(e) => setEventName(e.target.value)}
-                          placeholder="Enter event name"
-                          className="border border-gray-200"
-                        />
-                      </div>
-                    )}
-
-                    {/* from - to */}
-                    <div className="flex flex-col gap-1">
-                      <Label>Date & time *</Label>
-                      <div className="relative">
-                        <Calendar
-                          className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer"
-                          onClick={() => {
-                            const input = document.querySelector(
-                              'input[type="datetime-local"]'
-                            ) as HTMLInputElement;
-                            if (
-                              input &&
-                              typeof input.showPicker === "function"
-                            ) {
-                              input.showPicker();
-                            } else {
-                              alert("Please manually select a date and time.");
-                            }
-                          }}
-                        />
-                        <Input
-                          type="datetime-local"
-                          className="pl-8 border border-gray-200"
-                          value={scheduledAt}
-                          onChange={(e) => setScheduledAt(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <Label>End Date & time *</Label>
-                      <div className="relative">
-                        <Calendar
-                          className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer"
-                          onClick={() => {
-                            const input = document.querySelector(
-                              'input[name="end-datetime"]'
-                            ) as HTMLInputElement;
-                            if (
-                              input &&
-                              typeof input.showPicker === "function"
-                            ) {
-                              input.showPicker();
-                            } else {
-                              alert(
-                                "Please manually select an end date and time."
-                              );
-                            }
-                          }}
-                        />
-                        <Input
-                          name="end-datetime"
-                          type="datetime-local"
-                          className="pl-8 border border-gray-200"
-                          value={endAt}
-                          onChange={(e) => setEndAt(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Row 4: Notes */}
-                    <div className="flex flex-col gap-1 md:col-span-2">
-                      <Label>Notes</Label>
-                      <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Extra notes…"
-                        className="border border-gray-200"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* CARE-only block */}
-                {kind === "care" && (
-                  <Card className="rounded-2xl">
-                    <CardHeader>
-                      <CardTitle>Care configuration</CardTitle>
-                      <CardDescription>
-                        Assign staff, location, frequency…
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2">
-                      <div className="flex flex-col gap-1">
-                        <Label>Care type</Label>
-                        <Select
-                          value={careType}
-                          onValueChange={(v) => setCareType(v as CareType)}
-                        >
-                          <SelectTrigger className="border border-gray-200 bg-white">
-                            <SelectValue placeholder="Select care type" />
-                          </SelectTrigger>
-                          <SelectContent className="border border-gray-200 bg-white">
-                            <SelectItem value="vital_check">
-                              Vital check
-                            </SelectItem>
-                            <SelectItem value="medication">
-                              Medication
-                            </SelectItem>
-                            <SelectItem value="hygiene">Hygiene</SelectItem>
-                            <SelectItem value="therapy">Therapy</SelectItem>
-                            <SelectItem value="meal">
-                              Meal / Nutrition
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <Label>Assigned staff *</Label>
-                        <MultiSelect
-                          options={staffOptions.map((s) => ({
-                            value: s.id,
-                            label: s.name,
-                          }))}
-                          value={staffOptions
-                            .filter((s) => assignedStaffIds.includes(s.id))
-                            .map((s) => ({ value: s.id, label: s.name }))}
-                          onChange={(selected) =>
-                            setAssignedStaffIds(
-                              (selected || []).map((option) => option.value)
-                            )
-                          }
-                          placeholder="Select staff"
-                          isMulti
-                        />
-                      </div>
-
-                      {/* Room selection for health-related care events */}
-                      {isHealthRelated && (
-                        <div className="flex flex-col gap-1">
-                          <Label>Room (Optional)</Label>
-                          <Select
-                            value={roomId || "none"}
-                            onValueChange={(v) =>
-                              setRoomId(v === "none" ? "" : v)
-                            }
-                          >
-                            <SelectTrigger className="border border-gray-200 bg-white">
-                              <SelectValue placeholder="Select room" />
-                            </SelectTrigger>
-                            <SelectContent className="border border-gray-200 bg-white">
-                              <SelectItem value="none">None</SelectItem>
-                              {rooms.map((room) => (
-                                <SelectItem
-                                  key={room.room_id}
-                                  value={room.room_id}
-                                >
-                                  Room {room.room_number} ({room.type})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-
-                      <div className="flex flex-col gap-1">
-                        <Label>Priority</Label>
-                        <Select
-                          value={priority}
-                          onValueChange={(v) => setPriority(v as any)}
-                        >
-                          <SelectTrigger className="border border-gray-200 bg-white">
-                            <SelectValue placeholder="Priority" />
-                          </SelectTrigger>
-                          <SelectContent className="border border-gray-200 bg-white">
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <Label>Repeat</Label>
-                        <Select
-                          value={freq}
-                          onValueChange={(v) => setFreq(v as Frequency)}
-                        >
-                          <SelectTrigger className="border border-gray-200 bg-white">
-                            <SelectValue placeholder="No repeat" />
-                          </SelectTrigger>
-                          <SelectContent className="border border-gray-200 bg-white">
-                            <SelectItem value="none">None</SelectItem>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Medication extras */}
-                      {careType === "medication" && (
-                        <>
-                          <div className="flex flex-col gap-1">
-                            <Label>Medication name *</Label>
-                            <Input
-                              value={medName}
-                              onChange={(e) => setMedName(e.target.value)}
-                              placeholder="Amlodipine"
-                              className="border border-gray-200"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <Label>Dose *</Label>
-                            <Input
-                              value={medDose}
-                              onChange={(e) => setMedDose(e.target.value)}
-                              placeholder="5 mg"
-                              className="border border-gray-200"
-                            />
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-                {/* FAMILY VISIT */}
-                {kind === "visit" && (
-                  <Card className="rounded-2xl">
-                    <CardHeader>
-                      <CardTitle>Family visit</CardTitle>
-                      <CardDescription>
-                        QR will be used for check-in if enabled
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2">
-                      <div className="flex flex-col gap-1 md:col-span-1">
-                        <Label>Family user ID *</Label>
-                        <Input
-                          type="text"
-                          value={familyUserId}
-                          onChange={(e) => setFamilyUserId(e.target.value)}
-                          placeholder="Enter family user ID"
-                          className="border border-gray-200"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Enter the family member's user ID who will visit
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between rounded-lg border px-3 py-2 md:col-span-1">
-                        <div className="flex items-center gap-2">
-                          <QrCode className="h-4 w-4 text-slate-500" />
-                          <div>
-                            <p className="text-sm font-medium">
-                              Generate QR for check-in
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              QR code for family with the schedule.
-                            </p>
-                          </div>
-                        </div>
-                        <Checkbox
-                          checked={createQR}
-                          onCheckedChange={(v) => setCreateQR(v === true)}
-                          className="
-                                                                h-5 w-5 rounded-full border border-gray-300 bg-white
-                                                                data-[state=checked]:bg-black data-[state=checked]:border-black
-                                                                data-[state=checked]:text-white
-                                                                [&>svg]:h-3 [&>svg]:w-3
-                                                            "
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Right column – Summary & Actions */}
-              <div className="lg:col-span-1 text-left">
-                <Card className="rounded-2xl">
-                  <CardHeader>
-                    <CardTitle className="text-base text-center">
-                      Summary
-                    </CardTitle>
-                    <CardDescription className="text-center">
-                      Quick review before creating
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="text-sm">
-                      <p>
-                        <span className="text-left text-slate-500">Kind:</span>{" "}
-                        <span className="font-medium">{kind}</span>
-                      </p>
-                      <p className="flex items-left gap-1">
-                        <Clock className="h-3.5 w-3.5 text-slate-500" />
-                        {scheduledAt
-                          ? new Date(scheduledAt).toLocaleString()
-                          : "—"}
-                      </p>
-                      {kind === "care" && (
-                        <>
-                          <p>
-                            <span className="text-left text-slate-500">
-                              Event Name:
-                            </span>{" "}
-                            {eventName || "—"}
-                          </p>
-                          <p>
-                            <span className="text-left text-slate-500">
-                              Quantity:
-                            </span>{" "}
-                            {quantity || "—"}
-                          </p>
-                          <p>
-                            <span className="text-left text-slate-500">
-                              Care type:
-                            </span>{" "}
-                            {careType}
-                          </p>
-                          <p>
-                            <span className="text-left text-slate-500">
-                              Staff:
-                            </span>{" "}
-                            {staffOptions
-                              .filter((s) => assignedStaffIds.includes(s.id))
-                              .map((s) => s.name)
-                              .join(", ") || "Not selected"}
-                          </p>
-                          {roomId && (
-                            <p>
-                              <span className="text-left text-slate-500">
-                                Room:
-                              </span>{" "}
-                              {rooms.find((r) => r.room_id === roomId)
-                                ?.room_number || "N/A"}
-                            </p>
-                          )}
-                          <div className="flex items-left gap-2 mt-1">
-                            <Badge variant="secondary">
-                              Priority: {priority}
-                            </Badge>
-                            {freq !== "none" && (
-                              <Badge variant="outline">Repeat</Badge>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {kind === "visit" && (
-                        <>
-                          <p>
-                            <span className="text-slate-500">Resident:</span>{" "}
-                            {familyUserId ?? "—"}
-                          </p>
-                          <p>
-                            <span className="text-slate-500">Family:</span>{" "}
-                            {familyUserId ?? "—"}
-                          </p>
-                          <p>
-                            <span className="text-slate-500">QR:</span>{" "}
-                            {createQR ? "Yes" : "No"}
-                          </p>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" className="w-1/2">
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="w-1/2"
-                        style={{
-                          backgroundColor: "#5985d8",
-                          color: "white",
-                        }}
-                        disabled={!valid || isSubmitting}
-                      >
-                        {isSubmitting ? "Creating..." : "Create"}
-                      </Button>
-                    </div>
-                    {!valid && (
-                      <p className="text-xs text-amber-600">
-                        Fill required fields (time,{" "}
-                        {kind === "care" ? "assigned staff" : "family user"}
-                        …)
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </form>
+      <div className="container mx-auto max-w-6xl p-4 md:p-6 space-y-6">
+        {/* --- Header --- */}
+        <div className="flex items-center gap-4 mb-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full hover:bg-white hover:shadow-sm hover:text-blue-500 transition-all cursor-pointer"
+            onClick={() => navigate(path.staffManageEvent)}
+          >
+            <ArrowLeft className="h-5 w-5  text-inherit" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Create New Event
+            </h1>
+            <p className="text-sm text-slate-500">
+              Fill in the details to schedule a care activity or family visit.
+            </p>
           </div>
         </div>
+
+        <form
+          onSubmit={onCreate}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          {/* --- Left Column: Main Form --- */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* 1. General Info Card */}
+            <Card className="rounded-xl border-gray-200 shadow-sm bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
+                  <CardTitle className="text-lg">General Information</CardTitle>
+                </div>
+                <CardDescription>
+                  Choose event type and basic details.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 md:grid-cols-2">
+                {/* Event Type */}
+                <div className="space-y-2">
+                  <Label>Event Type *</Label>
+                  <Select
+                    value={eventType}
+                    onValueChange={(v) => setEventType(v as EventKind)}
+                  >
+                    <SelectTrigger className="bg-white border-b border-slate-200">
+                      <SelectValue placeholder="Select event type" />
+                    </SelectTrigger>
+                    <SelectContent className="border-b border-slate-200 bg-white">
+                      <SelectItem value="Care">Care Event</SelectItem>
+                      <SelectItem value="Entertainment">
+                        Entertainment
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Event Name */}
+                <div className="space-y-2">
+                  <Label>Event Name *</Label>
+                  <Input
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                    placeholder="e.g., Morning Yoga, Routine Checkup"
+                    className="bg-white border-b border-slate-200"
+                  />
+                </div>
+
+                {/* Date & Time (Improved UX with useRef) */}
+                <div className="space-y-2">
+                  <Label>Start Date & Time *</Label>
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() => scheduledAtRef.current?.showPicker()}
+                  >
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors z-10 " />
+                    <Input
+                      ref={scheduledAtRef}
+                      type="datetime-local"
+                      className="pl-10 bg-white cursor-pointer hover:border-blue-400 transition-colors border-b border-slate-200"
+                      value={scheduledAt}
+                      onChange={(e) => setScheduledAt(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>End Date & Time *</Label>
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() => endAtRef.current?.showPicker()}
+                  >
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-blue-500 transition-colors z-10" />
+                    <Input
+                      ref={endAtRef}
+                      name="end-datetime"
+                      type="datetime-local"
+                      className="pl-10 bg-white cursor-pointer hover:border-blue-400 transition-colors border-b border-slate-200"
+                      value={endAt}
+                      onChange={(e) => setEndAt(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Location */}
+                {/* <div className="space-y-2 md:col-span-2">
+                  <Label>
+                    Location (Optional - defaults to institution name)
+                  </Label>
+                  <Input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Leave empty to use institution name"
+                    className="bg-white border-b border-slate-200"
+                  />
+                </div> */}
+              </CardContent>
+            </Card>
+
+            {/* 2. Care Configuration Card (Conditional) */}
+            {eventType === "Care" && (
+              <Card className="rounded-xl border-gray-200 shadow-sm bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-1 bg-purple-500 rounded-full"></div>
+                    <CardTitle className="text-lg">
+                      Care Configuration
+                    </CardTitle>
+                  </div>
+                  <CardDescription>
+                    Assign staff and set category details.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Subtype *</Label>
+                    <Select
+                      value={careSubType}
+                      onValueChange={(v) =>
+                        setCareSubType(v as CareSubTypeLocal)
+                      }
+                    >
+                      <SelectTrigger className="bg-white border-b border-slate-200">
+                        <SelectValue placeholder="Select subtype" />
+                      </SelectTrigger>
+                      <SelectContent className="border-b border-slate-200 bg-white">
+                        <SelectItem value="VitalCheck">Vital Check</SelectItem>
+                        <SelectItem value="Therapy">Therapy</SelectItem>
+                        <SelectItem value="MedicationAdmin">
+                          Medication Admin
+                        </SelectItem>
+                        <SelectItem value="Hygiene">Hygiene</SelectItem>
+                        <SelectItem value="Meal">Meal / Nutrition</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Frequency</Label>
+                    <Select
+                      value={freq}
+                      onValueChange={(v) => setFreq(v as Frequency)}
+                    >
+                      <SelectTrigger className="bg-white border-b border-slate-200">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent className="border-b border-slate-200 bg-white">
+                        <SelectItem value="OneTime">One-time</SelectItem>
+                        <SelectItem value="Daily">Daily</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Multi-room selection for special care events */}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Rooms (Optional - for special care events)</Label>
+                    <MultiSelect
+                      options={rooms.map((room) => ({
+                        value: room.room_id,
+                        label: `Room ${room.room_number} (${room.type})`,
+                      }))}
+                      value={rooms
+                        .filter((r) => roomIds.includes(r.room_id))
+                        .map((r) => ({
+                          value: r.room_id,
+                          label: `Room ${r.room_number} (${r.type})`,
+                        }))}
+                      onChange={(selected) =>
+                        setRoomIds(
+                          (selected || []).map((option) => option.value)
+                        )
+                      }
+                      placeholder="Select rooms (optional)..."
+                      isMulti
+                      className="react-select-container"
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          borderRadius: "0.5rem",
+                          borderColor: "#e2e8f0",
+                          minHeight: "40px",
+                          fontSize: "0.875rem",
+                        }),
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* --- Right Column: Summary --- */}
+          <div className="lg:col-span-1">
+            <Card className="rounded-xl border-gray-200 shadow-md bg-white sticky top-24">
+              <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
+                <CardTitle className="text-base font-semibold text-center text-slate-800">
+                  Event Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-5">
+                {/* Timeline Visual */}
+                <div className="flex gap-3 items-start">
+                  <div className="mt-1 bg-blue-100 p-1.5 rounded-md">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="text-sm">
+                    <p className="font-medium text-slate-900">Schedule</p>
+                    <p className="text-slate-500">
+                      Start:{" "}
+                      {scheduledAt
+                        ? new Date(scheduledAt).toLocaleString()
+                        : "—"}
+                    </p>
+                    <p className="text-slate-500">
+                      End: {endAt ? new Date(endAt).toLocaleString() : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-dashed border-gray-200"></div>
+
+                {/* Details List */}
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Type</span>
+                    <Badge variant="outline" className="capitalize">
+                      {eventType}
+                    </Badge>
+                  </div>
+
+                  {eventType === "Care" && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Subtype</span>
+                        <span className="font-medium">{careSubType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Frequency</span>
+                        <span className="font-medium">{freq}</span>
+                      </div>
+                      {roomIds.length > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Rooms</span>
+                          <span className="font-medium">
+                            {roomIds.length} selected
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {location && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Location</span>
+                      <span className="font-medium truncate max-w-[120px]">
+                        {location}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Validation Warning */}
+                {!valid && (
+                  <div className="flex gap-2 p-3 bg-amber-50 text-amber-700 rounded-lg text-xs items-start">
+                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      Please complete all required fields (Event Type, Event
+                      Name, Start Time, End Time
+                      {eventType === "Care" ? ", Subtype" : ""}).
+                    </span>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="pt-2 space-y-3">
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                    disabled={!valid || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        Creating...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4" /> Confirm & Create
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-slate-500 hover:text-slate-700"
+                    onClick={() => navigate(path.staffManageEvent)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </form>
       </div>
     </div>
   );

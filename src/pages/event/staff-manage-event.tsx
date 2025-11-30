@@ -1,829 +1,1011 @@
-import React, { useState, useEffect } from "react";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import { Button } from "@/components/ui";
+import { Input } from "@/components/ui";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Funnel } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import type { CareEvent, FamilyVisit } from "@/layouts/staff-layout";
-import { useStaffLayoutContext } from "@/layouts/staff-layout";
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
+import { Badge } from "@/components/ui";
+
 import {
-  getSchedules,
-  updateSchedule,
-  deleteSchedule,
-  updateScheduleStatus,
-  type ScheduleResponse,
-} from "@/apis/schedule.api";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui";
+
+import { useNavigate, useLocation } from "react-router-dom";
+import { Calendar as CalendarIcon } from "lucide-react";
+import MultiSelect from "react-select";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import path from "@/constants/path";
+import { usePaginationQuerySync } from "@/hooks/use-pagination-query";
+import {
+  getEvents,
+  updateEvent,
+  deleteEvent,
+  type EventResponse,
+  type EventType,
+  type EventStatus,
+  type CareSubType,
+  type EventFrequency,
+} from "@/apis/event.api";
+import { getRooms, type RoomResponse } from "@/apis/room.api";
 import { toast } from "react-toastify";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { MoreVertical } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import path from "@/constants/path";
-
-type FilterState = {
-  from?: string; // YYYY-MM-DD
-  to?: string; // YYYY-MM-DD
-  priority?: "low" | "normal" | "high" | "urgent" | "all";
-  staff?: string | "all";
-  eventType?: string | "all"; // Added event type filter
+type StaffEvent = {
+  id: string;
+  name: string;
+  type: EventType;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  status: EventStatus;
+  careSubType?: CareSubType;
+  frequency?: EventFrequency;
+  roomIds?: string[];
 };
 
-type Props = {
-  value: FilterState;
-  onChange: (next: FilterState) => void;
-  staffOptions: Array<{ id: string; name: string }>;
-  eventTypeOptions: Array<string>; // Added prop for event type options
+// Zod schema for form validation
+const eventSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  type: z.enum(["Care", "Entertainment", "Other"]),
+  date: z.string().min(1, "Date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+  location: z.string().min(1, "Location is required"),
+  careSubType: z.string().optional(),
+  frequency: z.string().optional(),
+  roomIds: z.array(z.string()).optional(),
+  status: z.enum(["Upcoming", "Cancelled", "Ongoing", "Ended"]),
+});
+
+const defaultValues: z.infer<typeof eventSchema> = {
+  name: "",
+  type: "Care",
+  date: "",
+  startTime: "",
+  endTime: "",
+  location: "",
+  careSubType: "",
+  frequency: "",
+  roomIds: [],
+  status: "Upcoming",
 };
 
-export function FilterButton({ value, onChange, staffOptions }: Props) {
-  const [open, setOpen] = React.useState(false);
-  const [draft, setDraft] = React.useState<FilterState>(value);
+const RANGE = 2;
+type PaginationItem = number | "ellipsis";
 
-  // Sync value to draft when Popover opens
-  React.useEffect(() => {
-    if (open) setDraft(value);
-  }, [open, value]);
+const buildPaginationItems = (
+  currentPage: number,
+  totalPages: number
+): PaginationItem[] => {
+  if (totalPages <= 1) return [1];
 
-  const set = (patch: Partial<FilterState>) =>
-    setDraft((prev) => ({ ...prev, ...patch }));
+  const candidates = new Set<number>();
+  for (let i = currentPage - RANGE; i <= currentPage + RANGE; i += 1) {
+    if (i >= 1 && i <= totalPages) {
+      candidates.add(i);
+    }
+  }
+  candidates.add(1);
+  if (totalPages >= 2) {
+    candidates.add(2);
+    candidates.add(totalPages);
+    if (totalPages - 1 > 0) {
+      candidates.add(totalPages - 1);
+    }
+  }
 
-  const clearDraft = () =>
-    setDraft({ from: "", to: "", priority: "all", staff: "all" });
+  const sorted = Array.from(candidates).sort((a, b) => a - b);
+  const result: PaginationItem[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0) {
+      const prev = sorted[index - 1];
+      if (page - prev > 1) {
+        result.push("ellipsis");
+      }
+    }
+    result.push(page);
+  });
+  return result;
+};
 
-  const apply = () => {
-    // Normalize draft before applying
-    const normalized: FilterState = {
-      from: draft.from || "",
-      to: draft.to || "",
-      priority: (draft.priority ?? "all") as any,
-      staff: (draft.staff ?? "all") as any,
-    };
-    onChange(normalized);
-    setOpen(false);
-  };
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Funnel className="h-4 w-4" />
-          Filter
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent className="w-80 p-4 z-50">
-        {/* Time range */}
-        <div className="space-y-2">
-          <Label className="text-xs">Time range</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label htmlFor="from" className="text-[11px] text-slate-500">
-                From
-              </Label>
-              <Input
-                id="from"
-                type="date"
-                value={draft.from || ""}
-                onChange={(e) => set({ from: e.target.value })}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="to" className="text-[11px] text-slate-500">
-                To
-              </Label>
-              <Input
-                id="to"
-                type="date"
-                value={draft.to || ""}
-                onChange={(e) => set({ to: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Priority */}
-        <div className="mt-3 space-y-2">
-          <Label className="text-xs">Priority</Label>
-          <Select
-            value={draft.priority || "all"}
-            onValueChange={(v: string) => set({ priority: v as any })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="normal">Normal</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Staff */}
-        <div className="mt-3 space-y-2">
-          <Label className="text-xs">Staff</Label>
-          <Select
-            value={(draft.staff as string) || "all"}
-            onValueChange={(v: string) => set({ staff: v as any })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select staff" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All staff</SelectItem>
-              {staffOptions.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Actions */}
-        <div className="mt-4 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={clearDraft}>
-            Clear
-          </Button>
-          <Button
-            size="sm"
-            className="bg-blue-500 text-white hover:bg-blue-600"
-            onClick={apply}
-          >
-            Apply
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-export default function StaffManageEvent(): React.JSX.Element {
+const StaffEventManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    care: initialCare,
-    visits: initialVisits,
-    setCare,
-    setVisits,
-  } = useStaffLayoutContext();
-
-  const [filters, setFilters] = useState<FilterState>({
-    priority: "all",
-    staff: "all",
+  const { page, limit, setPage, setLimit } = usePaginationQuerySync(10);
+  const [events, setEvents] = useState<StaffEvent[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
   });
-  const [careEvents, setCareEvents] = useState<CareEvent[]>(initialCare);
-  const [familyVisits, setFamilyVisits] =
-    useState<FamilyVisit[]>(initialVisits);
-  const [notifications, setNotifications] = useState<
-    {
-      id: string;
-      type: string;
-      message: string;
-      timestamp: Date;
-    }[]
-  >([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<EventStatus | "all">("all");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterCareType, setFilterCareType] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [filterFrom, setFilterFrom] = useState<string>("");
+  const [filterTo, setFilterTo] = useState<string>("");
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<RoomResponse[]>([]);
+  const previousLocationKey = useRef<string | undefined>(undefined);
 
-  // Fetch schedules from BE
+  const form = useForm<z.infer<typeof eventSchema>>({
+    resolver: zodResolver(eventSchema),
+    defaultValues,
+  });
+
+  // sync local hour/minute with form's startTime
+  const startTimeValue = form.watch("startTime");
   useEffect(() => {
-    const fetchSchedules = async () => {
+    const st = startTimeValue || "";
+    if (st && st.includes(":")) {
+      st.split(":"); // Split the time string without assigning unused variables
+    }
+  }, [startTimeValue]);
+
+  // Shared function to refresh events with pagination
+  const refreshEventsList = useCallback(async () => {
+    try {
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - 30);
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + 30);
+
+      const skip = (page - 1) * limit;
+
+      const response = await getEvents({
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        take: limit,
+        skip: skip,
+      });
+
+      const events = response.data?.events || [];
+      const paginationData = response.data?.pagination;
+
+      if (paginationData) {
+        setPagination({
+          page: paginationData.page,
+          limit: paginationData.limit,
+          total: paginationData.total,
+          totalPages: paginationData.totalPages,
+        });
+      } else {
+        // Fallback if pagination not available
+        const total = response.data?.total || 0;
+        setPagination({
+          page,
+          limit,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+        });
+      }
+
+      const mappedEvents = events.map((e: EventResponse) => {
+        return mapEventToStaffEvent(e);
+      });
+
+      setEvents(mappedEvents);
+      return mappedEvents;
+    } catch (error: any) {
+      console.error("❌ [refreshEventsList] Failed to refresh events:", error);
+      toast.error(
+        "Không thể tải lại danh sách sự kiện. Vui lòng refresh trang."
+      );
+      return [];
+    }
+  }, [page, limit]);
+
+  // Fetch events and rooms from API on mount
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        setLoading(true);
-        const response = await getSchedules({
-          start_date: filters.from,
-          end_date: filters.to,
-        });
+        const [eventsResponse, roomsResponse] = await Promise.all([
+          refreshEventsList(),
+          getRooms(),
+        ]);
 
-        const schedules = response.data?.schedules || [];
-
-        // Convert schedules to care events and visits
-        const careEventsList: CareEvent[] = [];
-        const visitsList: FamilyVisit[] = [];
-
-        schedules.forEach((schedule: ScheduleResponse) => {
-          const activityType = schedule.activity?.type;
-
-          if (activityType === "social_interaction") {
-            // Family visit
-            visitsList.push({
-              id: schedule.schedule_id,
-              priority: "Normal",
-              resident: schedule.resident?.full_name || "",
-              family: schedule.staff?.staffProfile?.full_name || "",
-              qr: false,
-              date: schedule.start_time.split("T")[0],
-              datetimeISO: schedule.start_time,
-              datetime: new Date(schedule.start_time).toLocaleString(),
-              endDatetime: schedule.end_time,
-              notes: schedule.notes,
-            });
-          } else {
-            // Care event
-            careEventsList.push({
-              id: schedule.schedule_id,
-              priority: "normal",
-              datetimeISO: schedule.start_time,
-              dateISO: schedule.start_time.split("T")[0],
-              datetimeLabel: new Date(schedule.start_time).toLocaleString(),
-              staffName: schedule.staff?.staffProfile?.full_name || "Staff",
-              location: "",
-              type: activityType || "other",
-              eventName: schedule.title,
-              quantity: 1,
-              notes: schedule.notes,
-              status: schedule.status as any,
-            });
-          }
-        });
-
-        setCareEvents(careEventsList);
-        setFamilyVisits(visitsList);
-        setCare(careEventsList);
-        setVisits(visitsList);
+        setRooms(roomsResponse.data || []);
+        console.log(
+          "Initial fetch completed:",
+          eventsResponse.length,
+          "events"
+        );
       } catch (error: any) {
-        console.error("Error fetching schedules:", error);
-        toast.error("Failed to load events");
-      } finally {
-        setLoading(false);
+        console.error("Failed to fetch data:", error);
+        toast.error("Không thể tải danh sách sự kiện. Vui lòng thử lại sau.");
+        setEvents([]);
       }
     };
 
-    fetchSchedules();
-  }, [filters.from, filters.to, setCare, setVisits]);
+    fetchData();
+  }, [refreshEventsList]);
 
-  const byTimeAsc = (
-    a: { datetimeISO?: string; datetime?: string },
-    b: { datetimeISO?: string; datetime?: string }
-  ) => {
-    const aTime = a.datetimeISO ?? a.datetime ?? "";
-    const bTime = b.datetimeISO ?? b.datetime ?? "";
-    return aTime.localeCompare(bTime);
-  };
-
+  // Handle new event from create page - refresh from server to get correct status
+  // Use location.key to detect navigation changes
   useEffect(() => {
-    console.log("[Manage] location.state:", location.state);
-    console.log(
-      "[Manage Event] Location State New Event:",
-      location.state?.newEvent
-    );
-    const ev = location.state?.newEvent as
-      | ({ kind: "care" } & Partial<CareEvent>)
-      | ({ kind: "visit" } & Partial<FamilyVisit>)
-      | undefined;
+    const hasNewEvent = location.state?.newEvent;
+    const locationKeyChanged = previousLocationKey.current !== location.key;
 
-    if (!ev) return;
-    console.log("[Manage] newEvent:", ev);
+    // Always refresh if we have newEvent in state, or if location key changed (navigation occurred)
+    if (
+      hasNewEvent ||
+      (locationKeyChanged && previousLocationKey.current !== undefined)
+    ) {
+      console.log(
+        "Navigation detected. Has new event:",
+        hasNewEvent,
+        "Location key changed:",
+        locationKeyChanged,
+        "Current location key:",
+        location.key,
+        "Previous location key:",
+        previousLocationKey.current
+      );
 
-    if (ev.kind === "care") {
-      const mapped: CareEvent = {
-        id: ev.id ?? crypto.randomUUID(),
-        priority: (ev.priority ?? "normal") as CareEvent["priority"],
-        eventName: ev.eventName ?? "Unknown",
-        datetimeISO: ev.datetimeISO!,
-        dateISO: ev.dateISO!,
-        datetimeLabel: ev.datetimeLabel!,
-        staffName: ev.staffName ?? "N/A",
-        location: ev.location || "",
-        type: ev.type ?? "General",
-        quantity: ev.quantity ?? 1,
+      // Refresh events from server to ensure correct status and room_ids
+      const refreshEvents = async () => {
+        try {
+          const refreshedEvents = await refreshEventsList();
+
+          // Reset filters to show all events
+          setFilterStatus("all");
+          setFilterType("all");
+          setFilterCareType("all");
+          setFilterFrom("");
+          setFilterTo("");
+
+          if (hasNewEvent) {
+            if (refreshedEvents.length > 0) {
+              toast.success("Sự kiện đã được tạo và hiển thị trong danh sách!");
+            } else {
+              toast.warning(
+                "Sự kiện đã được tạo nhưng không tìm thấy trong danh sách. Vui lòng kiểm tra lại."
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error refreshing events:", error);
+        }
       };
-      setCareEvents((prev: CareEvent[]) =>
-        prev.some((x: CareEvent) => x.id === mapped.id)
-          ? prev
-          : [mapped, ...prev]
-      );
-    } else if (ev.kind === "visit") {
-      const mapped = {
-        id: ev.id ?? crypto.randomUUID(),
-        priority: ev.priority ?? "Normal",
-        resident: ev.resident ?? "",
-        datetime: ev.date ?? ev.datetime ?? ev.datetimeISO ?? "",
-        datetimeISO: ev.datetimeISO ?? ev.datetime ?? "",
-        family: ev.family ?? "",
-        qr: Boolean(ev.qr),
-        quantity: (ev as any).quantity ?? 1,
-        notes: ev.notes ?? undefined,
-      } as unknown as FamilyVisit;
-      setFamilyVisits((prev: FamilyVisit[]) =>
-        prev.some((x: FamilyVisit) => x.id === mapped.id)
-          ? prev
-          : [mapped, ...prev]
-      );
+
+      refreshEvents();
+
+      // Update previous location key
+      previousLocationKey.current = location.key;
+
+      // Clear location.state to prevent re-triggering
+      if (hasNewEvent) {
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    } else {
+      // Update previous location key even if no refresh (first mount)
+      if (previousLocationKey.current === undefined) {
+        previousLocationKey.current = location.key;
+      }
+    }
+  }, [
+    location.state,
+    location.key,
+    location.pathname,
+    refreshEventsList,
+    navigate,
+  ]);
+
+  // Filter events based on criteria
+  const filteredEvents = events.filter((e) => {
+    const statusOk = filterStatus === "all" || e.status === filterStatus;
+    const typeOk = filterType === "all" || e.type === filterType;
+
+    const careTypeOk =
+      e.type !== "Care" ||
+      filterCareType === "all" ||
+      e.careSubType === filterCareType;
+
+    const dateOk = (() => {
+      const eventDate = new Date(e.date).getTime();
+      const from = filterFrom ? new Date(filterFrom).getTime() : null;
+      const to = filterTo ? new Date(filterTo).getTime() : null;
+
+      if (from && to) return eventDate >= from && eventDate <= to;
+      if (from) return eventDate >= from;
+      if (to) return eventDate <= to;
+
+      return true;
+    })();
+
+    const passes = statusOk && typeOk && careTypeOk && dateOk;
+
+    if (!passes) {
+      console.log("🚫 [filteredEvents] Event filtered out:", {
+        id: e.id,
+        name: e.name,
+        status: e.status,
+        filterStatus,
+        statusOk,
+        type: e.type,
+        filterType,
+        typeOk,
+        careTypeOk,
+        dateOk,
+      });
     }
 
-    setFilters({ from: "", to: "", priority: "all", staff: "all" });
-
-    // Ensure location.state is cleared after processing newEvent
-    if (ev) {
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state, navigate, location.pathname]);
-
-  //filter
-  const toNum = (d?: string) => (d ? Number(d.replaceAll("-", "")) : undefined);
-  const fNum = toNum(filters.from);
-  const tNum = toNum(filters.to);
-  const validRange = !fNum || !tNum || fNum <= tNum;
-
-  const filteredCareEvents = careEvents.filter((e) => {
-    const dNum = toNum(e.dateISO);
-
-    if (validRange) {
-      if (fNum && (dNum ?? 0) < fNum) return false;
-      if (tNum && (dNum ?? 99999999) > tNum) return false;
-    }
-
-    const prOk =
-      !filters.priority ||
-      filters.priority === "all" ||
-      e.priority === filters.priority;
-    const stOk =
-      !filters.staff ||
-      filters.staff === "all" ||
-      e.staffName.toLowerCase() === (filters.staff as string).toLowerCase();
-    return prOk && stOk;
+    return passes;
   });
 
-  const filteredFamilyVisits = familyVisits.filter(() => true);
+  console.log("🔍 [filteredEvents] Filter results:", {
+    totalEvents: events.length,
+    filteredCount: filteredEvents.length,
+    filters: {
+      status: filterStatus,
+      type: filterType,
+      careType: filterCareType,
+      from: filterFrom,
+      to: filterTo,
+    },
+  });
 
-  const staffOptions = [
-    { id: "s1", name: "Nurse Linh" },
-    { id: "s2", name: "Nurse Hoa" },
-    { id: "s3", name: "Dr. Nam" },
-  ];
-
-  const careSorted = React.useMemo(
-    () => [...filteredCareEvents].sort(byTimeAsc),
-    [filteredCareEvents]
-  );
-  const visitsSorted = React.useMemo(
-    () => [...filteredFamilyVisits].sort(byTimeAsc),
-    [filteredFamilyVisits]
-  );
-
-  // Function to add a notification
-  const addNotification = (type: string, message: string) => {
-    setNotifications((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), type, message, timestamp: new Date() },
-    ]);
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await deleteEvent(id);
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+      toast.success("Event deleted successfully");
+      setToastMessage("Event deleted");
+    } catch (error: any) {
+      console.error("Failed to delete event:", error);
+      toast.error(error.response?.data?.message || "Failed to delete event");
+      setToastMessage("Error deleting event");
+    }
   };
 
-  const formatNotificationMessage = (
-    eventType: string,
-    eventName: string | undefined,
-    fromDate: string,
-    toDate: string,
-    reason: string
-  ) => {
-    const namePart = eventName ? ` '${eventName}'` : "";
-    return `${eventType}${namePart} from ${fromDate} to ${toDate} has ${reason}.`;
+  const openEditDialog = (event: StaffEvent) => {
+    try {
+      setEditingEventId(event.id);
+
+      // event.startTime và event.endTime là string "HH:MM", event.date là "YYYY-MM-DD"
+      const dateStr = event.date;
+      const startTimeStr = event.startTime; // Already in "HH:MM" format
+      const endTimeStr = event.endTime; // Already in "HH:MM" format
+
+      form.reset({
+        name: event.name,
+        type: event.type,
+        date: dateStr,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        location: event.location,
+        careSubType: event.careSubType || "",
+        frequency: event.frequency || "",
+        roomIds: event.roomIds || [],
+        status: event.status,
+      });
+
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Error opening edit dialog:", error);
+      toast.error("Không thể mở form chỉnh sửa. Vui lòng thử lại.");
+    }
   };
 
+  const saveUpdateEvent = async (values: z.infer<typeof eventSchema>) => {
+    if (!editingEventId) return;
+
+    try {
+      const startDateTime = new Date(`${values.date}T${values.startTime}`);
+      const endDateTime = new Date(`${values.date}T${values.endTime}`);
+
+      const updateData: any = {
+        name: values.name,
+        type: values.type,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        location: values.location,
+        room_ids: values.roomIds || [],
+      };
+
+      // Only allow Cancelled status to be set manually; Ongoing/Ended are auto-calculated
+      if (values.status === "Cancelled") {
+        updateData.status = "Cancelled";
+      }
+
+      // Update care configuration if type is Care
+      if (values.type === "Care" && values.careSubType) {
+        updateData.care_configuration = {
+          subType: values.careSubType,
+          frequency: values.frequency || undefined,
+        };
+      }
+
+      await updateEvent(editingEventId, updateData);
+
+      // Refresh events list using shared function
+      await refreshEventsList();
+
+      setDialogOpen(false);
+      toast.success("Event updated successfully");
+      setToastMessage("Event updated successfully");
+    } catch (error: any) {
+      console.error("Failed to update event:", error);
+      toast.error(error.response?.data?.message || "Failed to update event");
+    }
+  };
+
+  // Notification Logic
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const upcomingEvents = careEvents.filter((e) => {
-        const eventTime = new Date(e.datetimeISO).getTime();
-        return eventTime - now <= 15 * 60 * 1000 && eventTime > now;
+      const now = Date.now();
+      const upcoming = events.filter((e) => {
+        const start = new Date(`${e.date}T${e.startTime}`).getTime();
+        return start - now <= 15 * 60 * 1000 && start > now;
       });
-
-      upcomingEvents.forEach((event) => {
-        addNotification(
-          "upcoming",
-          `Event '${event.eventName}' is starting soon.`
-        );
-      });
-    }, 60 * 1000);
-
+      if (upcoming.length) setToastMessage(`Upcoming: ${upcoming[0].name}`);
+    }, 60_000);
     return () => clearInterval(interval);
-  }, [careEvents]);
-
-  const removeEvent = (
-    eventId: string,
-    reason: string,
-    eventType: string,
-    eventName?: string,
-    fromDate?: string,
-    toDate?: string
-  ) => {
-    setCareEvents((prev) => prev.filter((e) => e.id !== eventId));
-    setFamilyVisits((prev) => prev.filter((v) => v.id !== eventId));
-    const message = formatNotificationMessage(
-      eventType,
-      eventName,
-      fromDate || "N/A",
-      toDate || "N/A",
-      reason
-    );
-    addNotification("info", message);
-  };
-
-  const handleMarkAsDone = (
-    eventId: string,
-    eventType: string,
-    eventName: string,
-    fromDate: string,
-    toDate: string
-  ) => {
-    removeEvent(
-      eventId,
-      "been marked as done",
-      eventType,
-      eventName,
-      fromDate,
-      toDate
-    );
-  };
-
-  const renderNotifications = () => (
-    <div className="absolute top-20 right-0 w-80 bg-white shadow-lg rounded-lg p-4">
-      <h3 className="text-lg font-bold text-left">Notifications</h3>
-      <ul>
-        {notifications.map((n) => (
-          <li key={n.id} className="border-b py-2 text-left">
-            <p className="text-sm text-left">{n.message}</p>
-            <p className="text-xs text-gray-500 text-left">
-              {n.timestamp.toLocaleTimeString()}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const calculateRemainingSeats = (
-    event: { quantity?: number; attendees?: any[] } | FamilyVisit | undefined
-  ) => {
-    const qty = (event as any)?.quantity;
-    const attendees = (event as any)?.attendees;
-    if (typeof qty === "number" && Array.isArray(attendees)) {
-      return qty - attendees.length;
-    }
-    if (typeof qty === "number") {
-      return qty;
-    }
-    return undefined;
-  };
+  }, [events]);
 
   return (
-    <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
-      <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl ring-1 ring-gray-200 shadow-lg overflow-hidden flex flex-col">
-          {/* HEADER */}
-          <header className="px-6 py-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-2xl font-bold" style={{ color: "#5985d8" }}>
-                Manage Event
-              </h1>
+    <div className="relative flex flex-col min-h-screen p-4">
+      <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(120%_120%_at_0%_100%,#dfe9ff_0%,#ffffff_45%,#efd8d3_100%)]"></div>
+      <div className="container max-w-full mx-auto p-4 bg-white rounded-lg border border-gray-200 space-y-6">
+        <h1 className="text-2xl font-bold">Staff Event Management</h1>
 
-              <div className="flex items-center gap-4">
-                {/* Add Event Button */}
-                <button
-                  type="button"
-                  className="relative z-50 h-10 w-10 inline-flex items-center justify-center rounded-full bg-white text-black shadow-md hover:bg-gray-100 focus:outline-none"
-                  onClick={() => navigate(path.staffCreateEvent)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  aria-label="Add Event"
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Select
+            value={filterStatus}
+            onValueChange={(value: string) =>
+              setFilterStatus(value as EventStatus | "all")
+            }
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent className="border-b border-slate-200 bg-white">
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="Upcoming">Upcoming</SelectItem>
+              <SelectItem value="Ongoing">Ongoing</SelectItem>
+              <SelectItem value="Ended">Ended</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by Type" />
+            </SelectTrigger>
+            <SelectContent className="border-b border-slate-200 bg-white">
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="Care">Care Event</SelectItem>
+              <SelectItem value="Entertainment">Entertainment</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterCareType} onValueChange={setFilterCareType}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by Care Type" />
+            </SelectTrigger>
+            <SelectContent className="border-b border-slate-200 bg-white">
+              <SelectItem value="all">All Care Types</SelectItem>
+              <SelectItem value="vital_check">Vital Check</SelectItem>
+              <SelectItem value="therapy">Therapy</SelectItem>
+              <SelectItem value="hygiene">Hygiene</SelectItem>
+              <SelectItem value="entertainment">Entertainment</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex flex-col sm:flex-row gap-4 relative bg-white">
+            <div
+              className="relative cursor-pointer"
+              onClick={() => {
+                const input = document.getElementById(
+                  "filter-from"
+                ) as HTMLInputElement;
+                input?.showPicker?.();
+              }}
+            >
+              <CalendarIcon
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer z-10"
+                onClick={() => {
+                  const input = document.getElementById(
+                    "filter-from"
+                  ) as HTMLInputElement;
+                  input?.showPicker?.();
+                }}
+              />
+              <Input
+                id="filter-from"
+                type="date"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="pl-8 bg-white"
+              />
+            </div>
+
+            <div
+              className="relative cursor-pointer"
+              onClick={() => {
+                const input = document.getElementById(
+                  "filter-to"
+                ) as HTMLInputElement;
+                input?.showPicker?.();
+              }}
+            >
+              <CalendarIcon
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer z-10"
+                onClick={() => {
+                  const input = document.getElementById(
+                    "filter-to"
+                  ) as HTMLInputElement;
+                  input?.showPicker?.();
+                }}
+              />
+              <Input
+                id="filter-to"
+                type="date"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="pl-8 bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Clear Filters Button */}
+          <Button
+            className="bg-gray-400 text-white hover:bg-gray-600 cursor-pointer"
+            onClick={() => {
+              setFilterStatus("all");
+              setFilterType("all");
+              setFilterCareType("all");
+              setFilterFrom("");
+              setFilterTo("");
+            }}
+          >
+            Clear
+          </Button>
+        </div>
+
+        <div className="flex justify-center">
+          <Button
+            className="bg-blue-500 text-white hover:bg-blue-500 cursor-pointer hover:opacity-90"
+            onClick={() => navigate(path.staffCreateEvent)}
+          >
+            Add New Event
+          </Button>
+        </div>
+
+        {/* Events Table */}
+        <div className="overflow-visible">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-slate-200">
+                <TableHead className="text-center">Name</TableHead>
+                <TableHead className="text-center">Type</TableHead>
+                <TableHead className="text-center">Date</TableHead>
+                <TableHead className="text-center">Time</TableHead>
+                <TableHead className="text-center">Location</TableHead>
+                <TableHead className="text-center">Rooms</TableHead>
+                <TableHead className="text-center">Frequency</TableHead>
+                <TableHead className="text-center">Subtype</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEvents.map((event) => (
+                <TableRow
+                  key={event.id}
+                  className="hover:bg-transparent border-b border-slate-200"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    className="h-6 w-6 flex-none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 4.5v15m7.5-7.5h-15"
-                    />
-                  </svg>
-                </button>
+                  <TableCell className="text-left whitespace-pre-line">
+                    {event.name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-500 text-white hover:bg-blue-500"
+                    >
+                      {event.type === "Care"
+                        ? event.careSubType || "General"
+                        : event.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{event.date}</TableCell>
+                  <TableCell>
+                    {event.startTime} - {event.endTime}
+                  </TableCell>
+                  <TableCell>{event.location}</TableCell>
+                  <TableCell>
+                    {event.roomIds && event.roomIds.length > 0
+                      ? rooms
+                          .filter((r) => event.roomIds?.includes(r.room_id))
+                          .map((r) => r.room_number)
+                          .join(", ")
+                      : "—"}
+                  </TableCell>
+                  <TableCell>{event.frequency || "—"}</TableCell>
+                  <TableCell>{event.careSubType || "—"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        event.status === "Upcoming"
+                          ? "bg-blue-500 text-white hover:bg-blue-500"
+                          : event.status === "Ongoing"
+                          ? "bg-green-500 text-white hover:bg-green-500"
+                          : event.status === "Ended"
+                          ? "bg-gray-400 text-white hover:bg-gray-400 "
+                          : "bg-red-500 text-white hover:bg-red-500"
+                      }
+                    >
+                      {event.status}
+                    </Badge>
+                  </TableCell>
 
-                {/* Filter Button */}
-                <div className="relative z-50">
-                  <FilterButton
-                    value={{ ...filters }}
-                    onChange={(next) => setFilters(next)}
-                    staffOptions={staffOptions}
-                    eventTypeOptions={["all", "care", "visit"]}
+                  <TableCell className="grid grid-cols-3 ">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white border border-slate-200 cursor-pointer hover:bg-blue-500 hover:text-white"
+                      onClick={() => openEditDialog(event)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="ml-2 cursor-pointer bg-white border border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
+                      onClick={() => handleDeleteEvent(event.id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-gray-200">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <span>
+              Hiển thị {pagination.total === 0 ? 0 : (page - 1) * limit + 1}-
+              {Math.min(page * limit, pagination.total)} / {pagination.total} sự
+              kiện
+            </span>
+            <label className="flex items-center gap-2">
+              <span className="text-gray-600 whitespace-nowrap">
+                Số dòng / trang
+              </span>
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5985d8]"
+              >
+                {[10, 20, 50].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {(() => {
+              const paginationItems = buildPaginationItems(
+                pagination.page,
+                pagination.totalPages
+              );
+              const canGoPrev = pagination.page > 1;
+              const canGoNext = pagination.page < pagination.totalPages;
+
+              return (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => canGoPrev && setPage(pagination.page - 1)}
+                    disabled={!canGoPrev}
+                    className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer"
+                  >
+                    Trước
+                  </button>
+                  {paginationItems.map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="px-2 text-gray-500"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setPage(item)}
+                        className={`px-3 py-1 rounded border text-sm cursor-pointer ${
+                          item === pagination.page
+                            ? "bg-[#5985d8] text-white border-[#5985d8]"
+                            : "bg-white text-gray-700"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => canGoNext && setPage(pagination.page + 1)}
+                    disabled={!canGoNext}
+                    className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer"
+                  >
+                    Sau
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Toast for notifications */}
+        {toastMessage && (
+          <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded shadow">
+            {toastMessage}
+          </div>
+        )}
+
+        {dialogOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-full max-w-xl shadow-lg space-y-6">
+              <h2 className="text-2xl font-bold text-center">Edit Event</h2>
+
+              <form
+                onSubmit={form.handleSubmit(saveUpdateEvent)}
+                className="space-y-4"
+              >
+                {/* 1. NAME */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Name</label>
+                  <Input {...form.register("name")} className="flex-1" />
+                </div>
+
+                {/* 2. TYPE */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Type</label>
+                  <Select
+                    value={form.watch("type")}
+                    onValueChange={(v) => form.setValue("type", v as any)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Choose type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Care">Care Event</SelectItem>
+                      <SelectItem value="Entertainment">
+                        Entertainment
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 2.1 CARE CONFIGURATION (if type=Care) */}
+                {form.watch("type") === "Care" && (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <label className="w-36 text-sm font-medium">
+                        Subtype
+                      </label>
+                      <Select
+                        value={form.watch("careSubType")}
+                        onValueChange={(v) => form.setValue("careSubType", v)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Choose subtype" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="VitalCheck">
+                            Vital Check
+                          </SelectItem>
+                          <SelectItem value="Therapy">Therapy</SelectItem>
+                          <SelectItem value="MedicationAdmin">
+                            Medication Admin
+                          </SelectItem>
+                          <SelectItem value="Hygiene">Hygiene</SelectItem>
+                          <SelectItem value="Meal">Meal</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="w-36 text-sm font-medium">
+                        Frequency
+                      </label>
+                      <Select
+                        value={form.watch("frequency")}
+                        onValueChange={(v) => form.setValue("frequency", v)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Choose frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="OneTime">One-time</SelectItem>
+                          <SelectItem value="Daily">Daily</SelectItem>
+                          <SelectItem value="Weekly">Weekly</SelectItem>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="w-36 text-sm font-medium">Rooms</label>
+                      <div className="flex-1">
+                        <MultiSelect
+                          options={rooms.map((room) => ({
+                            value: room.room_id,
+                            label: `Room ${room.room_number} (${room.type})`,
+                          }))}
+                          value={rooms
+                            .filter((r) =>
+                              form.watch("roomIds")?.includes(r.room_id)
+                            )
+                            .map((r) => ({
+                              value: r.room_id,
+                              label: `Room ${r.room_number} (${r.type})`,
+                            }))}
+                          onChange={(selected) =>
+                            form.setValue(
+                              "roomIds",
+                              (selected || []).map((option) => option.value)
+                            )
+                          }
+                          placeholder="Select rooms (optional)..."
+                          isMulti
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              borderRadius: "0.5rem",
+                              borderColor: "#e2e8f0",
+                              minHeight: "40px",
+                              fontSize: "0.875rem",
+                            }),
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* 3. DATE */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Date</label>
+                  <Input
+                    type="date"
+                    {...form.register("date")}
+                    className="flex-1"
                   />
                 </div>
 
-                {/* Notification Icon */}
-                <button
-                  className="relative z-50 rounded-full p-2 hover:bg-gray-100"
-                  onClick={() => setShowNotifications((p) => !p)}
-                  aria-label="Notification"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 22.5c1.5 0 2.25-.75 2.25-2.25h-4.5c0 1.5.75 2.25 2.25 2.25zm6.75-6.75v-4.5c0-3.75-2.25-6-6-6s-6 2.25-6 6v4.5l-1.5 1.5v.75h15v-.75l-1.5-1.5z"
-                    />
-                  </svg>
-                  {notifications.length > 0 && (
-                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
-                      {notifications.length}
-                    </span>
-                  )}
-                </button>
-                {showNotifications && renderNotifications()}
-              </div>
-            </div>
-          </header>
-
-          {/* CONTENT */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            <div className="space-y-10 mb-4">
-              {/* Care Events */}
-              {loading ? (
-                <div className="text-center py-8 text-gray-500">
-                  Loading events...
+                {/* 4. TIME */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Time</label>
+                  <div className="flex gap-2 flex-1">
+                    <Input type="time" {...form.register("startTime")} />
+                    <Input type="time" {...form.register("endTime")} />
+                  </div>
                 </div>
-              ) : (
-                <div
-                  className="mt-6 flex gap-6 overflow-x-auto mb-4 snap-x snap-mandatory
-                                relative z-0 pointer-events-auto"
-                >
-                  {careSorted.map((e) => (
-                    <Card
-                      key={e.id}
-                      className="rounded-2xl bg-sky-50 ring-1 ring-sky-100 relative min-w-[240px] snap-start border-gray-200"
-                    >
-                      <CardHeader>
-                        <CardTitle>Care Event</CardTitle>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200">
-                              <MoreVertical className="h-5 w-5" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="bg-white border-gray-200"
-                          >
-                            <DropdownMenuItem
-                              onClick={() => {
-                                navigate(path.staffCreateEvent, {
-                                  state: { editEvent: e },
-                                });
-                              }}
-                            >
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this event?"
-                                  )
-                                ) {
-                                  try {
-                                    await deleteSchedule(e.id);
-                                    setCareEvents((prev) =>
-                                      prev.filter((ev) => ev.id !== e.id)
-                                    );
-                                    setCare((prev) =>
-                                      prev.filter((ev) => ev.id !== e.id)
-                                    );
-                                    toast.success("Event deleted successfully");
-                                  } catch (error: any) {
-                                    toast.error(
-                                      error.response?.data?.message ||
-                                        "Failed to delete event"
-                                    );
-                                  }
-                                }
-                              }}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async () => {
-                                try {
-                                  await updateScheduleStatus(
-                                    e.id,
-                                    "participated"
-                                  );
-                                  handleMarkAsDone(
-                                    e.id,
-                                    "Care Event",
-                                    e.eventName || "N/A",
-                                    e.datetimeLabel || "N/A",
-                                    e.datetimeLabel || "N/A"
-                                  );
-                                  toast.success("Event marked as done");
-                                } catch (error: any) {
-                                  toast.error(
-                                    error.response?.data?.message ||
-                                      "Failed to update status"
-                                  );
-                                }
-                              }}
-                            >
-                              Mark as Done
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2 text-sm text-left -mt-5">
-                          <li>
-                            <span className="font-medium">Care Type:</span>{" "}
-                            {e.type || "N/A"}
-                          </li>
-                          <li>
-                            <span className="font-medium">Event Name:</span>{" "}
-                            {e.eventName || "N/A"}
-                          </li>
-                          <li>
-                            <span className="font-medium">Quantity:</span>{" "}
-                            {e.quantity || "N/A"}
-                          </li>
-                          <li>
-                            <span className="font-medium">Remaining Seat:</span>{" "}
-                            {calculateRemainingSeats(e)}
-                          </li>
-                          <li className="flex items-center gap-1">
-                            <span className="font-medium">Date:</span>{" "}
-                            {e.datetimeLabel}
-                          </li>
-                          <li>
-                            <span className="font-medium">Location:</span>{" "}
-                            {e.location}
-                          </li>
-                          <li>
-                            <span className="font-medium">Staff:</span>{" "}
-                            {e.staffName || "N/A"}
-                          </li>
-                          <li>
-                            <span className="font-medium">Notes:</span>{" "}
-                            {e.notes || "N/A"}
-                          </li>
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {careSorted.length === 0 && (
-                    <p className="text-center text-gray-500">
-                      No care events available.
-                    </p>
-                  )}
-                </div>
-              )}
 
-              {/* Family Visits */}
-              <div
-                className="mt-6 flex gap-6 overflow-x-auto mb-4 snap-x snap-mandatory
-                                relative z-0 pointer-events-auto"
-              >
-                {visitsSorted.map((v) => (
-                  <Card
-                    key={v.id}
-                    className="rounded-2xl bg-amber-50 ring-1 ring-amber-100 relative min-w-[240px] snap-start"
+                {/* 5. LOCATION */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Location</label>
+                  <Input {...form.register("location")} className="flex-1" />
+                </div>
+
+                {/* 6. STATUS */}
+                <div className="flex items-center gap-4">
+                  <label className="w-36 text-sm font-medium">Status</label>
+                  <Select
+                    value={form.watch("status")}
+                    onValueChange={(v) => form.setValue("status", v as any)}
                   >
-                    <CardHeader>
-                      <CardTitle>Family Visit</CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200">
-                            <MoreVertical className="h-5 w-5" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              navigate(path.staffCreateEvent, {
-                                state: { editEvent: v },
-                              });
-                            }}
-                          >
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to delete this visit?"
-                                )
-                              ) {
-                                try {
-                                  await deleteSchedule(v.id);
-                                  setFamilyVisits((prev) =>
-                                    prev.filter((ev) => ev.id !== v.id)
-                                  );
-                                  setVisits((prev) =>
-                                    prev.filter((ev) => ev.id !== v.id)
-                                  );
-                                  toast.success("Visit deleted successfully");
-                                } catch (error: any) {
-                                  toast.error(
-                                    error.response?.data?.message ||
-                                      "Failed to delete visit"
-                                  );
-                                }
-                              }
-                            }}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              try {
-                                await updateScheduleStatus(
-                                  v.id,
-                                  "participated"
-                                );
-                                handleMarkAsDone(
-                                  v.id,
-                                  "Family Visit",
-                                  v.resident || "N/A",
-                                  v.datetime || "N/A",
-                                  v.datetime || "N/A"
-                                );
-                                toast.success("Visit marked as done");
-                              } catch (error: any) {
-                                toast.error(
-                                  error.response?.data?.message ||
-                                    "Failed to update status"
-                                );
-                              }
-                            }}
-                          >
-                            Mark as Done
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2 text-sm text-left -mt-5">
-                        <li>
-                          <span className="font-medium">Resident:</span>{" "}
-                          {v.resident || "N/A"}
-                        </li>
-                        <li>
-                          <span className="font-medium">Date:</span>{" "}
-                          {v.datetime || v.date || "N/A"}
-                        </li>
-                        <li>
-                          <span className="font-medium">Family:</span>{" "}
-                          {v.family || "N/A"}
-                        </li>
-                        <li>
-                          <span className="font-medium">QR:</span>{" "}
-                          {v.qr ? "Enabled" : "Disabled"}
-                        </li>
-                        <li>
-                          <span className="font-medium">Notes:</span>{" "}
-                          {v.notes || "No notes available"}
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
-                {visitsSorted.length === 0 && (
-                  <p className="text-center text-gray-500">
-                    No family visits available.
-                  </p>
-                )}
-              </div>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Choose status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Upcoming">Upcoming</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Ongoing" disabled>
+                        Ongoing (auto)
+                      </SelectItem>
+                      <SelectItem value="Ended" disabled>
+                        Ended (auto)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* BUTTONS */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-blue-500 text-white hover:bg-blue-500"
+                    type="submit"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
+};
+
+function mapEventToStaffEvent(e: EventResponse): StaffEvent {
+  console.log("🔄 [mapEventToStaffEvent] Mapping event:", {
+    event_id: e.event_id,
+    name: e.name,
+    start_time: e.start_time,
+    end_time: e.end_time,
+    status: e.status,
+    room_ids: e.room_ids,
+    care_configuration: e.care_configuration,
+  });
+
+  const start = new Date(e.start_time);
+  const end = new Date(e.end_time);
+  const startTime = start.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const endTime = end.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const date = start.toISOString().split("T")[0];
+
+  const mapped = {
+    id: e.event_id,
+    name: e.name,
+    type: e.type,
+    date,
+    startTime,
+    endTime,
+    location: e.location,
+    status: e.status, // Status is auto-calculated by backend
+    careSubType: e.care_configuration?.subType,
+    frequency: e.care_configuration?.frequency,
+    roomIds: e.room_ids,
+  };
+
+  console.log("✅ [mapEventToStaffEvent] Mapped result:", mapped);
+  return mapped;
 }
+
+export default StaffEventManagementPage;

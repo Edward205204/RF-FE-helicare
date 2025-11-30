@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Download, QrCode } from "lucide-react";
@@ -15,23 +15,34 @@ export function QRCodeDisplay({
   expiresAt,
   onClose,
 }: QRCodeDisplayProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  // Generate QR code image URL using an online API
+  const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    qrCodeData
+  )}`;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(qrCodeData);
     toast.success("Đã sao chép QR Code");
   };
 
-  const handleDownload = () => {
-    // Create a simple text file with QR code data
-    const blob = new Blob([qrCodeData], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `qr-code-${new Date().getTime()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("Đã tải xuống QR Code");
+  const handleDownloadImage = async () => {
+    try {
+      const response = await fetch(qrCodeImageUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-code-${new Date().getTime()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Đã tải xuống QR Code");
+    } catch (error) {
+      console.error("Failed to download QR code:", error);
+      toast.error("Không thể tải xuống QR Code");
+    }
   };
 
   const formatExpiryDate = (dateString: string) => {
@@ -39,7 +50,7 @@ export function QRCodeDisplay({
   };
 
   return (
-    <Card className="p-6 max-w-md mx-auto">
+    <Card className="p-6 max-w-md mx-auto border-none shadow-sm bg-white">
       <div className="text-center">
         <div className="mb-4">
           <QrCode className="w-16 h-16 text-blue-600 mx-auto mb-2" />
@@ -51,11 +62,31 @@ export function QRCodeDisplay({
           </p>
         </div>
 
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        {/* QR Code Image */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border-none shadow-sm">
+          <img
+            src={qrCodeImageUrl}
+            alt="QR Code"
+            className="w-full max-w-[300px] mx-auto"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageLoaded(false);
+              toast.error("Không thể tải QR Code");
+            }}
+          />
+          {!imageLoaded && (
+            <div className="text-xs text-gray-500 mt-2">
+              Đang tải QR Code...
+            </div>
+          )}
+        </div>
+
+        {/* QR Code Data (for backup) */}
+        {/* <div className="mb-4 p-4 bg-gray-50 rounded-lg border-none shadow-sm">
           <div className="text-xs font-mono break-all text-gray-700">
             {qrCodeData}
           </div>
-        </div>
+        </div> */}
 
         <div className="mb-4 text-sm text-gray-600">
           <p>
@@ -68,7 +99,7 @@ export function QRCodeDisplay({
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Copy className="w-4 h-4" />
             Sao chép
@@ -77,16 +108,20 @@ export function QRCodeDisplay({
           <Button
             variant="outline"
             size="sm"
-            onClick={handleDownload}
-            className="flex items-center gap-2"
+            onClick={handleDownloadImage}
+            className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            Tải xuống
+            Tải ảnh
           </Button>
         </div>
 
         {onClose && (
-          <Button variant="outline" onClick={onClose} className="mt-4 w-full">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="mt-4 w-full border-none shadow-sm cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
+          >
             Đóng
           </Button>
         )}

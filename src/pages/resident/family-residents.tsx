@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Avatar, AvatarFallback } from "@/components/ui";
 import {
   getResidentsByFamily,
   type ResidentResponse,
@@ -14,6 +14,8 @@ import {
   Heart,
   AlertCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import path from "@/constants/path";
 
 type Resident = ResidentResponse & {
   age?: number;
@@ -27,6 +29,7 @@ type Resident = ResidentResponse & {
 const FamilyResidents: React.FC = () => {
   const [residents, setResidents] = useState<Resident[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchResidents = async () => {
@@ -113,7 +116,7 @@ const FamilyResidents: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Người thân của tôi
@@ -127,7 +130,22 @@ const FamilyResidents: React.FC = () => {
         {residents.map((resident) => (
           <Card
             key={resident.resident_id}
-            className="border-gray-200 hover:shadow-md transition-shadow"
+            role="button"
+            tabIndex={0}
+            aria-label={`Xem hồ sơ sức khỏe của ${resident.full_name}`}
+            onClick={() =>
+              navigate(
+                `${path.familyHealthCare}?residentId=${resident.resident_id}`
+              )
+            }
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                navigate(
+                  `${path.familyHealthCare}?residentId=${resident.resident_id}`
+                );
+              }
+            }}
+            className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#5985d8]"
           >
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">

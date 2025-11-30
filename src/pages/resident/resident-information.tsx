@@ -1,23 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { Label } from "@/components/ui";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Textarea } from "@/components/ui";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from "@/components/ui";
 import {
   Table,
   TableHeader,
@@ -25,20 +25,26 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
-import { X, CalendarIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+} from "@/components/ui";
 import {
+  Progress,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  DialogDescription,
+} from "@/components/ui";
+import { X, CalendarIcon, Copy, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { createResident } from "@/apis/resident.api";
 import { checkUserByEmail } from "@/apis/auth.api";
 import { getRooms, type RoomResponse } from "@/apis/room.api";
+import { getAllergenTags } from "@/apis/menu-planner.api";
+import {
+  getMedications,
+  type Medication as ApiMedication,
+} from "@/apis/medication-careplan.api";
 import { toast } from "react-toastify";
 import path from "@/constants/path";
 
@@ -94,6 +100,12 @@ const ResidentInformation: React.FC = () => {
   const [rooms, setRooms] = useState<RoomResponse[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
 
+  // Allergies và Medications từ API
+  const [allergenList, setAllergenList] = useState<string[]>([]);
+  const [loadingAllergens, setLoadingAllergens] = useState(false);
+  const [medicationList, setMedicationList] = useState<ApiMedication[]>([]);
+  const [loadingMedications, setLoadingMedications] = useState(false);
+
   const [familyContact, setFamilyContact] = useState<FamilyContactInfo>({
     email: "",
     verified: false,
@@ -120,6 +132,40 @@ const ResidentInformation: React.FC = () => {
       }
     };
     fetchRooms();
+  }, []);
+
+  // Fetch allergens từ API
+  useEffect(() => {
+    const fetchAllergens = async () => {
+      try {
+        setLoadingAllergens(true);
+        const response = await getAllergenTags();
+        setAllergenList(response.data || []);
+      } catch (error) {
+        console.error("Error fetching allergens:", error);
+        toast.error("Failed to load allergens");
+      } finally {
+        setLoadingAllergens(false);
+      }
+    };
+    fetchAllergens();
+  }, []);
+
+  // Fetch medications từ API
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        setLoadingMedications(true);
+        const response = await getMedications({ is_active: true });
+        setMedicationList(response.data || []);
+      } catch (error) {
+        console.error("Error fetching medications:", error);
+        toast.error("Failed to load medications");
+      } finally {
+        setLoadingMedications(false);
+      }
+    };
+    fetchMedications();
   }, []);
 
   // Comorbidities
@@ -154,6 +200,11 @@ const ResidentInformation: React.FC = () => {
 
   // const [activeButton, setActiveButton] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<boolean>(false);
+  const [generatedAccount, setGeneratedAccount] = useState<{
+    username: string;
+    password: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const navigate = useNavigate();
 
@@ -216,8 +267,8 @@ const ResidentInformation: React.FC = () => {
   );
 
   // Allergies
-  const addAllergy = (): void => {
-    const v = allergyInput.trim();
+  const addAllergy = (value?: string): void => {
+    const v = (value || allergyInput).trim();
     if (!v) return;
     if (!allergies.includes(v)) setAllergies((prev) => [...prev, v]);
     setAllergyInput("");
@@ -230,6 +281,18 @@ const ResidentInformation: React.FC = () => {
     setMedications((prev) =>
       prev.map((m) => (m.id === id ? { ...m, ...patch } : m))
     );
+  const handleMedicationSelect = (id: string, medicationId: string): void => {
+    const selectedMed = medicationList.find(
+      (m) => m.medication_id === medicationId
+    );
+    if (selectedMed) {
+      setMed(id, {
+        name: selectedMed.name,
+        dose: selectedMed.dosage,
+        freq: selectedMed.frequency,
+      });
+    }
+  };
   const addMedicationRow = (): void =>
     setMedications((prev) => [
       ...prev,
@@ -351,11 +414,23 @@ const ResidentInformation: React.FC = () => {
       // Call API to create resident
       const response = await createResident(residentData);
 
-      toast.success("Resident created and linked to family successfully!");
+      // Check if account was generated
+      if (response.data?.account) {
+        setGeneratedAccount({
+          username: response.data.account.username,
+          password: response.data.account.password,
+        });
+        toast.success(
+          "Resident created successfully! Please check the account information."
+        );
+      } else {
+        toast.success("Resident created and linked to family successfully!");
+        // Navigate to list-resident page if no account generated
+        setTimeout(() => {
+          navigate(path.residentList);
+        }, 2000);
+      }
       console.log("Created resident:", response);
-
-      // Navigate to list-resident page
-      navigate(path.residentList);
     } catch (error: any) {
       console.error("Error creating resident:", error);
       toast.error(error.response?.data?.message || "Failed to create resident");
@@ -659,27 +734,74 @@ const ResidentInformation: React.FC = () => {
                               ))}
                             </div>
                             <div className="mt-2 flex items-center gap-2">
-                              <Input
-                                value={allergyInput}
-                                onChange={(e) =>
-                                  setAllergyInput(e.target.value)
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    addAllergy();
-                                  }
-                                }}
-                                placeholder="Enter allergy and press Enter"
-                                className="border border-gray-200 shadow-none bg-white"
-                              />
-                              <Button
-                                type="button"
-                                onClick={addAllergy}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                              >
-                                Add
-                              </Button>
+                              {allergenList.length > 0 ? (
+                                <Select
+                                  value=""
+                                  onValueChange={(value) => {
+                                    if (value) {
+                                      addAllergy(value);
+                                    }
+                                  }}
+                                  disabled={loadingAllergens}
+                                >
+                                  <SelectTrigger className="flex-1 !bg-white border border-gray-200 shadow-none">
+                                    <SelectValue
+                                      placeholder={
+                                        loadingAllergens
+                                          ? "Loading allergens..."
+                                          : "— Select allergy —"
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent className="border border-gray-200 shadow-none bg-white">
+                                    {allergenList
+                                      .filter(
+                                        (allergen) =>
+                                          !allergies.includes(allergen)
+                                      )
+                                      .map((allergen) => (
+                                        <SelectItem
+                                          key={allergen}
+                                          value={allergen}
+                                        >
+                                          {allergen}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <>
+                                  <Input
+                                    value={allergyInput}
+                                    onChange={(e) =>
+                                      setAllergyInput(e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        addAllergy();
+                                      }
+                                    }}
+                                    placeholder={
+                                      loadingAllergens
+                                        ? "Loading allergens..."
+                                        : "Enter allergy manually"
+                                    }
+                                    disabled={loadingAllergens}
+                                    className="flex-1 border border-gray-200 shadow-none bg-white"
+                                  />
+                                  <Button
+                                    type="button"
+                                    onClick={() => addAllergy()}
+                                    disabled={
+                                      !allergyInput.trim() || loadingAllergens
+                                    }
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                                  >
+                                    Add
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
 
@@ -717,16 +839,59 @@ const ResidentInformation: React.FC = () => {
                                       className="border-gray-200"
                                     >
                                       <TableCell className="border-gray-200">
-                                        <Input
-                                          value={m.name}
-                                          onChange={(e) =>
-                                            setMed(m.id, {
-                                              name: e.target.value,
-                                            })
-                                          }
-                                          placeholder="Amlodipine"
-                                          className="border border-gray-200 shadow-none bg-white"
-                                        />
+                                        {medicationList.length > 0 ? (
+                                          <Select
+                                            value={
+                                              medicationList.find(
+                                                (med) => med.name === m.name
+                                              )?.medication_id || ""
+                                            }
+                                            onValueChange={(value) =>
+                                              handleMedicationSelect(
+                                                m.id,
+                                                value
+                                              )
+                                            }
+                                            disabled={loadingMedications}
+                                          >
+                                            <SelectTrigger className="!bg-white border border-gray-200 shadow-none">
+                                              <SelectValue
+                                                placeholder={
+                                                  loadingMedications
+                                                    ? "Loading..."
+                                                    : m.name ||
+                                                      "— Select medication —"
+                                                }
+                                              />
+                                            </SelectTrigger>
+                                            <SelectContent className="border border-gray-200 shadow-none bg-white">
+                                              {medicationList.map((med) => (
+                                                <SelectItem
+                                                  key={med.medication_id}
+                                                  value={med.medication_id}
+                                                >
+                                                  {med.name}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                        ) : (
+                                          <Input
+                                            value={m.name}
+                                            onChange={(e) =>
+                                              setMed(m.id, {
+                                                name: e.target.value,
+                                              })
+                                            }
+                                            placeholder={
+                                              loadingMedications
+                                                ? "Loading medications..."
+                                                : "Amlodipine"
+                                            }
+                                            disabled={loadingMedications}
+                                            className="border border-gray-200 shadow-none bg-white"
+                                          />
+                                        )}
                                       </TableCell>
                                       <TableCell className="border-gray-200">
                                         <Input
@@ -784,7 +949,7 @@ const ResidentInformation: React.FC = () => {
                       </Card>
                     </div>
                     {/* upload documents */}
-                    <div className="lg:col-span-1">
+                    {/* <div className="lg:col-span-1">
                       <Card className="rounded-2xl border-gray-200">
                         <CardHeader>
                           <CardTitle className="text-lg font-bold text-gray-900">
@@ -848,7 +1013,7 @@ const ResidentInformation: React.FC = () => {
                           </Button>
                         </CardContent>
                       </Card>
-                    </div>
+                    </div> */}
 
                     <div className="lg:col-span-3 flex justify-end gap-4">
                       <Button
@@ -886,6 +1051,126 @@ const ResidentInformation: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Account Info Dialog */}
+      <Dialog
+        open={!!generatedAccount}
+        onOpenChange={(open) => {
+          if (!open) {
+            setGeneratedAccount(null);
+            navigate(path.residentList);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Tài Khoản Cư Dân Đã Tạo Thành Công
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Vui lòng lưu lại thông tin đăng nhập này. Mật khẩu có thể được
+              thay đổi sau khi đăng nhập.
+            </DialogDescription>
+          </DialogHeader>
+          {generatedAccount && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Username
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={generatedAccount.username}
+                    readOnly
+                    className="border-gray-200 shadow-none bg-gray-50 font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedAccount.username);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                      toast.success("Đã sao chép username!");
+                    }}
+                    className="border-gray-200"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Temporary Password
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={generatedAccount.password}
+                    readOnly
+                    type="text"
+                    className="border-gray-200 shadow-none bg-gray-50 font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedAccount.password);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                      toast.success("Đã sao chép mật khẩu!");
+                    }}
+                    className="border-gray-200"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>Lưu ý:</strong> Vui lòng lưu lại thông tin này. Bạn sẽ
+                  cần nó để đăng nhập lần đầu.
+                </p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `Username: ${generatedAccount.username}\nPassword: ${generatedAccount.password}`
+                    );
+                    toast.success("Đã sao chép toàn bộ thông tin đăng nhập!");
+                  }}
+                  variant="outline"
+                  className="flex-1 border-gray-200"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Sao chép tất cả
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setGeneratedAccount(null);
+                    navigate(path.residentList);
+                  }}
+                  className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  Hoàn tất
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

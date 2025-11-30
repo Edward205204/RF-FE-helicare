@@ -69,5 +69,15 @@ export type ForgotPasswordEmailFormData = z.infer<
   typeof forgotPasswordEmailSchema
 >;
 
+export const residentSigninSchema = z.object({
+  username: z
+    .string()
+    .nonempty("Username is required")
+    .min(3, "Username must be at least 3 characters")
+    .trim(),
+  password: z.string().nonempty("Password is required").trim(),
+});
+
 export type SignupFormData = z.infer<typeof signupSchema>;
 export type SigninFormData = z.infer<typeof signinSchema>;
+export type ResidentSigninFormData = z.infer<typeof residentSigninSchema>;

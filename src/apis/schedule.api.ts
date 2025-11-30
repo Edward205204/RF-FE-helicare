@@ -3,7 +3,8 @@ import request from "@/utils/request";
 export interface CreateScheduleData {
   activity_id: string;
   resident_id?: string;
-  staff_id?: string;
+  staff_id?: string; // For single staff (backward compatible)
+  staff_ids?: string[]; // For multiple staff assignment
   title: string;
   description?: string;
   start_time: string; // ISO date string
@@ -56,9 +57,10 @@ export interface ScheduleResponse {
   };
 }
 
-// Tạo schedule mới
+// Tạo schedule mới (hỗ trợ cả single và multiple staff)
 export const createSchedule = async (data: CreateScheduleData) => {
   const response = await request.post("/api/schedules", data);
+  // Response có thể là single schedule hoặc array of schedules
   return response.data;
 };
 

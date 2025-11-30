@@ -1,21 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RefreshCw, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { createAssessment } from "@/apis/assessment.api";
+import {
+  createAssessment,
+  updateAssessment,
+  type AssessmentResponse,
+} from "@/apis/assessment.api";
 import { getResidents, type ResidentResponse } from "@/apis/resident.api";
 import { getRooms, type RoomResponse } from "@/apis/room.api";
+import { updateCareLog } from "@/apis/carelog.api";
 import { toast } from "react-toastify";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  Badge,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui";
+import { useHealthSummary } from "@/hooks/use-health-summary";
 
 type Level = "normal" | "warn" | "danger";
 
 const PRIMARY = "#5985D8";
 const BG =
   "radial-gradient(120% 120% at 0% 100%, #dfe9ff 0%, #ffffff 45%, #efd8d3 100%)";
+
+const severityColors: Record<"normal" | "warning" | "critical", string> = {
+  normal: "text-emerald-600 bg-emerald-50 border-emerald-100",
+  warning: "text-amber-600 bg-amber-50 border-amber-100",
+  critical: "text-red-600 bg-red-50 border-red-100",
+};
 
 const PRESET = {
   Morning: {
@@ -79,7 +97,6 @@ function fmtHeader(d: Date) {
 /* -------------------- zod schema -------------------- */
 const vitalSchema = z.object({
   residentName: z.string().min(1, "Resident name is required"),
-  measurementBy: z.string().min(1, "Staff name is required"),
   measuredAt: z
     .string()
     .refine((s) => {
@@ -96,7 +113,6 @@ const vitalSchema = z.object({
   temperature: z.coerce.number().min(0, "Enter a valid value"),
   respiration: z.coerce.number().int().min(0, "Enter a valid value"),
   spo2: z.coerce.number().int().min(0, "Enter a valid value"),
-  shift: z.enum(["Morning", "Afternoon", "Night"]),
   note: z.string().max(1000).optional(),
 });
 type VitalValues = z.infer<typeof vitalSchema>;
@@ -180,6 +196,17 @@ export default function VitalSignForm() {
   const [selectedResidentId, setSelectedResidentId] = useState<string>("");
   const [selectedRoomFilter, setSelectedRoomFilter] = useState<string>("all");
   const [showResidentList, setShowResidentList] = useState(true);
+  const summaryQuery = useHealthSummary(selectedResidentId);
+  const [editingAssessmentId, setEditingAssessmentId] = useState<string | null>(
+    null
+  );
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [careLogCorrection, setCareLogCorrection] = useState<{
+    care_log_id: string;
+    status: "pending" | "in_progress" | "completed";
+    notes?: string | null;
+  } | null>(null);
+  const [careLogReason, setCareLogReason] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -188,7 +215,7 @@ export default function VitalSignForm() {
           getResidents(),
           getRooms(), // Lấy từ token, không cần institutionId
         ]);
-        setResidents(residentsRes.data || []);
+        setResidents(residentsRes.residents || []);
         setRooms(roomsRes.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -196,6 +223,13 @@ export default function VitalSignForm() {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setEditingAssessmentId(null);
+    setCorrectionReason("");
+    setCareLogCorrection(null);
+    setCareLogReason("");
+  }, [selectedResidentId]);
 
   // Filter residents by room
   const filteredResidents = useMemo(() => {
@@ -205,20 +239,36 @@ export default function VitalSignForm() {
     return residents.filter((r) => r.room_id === selectedRoomFilter);
   }, [residents, selectedRoomFilter]);
 
-  const { register, handleSubmit, watch, reset, setValue, formState } =
+  const { register, handleSubmit, watch, reset, setValue, trigger, formState } =
     useForm<VitalValues>({
       resolver: zodResolver(vitalSchema) as any,
       mode: "onChange",
       defaultValues: {
+        residentName: "",
         measuredAt: toLocalInputValue(new Date()),
         ...PRESET.Morning,
-        shift: getShiftFromDate(new Date()),
         note: "",
       },
     });
 
   // watch fields
   const values = watch();
+
+  // Auto-set residentName when resident is selected (after form is initialized)
+  useEffect(() => {
+    if (selectedResidentId && residents.length > 0) {
+      const resident = residents.find(
+        (r) => r.resident_id === selectedResidentId
+      );
+      if (resident) {
+        setValue("residentName", resident.full_name);
+        trigger("residentName");
+      }
+    } else if (!selectedResidentId) {
+      setValue("residentName", "");
+      trigger("residentName");
+    }
+  }, [selectedResidentId, residents, setValue, trigger]);
 
   // computed levels
   const levels = useMemo(
@@ -239,20 +289,6 @@ export default function VitalSignForm() {
       values.spo2,
     ]
   );
-
-  // auto-assign shift from measuredAt, unless user manually overrides
-  const [overrideShift, setOverrideShift] = useState(false);
-  useEffect(() => {
-    if (!overrideShift) {
-      try {
-        const d = parseLocalInputValue(values.measuredAt);
-        const s = getShiftFromDate(d);
-        setValue("shift", s);
-      } catch {
-        // ignore parse errors
-      }
-    }
-  }, [values.measuredAt]);
 
   // measuredAt warnings: future is blocked by zod; older than 24h -> show warning
   const measuredDate = useMemo(() => {
@@ -280,42 +316,57 @@ export default function VitalSignForm() {
       return;
     }
 
+    const payload = {
+      weight_kg: undefined,
+      height_cm: undefined,
+      bmi: undefined,
+      temperature_c: data.temperature,
+      blood_pressure_systolic: data.systolic,
+      blood_pressure_diastolic: data.diastolic,
+      heart_rate: data.heartRate,
+      respiratory_rate: data.respiration,
+      oxygen_saturation: data.spo2,
+      notes: data.note || undefined,
+      measured_at: data.measuredAt,
+    };
+
     try {
-      console.log("Saving vitals (hospital mode):", data);
-
-      // Prepare assessment data for API
-      const assessmentData = {
-        weight_kg: undefined, // Not in current form
-        height_cm: undefined, // Not in current form
-        bmi: undefined, // Not in current form
-        temperature_c: data.temperature,
-        blood_pressure_systolic: data.systolic,
-        blood_pressure_diastolic: data.diastolic,
-        heart_rate: data.heartRate,
-        respiratory_rate: data.respiration,
-        oxygen_saturation: data.spo2,
-        notes: data.note || undefined,
-      };
-
-      // Call API to create assessment
-      await createAssessment(selectedResidentId, assessmentData);
-
-      if (anyDanger) {
-        toast.warning(
-          "Saved successfully but CRITICAL values detected — notify doctor.",
-          { autoClose: 3000 }
-        );
-      } else if (anyWarn) {
-        toast.warning("Saved successfully. Some values are borderline.", {
-          autoClose: 3000,
+      if (editingAssessmentId) {
+        if (!correctionReason.trim()) {
+          toast.error("Please provide a correction note for the audit log.");
+          return;
+        }
+        await updateAssessment(editingAssessmentId, {
+          ...payload,
+          correction_reason: correctionReason.trim(),
+        });
+        toast.success("Assessment corrected successfully.", {
+          autoClose: 2500,
         });
       } else {
-        toast.success("Vital signs saved successfully.", { autoClose: 2500 });
+        await createAssessment(selectedResidentId, payload);
+        if (anyDanger) {
+          toast.warning(
+            "Saved successfully but CRITICAL values detected — notify doctor.",
+            { autoClose: 3000 }
+          );
+        } else if (anyWarn) {
+          toast.warning("Saved successfully. Some values are borderline.", {
+            autoClose: 3000,
+          });
+        } else {
+          toast.success("Vital signs saved successfully.", { autoClose: 2500 });
+        }
       }
 
-      // Reset form after successful save
-      reset();
-      setSelectedResidentId("");
+      summaryQuery.refetch();
+      reset({
+        measuredAt: toLocalInputValue(new Date()),
+        ...PRESET.Morning,
+        note: "",
+      });
+      setEditingAssessmentId(null);
+      setCorrectionReason("");
     } catch (e: any) {
       console.error(e);
       toast.error(
@@ -367,6 +418,61 @@ export default function VitalSignForm() {
     }
   };
 
+  const handleLoadAssessmentForCorrection = (
+    assessment: AssessmentResponse
+  ) => {
+    const timestamp = assessment.measured_at || assessment.created_at;
+    if (timestamp) {
+      setValue("measuredAt", toLocalInputValue(new Date(timestamp)));
+    }
+    setValue("systolic", assessment.blood_pressure_systolic ?? 0);
+    setValue("diastolic", assessment.blood_pressure_diastolic ?? 0);
+    setValue("heartRate", assessment.heart_rate ?? 0);
+    setValue("temperature", assessment.temperature_c ?? 0);
+    setValue("respiration", assessment.respiratory_rate ?? 0);
+    setValue("spo2", assessment.oxygen_saturation ?? 0);
+    setValue("note", assessment.notes || undefined);
+    setEditingAssessmentId(assessment.assessment_id);
+    setCorrectionReason("");
+  };
+
+  const formatSummaryTime = (value?: string | Date) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+    });
+  };
+
+  const handleCareLogCorrectionSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    if (!careLogCorrection) return;
+    if (!careLogReason.trim()) {
+      toast.error("Please provide a correction reason for the carelog.");
+      return;
+    }
+    try {
+      await updateCareLog(careLogCorrection.care_log_id, {
+        status: careLogCorrection.status,
+        notes: careLogCorrection.notes || undefined,
+        correction_reason: careLogReason.trim(),
+      });
+      toast.success("Carelog updated successfully.", { autoClose: 2500 });
+      setCareLogCorrection(null);
+      setCareLogReason("");
+      summaryQuery.refetch();
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to correct carelog at the moment."
+      );
+    }
+  };
+
   /* -------------------- Render -------------------- */
   return (
     <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
@@ -415,9 +521,10 @@ export default function VitalSignForm() {
                       ? "ring-2 ring-blue-500 bg-blue-50"
                       : "hover:bg-gray-50"
                   }`}
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedResidentId(resident.resident_id);
                     setValue("residentName", resident.full_name);
+                    await trigger("residentName");
                   }}
                 >
                   <CardContent className="p-3">
@@ -449,426 +556,618 @@ export default function VitalSignForm() {
           </div>
         )}
 
-        {/* Main form */}
-        <div className="flex-1 min-w-0 bg-white rounded-3xl ring-1 ring-gray-200 shadow-lg overflow-hidden flex flex-col">
-          {/* header */}
-          <div className="px-6 py-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold" style={{ color: PRIMARY }}>
-                  Enter Vital Signs
-                </h1>
-                {/* <p className="text-sm text-gray-500">Make sure to enter the actual measurement time</p> */}
-              </div>
-              <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => setShowResidentList(!showResidentList)}
-                  className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 mb-2"
-                >
-                  {showResidentList ? "Hide" : "Show"} List
-                </button>
-                <div className="text-sm">
-                  Current Shift:{" "}
-                  <span
-                    className="px-2 py-1 rounded"
-                    style={{ background: "#eef4ff", color: PRIMARY }}
-                  >
-                    {getShiftFromDate(now)}
-                  </span>
+        {/* Workspace */}
+        <div className="flex-1 flex flex-col gap-4 lg:flex-row">
+          <div className="flex-1 min-w-0 bg-white rounded-3xl ring-1 ring-gray-200 shadow-lg overflow-hidden flex flex-col">
+            <div className="px-6 py-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold" style={{ color: PRIMARY }}>
+                    Enter Vital Signs
+                  </h1>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {fmtHeader(now)}
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setShowResidentList(!showResidentList)}
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 mb-2"
+                  >
+                    {showResidentList ? "Hide" : "Show"} List
+                  </button>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {fmtHeader(now)}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* form */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="grid grid-cols-1 gap-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
-                <div>
-                  <label className="text-sm font-medium">Resident Name *</label>
-                  <input
-                    {...register("residentName")}
-                    type="text"
-                    disabled
-                    placeholder={
-                      showResidentList
-                        ? "← Select from list"
-                        : "Select a resident"
-                    }
-                    className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700"
-                  />
-                  <div className="text-xs mt-1 text-gray-500">
-                    {formState.errors.residentName && (
-                      <span className="text-red-600">
-                        {String(formState.errors.residentName.message)}
-                      </span>
-                    )}
-                    {!selectedResidentId && !formState.errors.residentName && (
-                      <span className="text-blue-600">
-                        {showResidentList
-                          ? "Select a resident from the list"
-                          : "Click 'Show List' to select a resident"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">
-                    Measurement By (Staff Name)
-                  </label>
-                  <input
-                    {...register("measurementBy")}
-                    type="text"
-                    className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
-                  />
-                  <div className="text-xs mt-1 text-gray-500">
-                    {formState.errors.measurementBy && (
-                      <span className="text-red-600">
-                        {String(formState.errors.measurementBy.message)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {selectedResidentId && (
-                  <div>
-                    <label className="text-sm font-medium">Room Info</label>
-                    <div className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700">
-                      {(() => {
-                        const resident = residents.find(
-                          (r) => r.resident_id === selectedResidentId
-                        );
-                        if (!resident?.room_id) return "No room assigned";
-                        const room = rooms.find(
-                          (r) => r.room_id === resident.room_id
-                        );
-                        return room
-                          ? `Room ${room.room_number}`
-                          : "Unknown room";
-                      })()}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="grid grid-cols-1 gap-4"
+              >
+                {editingAssessmentId && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-amber-900">
+                    <div className="flex items-center justify-between gap-2">
+                      <p>
+                        Editing assessment #{editingAssessmentId.slice(0, 8)} —
+                        provide correction reason for audit trail.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingAssessmentId(null);
+                          setCorrectionReason("");
+                          reset();
+                        }}
+                        className="text-xs text-amber-700 underline"
+                      >
+                        Cancel
+                      </button>
                     </div>
+                    <textarea
+                      value={correctionReason}
+                      onChange={(event) =>
+                        setCorrectionReason(event.target.value)
+                      }
+                      rows={2}
+                      placeholder="Why are you correcting this measurement?"
+                      className="mt-3 w-full rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-sm"
+                    />
                   </div>
                 )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
-                <div>
-                  <label className="text-sm font-medium">
-                    Measurement Time
-                  </label>
-                  <input
-                    {...register("measuredAt")}
-                    type="datetime-local"
-                    step={1}
-                    className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
-                  />
-                  <div className="text-xs mt-1 text-gray-500">
-                    {formState.errors.measuredAt ? (
-                      <span className="text-red-600">
-                        {String(formState.errors.measuredAt.message)}
-                      </span>
-                    ) : measuredOlderThan24h ? (
-                      <span className="text-amber-700">
-                        Measurement time is more than 24 hours old — verify
-                        carefully.
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">
-                    Shift (auto from measurement time)
-                  </label>
-                  <select
-                    {...register("shift")}
-                    className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
-                    onChange={(e) => {
-                      setValue(
-                        "shift",
-                        e.target.value as "Morning" | "Afternoon" | "Night"
-                      );
-                      setOverrideShift(true);
-                    }}
-                  >
-                    <option value="Morning">Morning</option>
-                    <option value="Afternoon">Afternoon</option>
-                    <option value="Night">Night</option>
-                  </select>
-                  <div className="text-xs mt-1">
-                    {!formState.errors.measuredAt && measuredDate ? (
-                      getShiftFromDate(measuredDate) !==
-                      (values.shift as string) ? (
-                        <span className="text-amber-700">
-                          Shift manually overridden and does not match
-                          measurement time ({getShiftFromDate(measuredDate)}).
-                        </span>
-                      ) : null
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setValue("measuredAt", toLocalInputValue(new Date()));
-                      if (!overrideShift) {
-                        setValue("shift", getShiftFromDate(new Date()));
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Resident Name *
+                    </label>
+                    <input
+                      {...register("residentName")}
+                      type="text"
+                      disabled
+                      placeholder={
+                        showResidentList
+                          ? "← Select from list"
+                          : "Select a resident"
                       }
-                      setToastMsg({
-                        text: "Measurement time reset to now.",
-                        color: PRIMARY,
-                      });
-                      setTimeout(() => setToastMsg(null), 1800);
-                    }}
-                    className="px-3 py-2 rounded-lg border"
+                      className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700"
+                    />
+                    <div className="text-xs mt-1 text-gray-500">
+                      {formState.errors.residentName && (
+                        <span className="text-red-600">
+                          {String(formState.errors.residentName.message)}
+                        </span>
+                      )}
+                      {!selectedResidentId &&
+                        !formState.errors.residentName && (
+                          <span className="text-blue-600">
+                            {showResidentList
+                              ? "Select a resident from the list"
+                              : "Click 'Show List' to select a resident"}
+                          </span>
+                        )}
+                    </div>
+                  </div>
+
+                  {selectedResidentId && (
+                    <div>
+                      <label className="text-sm font-medium">Room Info</label>
+                      <div className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700">
+                        {(() => {
+                          const resident = residents.find(
+                            (r) => r.resident_id === selectedResidentId
+                          );
+                          if (!resident?.room_id) return "No room assigned";
+                          const room = rooms.find(
+                            (r) => r.room_id === resident.room_id
+                          );
+                          return room
+                            ? `Room ${room.room_number}`
+                            : "Unknown room";
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Measurement Time
+                    </label>
+                    <input
+                      {...register("measuredAt")}
+                      type="datetime-local"
+                      step={1}
+                      className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
+                    />
+                    <div className="text-xs mt-1 text-gray-500">
+                      {formState.errors.measuredAt ? (
+                        <span className="text-red-600">
+                          {String(formState.errors.measuredAt.message)}
+                        </span>
+                      ) : measuredOlderThan24h ? (
+                        <span className="text-amber-700">
+                          Measurement time is more than 24 hours old — verify
+                          carefully.
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setValue("measuredAt", toLocalInputValue(new Date()));
+                        setToastMsg({
+                          text: "Measurement time reset to now.",
+                          color: PRIMARY,
+                        });
+                        setTimeout(() => setToastMsg(null), 1800);
+                      }}
+                      className="px-3 py-2 rounded-lg border"
+                    >
+                      Set Current Time
+                    </button>
+                  </div>
+                </div>
+
+                {/* input fields */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Systolic Blood Pressure
+                    </label>
+                    <input
+                      {...register("systolic")}
+                      type="text"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.systolic
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.systolic === "danger"
+                          ? "text-red-600"
+                          : levels.systolic === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("systolic", levels.systolic) ||
+                        (formState.errors.systolic
+                          ? String(formState.errors.systolic.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">
+                      Diastolic Blood Pressure
+                    </label>
+                    <input
+                      {...register("diastolic")}
+                      type="text"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.diastolic
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.diastolic === "danger"
+                          ? "text-red-600"
+                          : levels.diastolic === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("diastolic", levels.diastolic) ||
+                        (formState.errors.diastolic
+                          ? String(formState.errors.diastolic.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">
+                      Heart Rate (bpm)
+                    </label>
+                    <input
+                      {...register("heartRate")}
+                      type="text"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.heartRate
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.heartRate === "danger"
+                          ? "text-red-600"
+                          : levels.heartRate === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("heartRate", levels.heartRate) ||
+                        (formState.errors.heartRate
+                          ? String(formState.errors.heartRate.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">
+                      Temperature (°C)
+                    </label>
+                    <input
+                      {...register("temperature")}
+                      type="text"
+                      step="0.1"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.temperature
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.temperature === "danger"
+                          ? "text-red-600"
+                          : levels.temperature === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("temperature", levels.temperature) ||
+                        (formState.errors.temperature
+                          ? String(formState.errors.temperature.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">
+                      Respiration Rate (per min)
+                    </label>
+                    <input
+                      {...register("respiration")}
+                      type="text"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.respiration
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.respiration === "danger"
+                          ? "text-red-600"
+                          : levels.respiration === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("respiration", levels.respiration) ||
+                        (formState.errors.respiration
+                          ? String(formState.errors.respiration.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">SpO₂ (%)</label>
+                    <input
+                      {...register("spo2")}
+                      type="text"
+                      className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
+                        levels.spo2
+                      )}`}
+                    />
+                    <div
+                      className={`text-xs mt-1 ${
+                        levels.spo2 === "danger"
+                          ? "text-red-600"
+                          : levels.spo2 === "warn"
+                          ? "text-amber-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {msgFor("spo2", levels.spo2) ||
+                        (formState.errors.spo2
+                          ? String(formState.errors.spo2.message)
+                          : null)}
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="text-sm font-medium">Note</label>
+                    <textarea
+                      {...register("note")}
+                      rows={3}
+                      className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
+                    />
+                  </div>
+                </div>
+
+                {/* summary & actions */}
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={
+                      Object.keys(formState.errors).length > 0 ||
+                      formState.isSubmitting
+                    }
+                    className={`px-5 py-2 rounded-lg text-white ${
+                      Object.keys(formState.errors).length > 0 ||
+                      formState.isSubmitting
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    style={{ background: PRIMARY }}
                   >
-                    Set Current Time
+                    {formState.isSubmitting
+                      ? "Saving..."
+                      : editingAssessmentId
+                      ? "Update assessment"
+                      : "💾 Save"}
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setOverrideShift(false);
-                      setToastMsg({
-                        text: "Auto shift assignment enabled.",
-                        color: PRIMARY,
-                      });
-                      setTimeout(() => setToastMsg(null), 1500);
-                    }}
-                    className="px-3 py-2 rounded-lg border"
+                    onClick={() =>
+                      reset({
+                        measuredAt: toLocalInputValue(new Date()),
+                        ...PRESET.Morning,
+                        note: "",
+                      })
+                    }
+                    className="px-4 py-2 rounded-lg border border-[#5985D8] text-[#5985D8]"
                   >
-                    Auto-assign Shift
+                    <RefreshCw size={16} className="inline-block mr-2" />
+                    Reset Form
                   </button>
-                </div>
-              </div>
 
-              {/* input fields */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                <div>
-                  <label className="text-sm font-medium">
-                    Systolic Blood Pressure
-                  </label>
-                  <input
-                    {...register("systolic")}
-                    type="text"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.systolic
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.systolic === "danger"
-                        ? "text-red-600"
-                        : levels.systolic === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {msgFor("systolic", levels.systolic) ||
-                      (formState.errors.systolic
-                        ? String(formState.errors.systolic.message)
-                        : null)}
+                  <div className="ml-auto text-xs text-gray-500">
+                    {anyDanger
+                      ? "Critical values detected"
+                      : anyWarn
+                      ? "Some values need monitoring"
+                      : "All values within range"}
                   </div>
                 </div>
+              </form>
+            </div>
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium">
-                    Diastolic Blood Pressure
-                  </label>
-                  <input
-                    {...register("diastolic")}
-                    type="text"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.diastolic
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.diastolic === "danger"
-                        ? "text-red-600"
-                        : levels.diastolic === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
+          <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-4">
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Calculation Module</CardTitle>
+                <p className="text-xs text-gray-500">
+                  Engine v{summaryQuery.data?.meta.engine_version ?? "—"}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {summaryQuery.isLoading && (
+                  <p className="text-sm text-gray-500">Fetching signals...</p>
+                )}
+                {!summaryQuery.isLoading &&
+                  summaryQuery.data?.indicators.map((indicator) => (
+                    <div
+                      key={indicator.id}
+                      className="rounded-xl border border-gray-100 bg-slate-50 p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">
+                            {indicator.label}
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {indicator.value}
+                            {indicator.unit && (
+                              <span className="ml-1 text-sm text-gray-500">
+                                {indicator.unit}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`border ${
+                            severityColors[indicator.severity]
+                          }`}
+                        >
+                          {indicator.severity}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {indicator.description}
+                      </p>
+                    </div>
+                  ))}
+                {!summaryQuery.isLoading &&
+                  !summaryQuery.data?.indicators.length && (
+                    <p className="text-sm text-gray-500">
+                      Select a resident to view automated insights.
+                    </p>
+                  )}
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Recent Measurements</CardTitle>
+                <p className="text-xs text-gray-500">
+                  Load data to correct if needed
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {summaryQuery.data?.vitals.history.length ? (
+                  summaryQuery.data.vitals.history
+                    .slice(0, 5)
+                    .map((assessment) => (
+                      <div
+                        key={assessment.assessment_id}
+                        className="rounded-xl border border-gray-100 bg-slate-50 p-3 shadow-sm"
+                      >
+                        <div className="flex items-center justify-between text-sm font-semibold text-gray-800">
+                          <span>
+                            {formatSummaryTime(
+                              assessment.measured_at || assessment.created_at
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleLoadAssessmentForCorrection(assessment)
+                            }
+                            className="text-xs text-blue-600 underline"
+                          >
+                            Load
+                          </button>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-600">
+                          BP: {assessment.blood_pressure_systolic ?? "—"}/
+                          {assessment.blood_pressure_diastolic ?? "—"} mmHg •
+                          HR: {assessment.heart_rate ?? "—"} bpm • SpO₂:{" "}
+                          {assessment.oxygen_saturation ?? "—"}%
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No historical measurements yet.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Carelog corrections</CardTitle>
+                <p className="text-xs text-gray-500">
+                  Ensure activities feed the engine accurately
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {summaryQuery.data?.careLogs.recent.length ? (
+                  summaryQuery.data.careLogs.recent.slice(0, 4).map((log) => (
+                    <div
+                      key={log.care_log_id}
+                      className="rounded-xl border border-gray-100 bg-slate-50 p-3 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between text-sm font-semibold text-gray-800">
+                        <span>{log.title}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCareLogCorrection({
+                              care_log_id: log.care_log_id,
+                              status: log.status as
+                                | "pending"
+                                | "in_progress"
+                                | "completed",
+                              notes: log.notes,
+                            })
+                          }
+                          className="text-xs text-blue-600 underline"
+                        >
+                          Correct
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {formatSummaryTime(log.start_time)}
+                      </p>
+                      {log.notes && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          {log.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No carelogs found for this resident.
+                  </p>
+                )}
+
+                {careLogCorrection && (
+                  <form
+                    onSubmit={handleCareLogCorrectionSubmit}
+                    className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3 shadow-sm"
                   >
-                    {msgFor("diastolic", levels.diastolic) ||
-                      (formState.errors.diastolic
-                        ? String(formState.errors.diastolic.message)
-                        : null)}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">
-                    Heart Rate (bpm)
-                  </label>
-                  <input
-                    {...register("heartRate")}
-                    type="text"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.heartRate
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.heartRate === "danger"
-                        ? "text-red-600"
-                        : levels.heartRate === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {msgFor("heartRate", levels.heartRate) ||
-                      (formState.errors.heartRate
-                        ? String(formState.errors.heartRate.message)
-                        : null)}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">
-                    Temperature (°C)
-                  </label>
-                  <input
-                    {...register("temperature")}
-                    type="text"
-                    step="0.1"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.temperature
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.temperature === "danger"
-                        ? "text-red-600"
-                        : levels.temperature === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {msgFor("temperature", levels.temperature) ||
-                      (formState.errors.temperature
-                        ? String(formState.errors.temperature.message)
-                        : null)}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">
-                    Respiration Rate (per min)
-                  </label>
-                  <input
-                    {...register("respiration")}
-                    type="text"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.respiration
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.respiration === "danger"
-                        ? "text-red-600"
-                        : levels.respiration === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {msgFor("respiration", levels.respiration) ||
-                      (formState.errors.respiration
-                        ? String(formState.errors.respiration.message)
-                        : null)}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">SpO₂ (%)</label>
-                  <input
-                    {...register("spo2")}
-                    type="text"
-                    className={`mt-2 w-full rounded-lg px-3 py-2 border ${borderFor(
-                      levels.spo2
-                    )}`}
-                  />
-                  <div
-                    className={`text-xs mt-1 ${
-                      levels.spo2 === "danger"
-                        ? "text-red-600"
-                        : levels.spo2 === "warn"
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {msgFor("spo2", levels.spo2) ||
-                      (formState.errors.spo2
-                        ? String(formState.errors.spo2.message)
-                        : null)}
-                  </div>
-                </div>
-
-                <div className="md:col-span-3">
-                  <label className="text-sm font-medium">Note</label>
-                  <textarea
-                    {...register("note")}
-                    rows={3}
-                    className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200"
-                  />
-                </div>
-              </div>
-
-              {/* summary & actions */}
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={
-                    Object.keys(formState.errors).length > 0 ||
-                    formState.isSubmitting
-                  }
-                  className={`px-5 py-2 rounded-lg text-white ${
-                    Object.keys(formState.errors).length > 0 ||
-                    formState.isSubmitting
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
-                  style={{ background: PRIMARY }}
-                >
-                  {formState.isSubmitting ? "Saving..." : "💾 Save"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    reset({
-                      measuredAt: toLocalInputValue(new Date()),
-                      ...PRESET.Morning,
-                      shift: getShiftFromDate(new Date()),
-                      note: "",
-                    })
-                  }
-                  className="px-4 py-2 rounded-lg border border-[#5985D8] text-[#5985D8]"
-                >
-                  <RefreshCw size={16} className="inline-block mr-2" />
-                  Reset Form
-                </button>
-
-                <div className="ml-auto text-xs text-gray-500">
-                  {anyDanger
-                    ? "Critical values detected"
-                    : anyWarn
-                    ? "Some values need monitoring"
-                    : "All values within range"}
-                </div>
-              </div>
-            </form>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">
+                        Status
+                      </label>
+                      <select
+                        value={careLogCorrection.status}
+                        onChange={(event) =>
+                          setCareLogCorrection((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  status: event.target
+                                    .value as (typeof careLogCorrection)["status"],
+                                }
+                              : prev
+                          )
+                        }
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">
+                        Notes
+                      </label>
+                      <textarea
+                        value={careLogCorrection.notes ?? ""}
+                        onChange={(event) =>
+                          setCareLogCorrection((prev) =>
+                            prev ? { ...prev, notes: event.target.value } : prev
+                          )
+                        }
+                        rows={2}
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">
+                        Correction reason
+                      </label>
+                      <textarea
+                        value={careLogReason}
+                        onChange={(event) =>
+                          setCareLogReason(event.target.value)
+                        }
+                        rows={2}
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                        placeholder="Explain why this carelog needs correction"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 rounded-lg bg-[#5985D8] px-3 py-2 text-sm font-medium text-white"
+                      >
+                        Save correction
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCareLogCorrection(null);
+                          setCareLogReason("");
+                        }}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

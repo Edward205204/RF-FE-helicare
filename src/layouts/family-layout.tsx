@@ -1,61 +1,37 @@
-// FamilySidebar.tsx
-import React, { useState, useContext } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import {
-  Home,
-  Users,
-  Heart,
-  Calendar,
-  Utensils,
-  Building,
-  CalendarCheck,
-  BookOpen,
-  Bell,
-  MessageSquare,
-  CreditCard,
-  Menu,
-  X,
-  LogOut,
-} from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import React, { useState, useContext, useMemo, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut, LucideIcon, Bell } from "lucide-react";
+import { Button } from "@/components/ui";
+import { Avatar, AvatarFallback } from "@/components/ui";
+import { Separator } from "@/components/ui";
 import { AppContext } from "@/contexts/app.context";
-import path from "@/constants/path";
+import pathConst from "@/constants/path";
 import { removeLocalStorage } from "@/utils/local-storage";
+import { familyMenu } from "@/constants/family-menu";
+import {
+  hasInstitutionAccess,
+  checkInstitutionAccessViaAPI,
+} from "@/utils/family-utils";
 
-const navigationItems = [
-  // { to: "/family/home", label: "Dashboard / Overview", icon: Home },
-  { to: path.familyNewsFeed, label: "Family Diary", icon: BookOpen },
-  { to: path.familyResidents, label: "My Residents", icon: Users },
-  // { to: "/family/health", label: "Health & Care", icon: Heart },
-  // {
-  //   to: "/family-register-visit",
-  //   label: "Schedule & Activities",
-  //   icon: Calendar,
-  // },
-  // { to: "/family/meals", label: "Meals & Nutrition", icon: Utensils },
-  // { to: "/family/room", label: "Room & Facility", icon: Building },
-  // { to: "/family/visits", label: "Visits", icon: CalendarCheck },
-
-  // { to: "/family/notifications", label: "Notifications", icon: Bell },
-  // { to: "/family/feedback", label: "Feedback & Support", icon: MessageSquare },
-  // { to: "/family/billing", label: "Billing & Payments", icon: CreditCard },
-];
+export type FamilyMenuItem = {
+  path: string;
+  icon: LucideIcon;
+  label: string;
+  requiresInstitution?: boolean; // If true, only show when user has institution_id
+};
 
 const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleSidebar = () => setIsOpen(!isOpen);
-  const { profile } = useContext(AppContext);
+  const { profile, familyUnreadNotifications = 0 } = useContext(AppContext);
   const navigate = useNavigate();
 
   // Handle logout
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
       removeLocalStorage();
-      navigate(path.signin);
     }
   };
 
@@ -74,6 +50,45 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // State to track if user has institution access (via API check)
+  const [hasInstitutionAccessState, setHasInstitutionAccessState] =
+    useState<boolean>(false);
+
+  // Check institution access on mount and when profile changes
+  useEffect(() => {
+    const checkAccess = async () => {
+      // First check profile
+      const profileAccess = hasInstitutionAccess(profile);
+      if (profileAccess) {
+        setHasInstitutionAccessState(true);
+        return;
+      }
+
+      // If no institution_id in profile, check via API (resident links)
+      try {
+        const apiAccess = await checkInstitutionAccessViaAPI();
+        setHasInstitutionAccessState(apiAccess);
+      } catch (error) {
+        console.error("Failed to check institution access:", error);
+        setHasInstitutionAccessState(false);
+      }
+    };
+
+    if (profile) {
+      checkAccess();
+    }
+  }, [profile]);
+
+  // Filter menu items based on institution access
+  const visibleMenuItems = useMemo(() => {
+    return familyMenu.filter((item) => {
+      // Always show items that don't require institution
+      if (!item.requiresInstitution) return true;
+      // Only show items requiring institution if user has access
+      return hasInstitutionAccessState;
+    });
+  }, [hasInstitutionAccessState]);
 
   return (
     <div className="relative min-h-screen bg-white">
@@ -103,34 +118,45 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-          {navigationItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                }`
-              }
-              onClick={() => setIsOpen(false)}
-            >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
-            </NavLink>
-          ))}
+                {visibleMenuItems.map(({ path, label, icon: Icon }) => {
+            const isNotification = path === pathConst.familyNotification;
+            return (
+              <NavLink
+                key={path}
+                to={path}
+                className={({ isActive }) =>
+                  `flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  }`
+                }
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="flex items-center space-x-3">
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
+                </span>
+                {isNotification && familyUnreadNotifications > 0 && (
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                    {familyUnreadNotifications > 99
+                      ? "99+"
+                      : familyUnreadNotifications}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Logout Button - Fixed at bottom */}
-        <div className="mt-auto border-t border-gray-200 p-4">
-          <button
+        <div className="mt-auto border-t border-gray-200 p-4 ">
+          <Button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="w-full flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors "
           >
             <LogOut className="h-5 w-5" />
             <span>Đăng xuất</span>
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -152,9 +178,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
         </header>
 
         {/* Routed pages */}
-        <section className="flex-1 p-6 overflow-y-auto bg-gray-50">
-          {children}
-        </section>
+        <section className="flex-1  overflow-y-auto">{children}</section>
       </main>
     </div>
   );

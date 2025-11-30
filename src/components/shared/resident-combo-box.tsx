@@ -1,18 +1,14 @@
 import * as React from "react";
 import { ChevronsUpDown, Check, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui";
 import {
   Command,
   CommandInput,
   CommandGroup,
   CommandItem,
   CommandEmpty,
-} from "@/components/ui/command";
+} from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 
@@ -51,26 +47,15 @@ export function ResidentComboBox({
   const fetchResidents = async () => {
     setIsLoading(true);
     try {
-      // TODO: Implement API call to get family's residents
-      // const response = await residentApi.getFamilyResidents();
-      // setResidents(response.data);
-
-      // Mock data for now
-      const mockResidents: Resident[] = [
-        {
-          resident_id: "1",
-          full_name: "Nguyễn Văn A",
-          room: { room_number: "101" },
-          institution: { name: "Viện dưỡng lão ABC" },
-        },
-        {
-          resident_id: "2",
-          full_name: "Trần Thị B",
-          room: { room_number: "102" },
-          institution: { name: "Viện dưỡng lão ABC" },
-        },
-      ];
-      setResidents(mockResidents);
+      const { getResidents } = await import("@/apis/resident.api");
+      const response = await getResidents();
+      const residentsData = (response.residents || []).map((r: any) => ({
+        resident_id: r.resident_id,
+        full_name: r.full_name,
+        room: r.room ? { room_number: r.room.room_number } : undefined,
+        institution: r.institution ? { name: r.institution.name } : undefined,
+      }));
+      setResidents(residentsData);
     } catch (error) {
       toast.error("Không thể tải danh sách cư dân");
     } finally {
