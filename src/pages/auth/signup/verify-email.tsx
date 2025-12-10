@@ -21,7 +21,7 @@ export default function VerifyEmail() {
     const handleVerification = async () => {
       if (!token) {
         setVerificationStatus("error");
-        setErrorMessage("Invalid or expired token");
+        setErrorMessage("Token không hợp lệ hoặc đã hết hạn");
         return;
       }
 
@@ -32,7 +32,7 @@ export default function VerifyEmail() {
           setVerificationStatus("already_verified");
         } else {
           setVerificationStatus("success");
-          toast.success("Email verified successfully!");
+          toast.success("Xác minh email thành công!");
           setEmailToVerify(null);
         }
       } catch (error: any) {
@@ -40,7 +40,7 @@ export default function VerifyEmail() {
         const errorMsg =
           error.response?.data?.message ||
           error.message ||
-          "An error occurred while verifying email";
+          "Đã xảy ra lỗi khi xác minh email";
         setErrorMessage(errorMsg);
         toast.error(errorMsg);
       }
@@ -66,9 +66,9 @@ export default function VerifyEmail() {
               <Loader2 className="w-12 h-12 text-[#5985d8] animate-spin" />
             </div>
             <h2 className="text-2xl font-semibold mb-4 text-center text-[#5985d8]">
-              Verifying email...
+              Đang xác minh email...
             </h2>
-            <p className="text-center text-gray-600">Please wait a moment</p>
+            <p className="text-center text-gray-600">Vui lòng đợi một chút</p>
           </>
         );
 
@@ -79,14 +79,14 @@ export default function VerifyEmail() {
               <CheckCircle className="w-12 h-12 text-green-500" />
             </div>
             <h2 className="text-2xl font-semibold mb-4 text-center text-green-600">
-              Verification successful!
+              Xác minh thành công!
             </h2>
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4">
-                Your email has been verified successfully.
+                Email của bạn đã được xác minh thành công.
               </p>
               <p className="text-sm text-gray-500">
-                You can now sign in to your account.
+                Bây giờ bạn có thể đăng nhập vào tài khoản của mình.
               </p>
             </div>
             <div className="flex flex-col gap-3 w-full">
@@ -94,14 +94,14 @@ export default function VerifyEmail() {
                 onClick={handleGoToSignin}
                 className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors"
               >
-                Sign in now
+                Đăng nhập ngay
               </Button>
               <Button
                 onClick={handleGoToHome}
                 variant="outline"
                 className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors"
               >
-                Go to home
+                Về trang chủ
               </Button>
             </div>
           </>
@@ -114,14 +114,14 @@ export default function VerifyEmail() {
               <CheckCircle className="w-12 h-12 text-blue-500" />
             </div>
             <h2 className="text-2xl font-semibold mb-4 text-center text-blue-600">
-              Email already verified
+              Email đã được xác minh
             </h2>
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4">
-                This email has been verified before.
+                Email này đã được xác minh trước đó.
               </p>
               <p className="text-sm text-gray-500">
-                You can sign in to your account.
+                Bạn có thể đăng nhập vào tài khoản của mình.
               </p>
             </div>
             <div className="flex flex-col gap-3 w-full">
@@ -129,14 +129,14 @@ export default function VerifyEmail() {
                 onClick={handleGoToSignin}
                 className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors"
               >
-                Sign in
+                Đăng nhập
               </Button>
               <Button
                 onClick={handleGoToHome}
                 variant="outline"
                 className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors"
               >
-                Go to home
+                Về trang chủ
               </Button>
             </div>
           </>
@@ -149,12 +149,12 @@ export default function VerifyEmail() {
               <XCircle className="w-12 h-12 text-red-500" />
             </div>
             <h2 className="text-2xl font-semibold mb-4 text-center text-red-600">
-              Verification failed
+              Xác minh thất bại
             </h2>
             <div className="text-center mb-8">
               <p className="text-gray-600 mb-4">{errorMessage}</p>
               <p className="text-sm text-gray-500">
-                The token may have expired or is invalid. Please try again.
+                Token có thể đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.
               </p>
             </div>
             <div className="flex flex-col gap-3 w-full">
@@ -162,14 +162,14 @@ export default function VerifyEmail() {
                 onClick={() => navigate(path.signup)}
                 className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors"
               >
-                Sign up again
+                Đăng ký lại
               </Button>
               <Button
                 onClick={handleGoToHome}
                 variant="outline"
                 className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors"
               >
-                Go to home
+                Về trang chủ
               </Button>
             </div>
           </>
@@ -189,13 +189,13 @@ export default function VerifyEmail() {
       <div className="flex fixed inset-0 z-10 justify-center items-center">
         {/* Link đăng nhập góc phải */}
         <div className="absolute top-6 right-10 text-sm text-gray-700">
-          Already have an account?{" "}
+          Đã có tài khoản?{" "}
           <button
             type="button"
             className="underline hover:text-[#5985d8] transition-colors"
             onClick={handleGoToSignin}
           >
-            Log in
+            Đăng nhập
           </button>
         </div>
 

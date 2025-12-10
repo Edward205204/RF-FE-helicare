@@ -109,7 +109,7 @@ export default function StaffPerformance(): React.JSX.Element {
           </Button>
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
-              Staff Performance
+              Hiệu suất Nhân viên
             </h1>
             <p className="mt-1 text-sm text-gray-600">{staff.full_name}</p>
           </div>
@@ -138,7 +138,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500">
-                Tasks Completed
+                Nhiệm vụ đã hoàn thành
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -154,7 +154,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500">
-                Tasks Late
+                Nhiệm vụ trễ hạn
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -170,7 +170,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500">
-                Assessments Completed
+                Đánh giá đã hoàn thành
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -186,7 +186,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500">
-                Alerts Handled
+                Cảnh báo đã xử lý
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -202,7 +202,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <Card className="md:col-span-2 lg:col-span-3">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-gray-500">
-                Ranking
+                Xếp hạng
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -216,10 +216,10 @@ export default function StaffPerformance(): React.JSX.Element {
                   <p className="text-4xl font-bold">{performance.ranking}</p>
                   <p className="text-sm mt-1">
                     {performance.ranking === "A"
-                      ? "Excellent Performance"
+                      ? "Hiệu suất xuất sắc"
                       : performance.ranking === "B"
-                      ? "Good Performance"
-                      : "Needs Improvement"}
+                      ? "Hiệu suất tốt"
+                      : "Cần cải thiện"}
                   </p>
                 </div>
               </div>

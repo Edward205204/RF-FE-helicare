@@ -63,12 +63,12 @@ type StaffEvent = {
 
 // Zod schema for form validation
 const eventSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Tên là bắt buộc"),
   type: z.enum(["Care", "Entertainment", "Other"]),
-  date: z.string().min(1, "Date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
-  location: z.string().min(1, "Location is required"),
+  date: z.string().min(1, "Ngày là bắt buộc"),
+  startTime: z.string().min(1, "Thời gian bắt đầu là bắt buộc"),
+  endTime: z.string().min(1, "Thời gian kết thúc là bắt buộc"),
+  location: z.string().min(1, "Địa điểm là bắt buộc"),
   careSubType: z.string().optional(),
   frequency: z.string().optional(),
   roomIds: z.array(z.string()).optional(),
@@ -370,12 +370,12 @@ const StaffEventManagementPage: React.FC = () => {
     try {
       await deleteEvent(id);
       setEvents((prev) => prev.filter((e) => e.id !== id));
-      toast.success("Event deleted successfully");
-      setToastMessage("Event deleted");
+      toast.success("Sự kiện đã được xóa thành công");
+      setToastMessage("Sự kiện đã được xóa");
     } catch (error: any) {
       console.error("Failed to delete event:", error);
-      toast.error(error.response?.data?.message || "Failed to delete event");
-      setToastMessage("Error deleting event");
+      toast.error(error.response?.data?.message || "Không thể xóa sự kiện");
+      setToastMessage("Lỗi khi xóa sự kiện");
     }
   };
 
@@ -443,11 +443,11 @@ const StaffEventManagementPage: React.FC = () => {
       await refreshEventsList();
 
       setDialogOpen(false);
-      toast.success("Event updated successfully");
-      setToastMessage("Event updated successfully");
+      toast.success("Sự kiện đã được cập nhật thành công");
+      setToastMessage("Sự kiện đã được cập nhật thành công");
     } catch (error: any) {
       console.error("Failed to update event:", error);
-      toast.error(error.response?.data?.message || "Failed to update event");
+      toast.error(error.response?.data?.message || "Không thể cập nhật sự kiện");
     }
   };
 
@@ -468,7 +468,7 @@ const StaffEventManagementPage: React.FC = () => {
     <div className="relative flex flex-col min-h-screen p-4">
       <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(120%_120%_at_0%_100%,#dfe9ff_0%,#ffffff_45%,#efd8d3_100%)]"></div>
       <div className="container max-w-full mx-auto p-4 bg-white rounded-lg border border-gray-200 space-y-6">
-        <h1 className="text-2xl font-bold">Staff Event Management</h1>
+        <h1 className="text-2xl font-bold">Quản lý Sự kiện Nhân viên</h1>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -479,37 +479,37 @@ const StaffEventManagementPage: React.FC = () => {
             }
           >
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by Status" />
+              <SelectValue placeholder="Lọc theo Trạng thái" />
             </SelectTrigger>
             <SelectContent className="border-b border-slate-200 bg-white">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Upcoming">Upcoming</SelectItem>
-              <SelectItem value="Ongoing">Ongoing</SelectItem>
-              <SelectItem value="Ended">Ended</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">Tất cả Trạng thái</SelectItem>
+              <SelectItem value="Upcoming">Sắp tới</SelectItem>
+              <SelectItem value="Ongoing">Đang diễn ra</SelectItem>
+              <SelectItem value="Ended">Đã kết thúc</SelectItem>
+              <SelectItem value="Cancelled">Đã hủy</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by Type" />
+              <SelectValue placeholder="Lọc theo Loại" />
             </SelectTrigger>
             <SelectContent className="border-b border-slate-200 bg-white">
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="Care">Care Event</SelectItem>
-              <SelectItem value="Entertainment">Entertainment</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="all">Tất cả Loại</SelectItem>
+              <SelectItem value="Care">Sự kiện Chăm sóc</SelectItem>
+              <SelectItem value="Entertainment">Giải trí</SelectItem>
+              <SelectItem value="Other">Khác</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterCareType} onValueChange={setFilterCareType}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by Care Type" />
+              <SelectValue placeholder="Lọc theo Loại Chăm sóc" />
             </SelectTrigger>
             <SelectContent className="border-b border-slate-200 bg-white">
-              <SelectItem value="all">All Care Types</SelectItem>
-              <SelectItem value="vital_check">Vital Check</SelectItem>
-              <SelectItem value="therapy">Therapy</SelectItem>
-              <SelectItem value="hygiene">Hygiene</SelectItem>
-              <SelectItem value="entertainment">Entertainment</SelectItem>
+              <SelectItem value="all">Tất cả Loại Chăm sóc</SelectItem>
+              <SelectItem value="vital_check">Kiểm tra Dấu hiệu Sinh tồn</SelectItem>
+              <SelectItem value="therapy">Trị liệu</SelectItem>
+              <SelectItem value="hygiene">Vệ sinh</SelectItem>
+              <SelectItem value="entertainment">Giải trí</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex flex-col sm:flex-row gap-4 relative bg-white">
@@ -579,7 +579,7 @@ const StaffEventManagementPage: React.FC = () => {
               setFilterTo("");
             }}
           >
-            Clear
+            Xóa bộ lọc
           </Button>
         </div>
 
@@ -588,7 +588,7 @@ const StaffEventManagementPage: React.FC = () => {
             className="bg-blue-500 text-white hover:bg-blue-500 cursor-pointer hover:opacity-90"
             onClick={() => navigate(path.staffCreateEvent)}
           >
-            Add New Event
+            Thêm Sự kiện Mới
           </Button>
         </div>
 
@@ -597,16 +597,16 @@ const StaffEventManagementPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-slate-200">
-                <TableHead className="text-center">Name</TableHead>
-                <TableHead className="text-center">Type</TableHead>
-                <TableHead className="text-center">Date</TableHead>
-                <TableHead className="text-center">Time</TableHead>
-                <TableHead className="text-center">Location</TableHead>
-                <TableHead className="text-center">Rooms</TableHead>
-                <TableHead className="text-center">Frequency</TableHead>
-                <TableHead className="text-center">Subtype</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead className="text-center">Tên</TableHead>
+                <TableHead className="text-center">Loại</TableHead>
+                <TableHead className="text-center">Ngày</TableHead>
+                <TableHead className="text-center">Giờ</TableHead>
+                <TableHead className="text-center">Địa điểm</TableHead>
+                <TableHead className="text-center">Phòng</TableHead>
+                <TableHead className="text-center">Tần suất</TableHead>
+                <TableHead className="text-center">Loại phụ</TableHead>
+                <TableHead className="text-center">Trạng thái</TableHead>
+                <TableHead className="text-center">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -666,7 +666,7 @@ const StaffEventManagementPage: React.FC = () => {
                       className="bg-white border border-slate-200 cursor-pointer hover:bg-blue-500 hover:text-white"
                       onClick={() => openEditDialog(event)}
                     >
-                      Edit
+                      Sửa
                     </Button>
                     <Button
                       variant="destructive"
@@ -674,7 +674,7 @@ const StaffEventManagementPage: React.FC = () => {
                       className="ml-2 cursor-pointer bg-white border border-red-400 text-red-400 hover:bg-red-400 hover:text-white"
                       onClick={() => handleDeleteEvent(event.id)}
                     >
-                      Delete
+                      Xóa
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -774,7 +774,7 @@ const StaffEventManagementPage: React.FC = () => {
         {dialogOpen && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-xl shadow-lg space-y-6">
-              <h2 className="text-2xl font-bold text-center">Edit Event</h2>
+              <h2 className="text-2xl font-bold text-center">Chỉnh sửa Sự kiện</h2>
 
               <form
                 onSubmit={form.handleSubmit(saveUpdateEvent)}
@@ -782,26 +782,26 @@ const StaffEventManagementPage: React.FC = () => {
               >
                 {/* 1. NAME */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Name</label>
+                  <label className="w-36 text-sm font-medium">Tên</label>
                   <Input {...form.register("name")} className="flex-1" />
                 </div>
 
                 {/* 2. TYPE */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Type</label>
+                  <label className="w-36 text-sm font-medium">Loại</label>
                   <Select
                     value={form.watch("type")}
                     onValueChange={(v) => form.setValue("type", v as any)}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Choose type" />
+                      <SelectValue placeholder="Chọn loại" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Care">Care Event</SelectItem>
+                      <SelectItem value="Care">Sự kiện Chăm sóc</SelectItem>
                       <SelectItem value="Entertainment">
-                        Entertainment
+                        Giải trí
                       </SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Other">Khác</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -811,55 +811,55 @@ const StaffEventManagementPage: React.FC = () => {
                   <>
                     <div className="flex items-center gap-4">
                       <label className="w-36 text-sm font-medium">
-                        Subtype
+                        Loại phụ
                       </label>
                       <Select
                         value={form.watch("careSubType")}
                         onValueChange={(v) => form.setValue("careSubType", v)}
                       >
                         <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Choose subtype" />
+                          <SelectValue placeholder="Chọn loại phụ" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="VitalCheck">
-                            Vital Check
+                            Kiểm tra Dấu hiệu Sinh tồn
                           </SelectItem>
-                          <SelectItem value="Therapy">Therapy</SelectItem>
+                          <SelectItem value="Therapy">Trị liệu</SelectItem>
                           <SelectItem value="MedicationAdmin">
-                            Medication Admin
+                            Quản lý Thuốc
                           </SelectItem>
-                          <SelectItem value="Hygiene">Hygiene</SelectItem>
-                          <SelectItem value="Meal">Meal</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Hygiene">Vệ sinh</SelectItem>
+                          <SelectItem value="Meal">Bữa ăn</SelectItem>
+                          <SelectItem value="Other">Khác</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="flex items-center gap-4">
                       <label className="w-36 text-sm font-medium">
-                        Frequency
+                        Tần suất
                       </label>
                       <Select
                         value={form.watch("frequency")}
                         onValueChange={(v) => form.setValue("frequency", v)}
                       >
                         <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Choose frequency" />
+                          <SelectValue placeholder="Chọn tần suất" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="OneTime">One-time</SelectItem>
-                          <SelectItem value="Daily">Daily</SelectItem>
-                          <SelectItem value="Weekly">Weekly</SelectItem>
-                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="OneTime">Một lần</SelectItem>
+                          <SelectItem value="Daily">Hàng ngày</SelectItem>
+                          <SelectItem value="Weekly">Hàng tuần</SelectItem>
+                          <SelectItem value="Monthly">Hàng tháng</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="flex items-center gap-4">
-                      <label className="w-36 text-sm font-medium">Rooms</label>
+                      <label className="w-36 text-sm font-medium">Phòng</label>
                       <div className="flex-1">
                         <MultiSelect
                           options={rooms.map((room) => ({
                             value: room.room_id,
-                            label: `Room ${room.room_number} (${room.type})`,
+                            label: `Phòng ${room.room_number} (${room.type})`,
                           }))}
                           value={rooms
                             .filter((r) =>
@@ -867,7 +867,7 @@ const StaffEventManagementPage: React.FC = () => {
                             )
                             .map((r) => ({
                               value: r.room_id,
-                              label: `Room ${r.room_number} (${r.type})`,
+                              label: `Phòng ${r.room_number} (${r.type})`,
                             }))}
                           onChange={(selected) =>
                             form.setValue(
@@ -875,7 +875,7 @@ const StaffEventManagementPage: React.FC = () => {
                               (selected || []).map((option) => option.value)
                             )
                           }
-                          placeholder="Select rooms (optional)..."
+                          placeholder="Chọn phòng (tùy chọn)..."
                           isMulti
                           className="react-select-container"
                           classNamePrefix="react-select"
@@ -896,7 +896,7 @@ const StaffEventManagementPage: React.FC = () => {
 
                 {/* 3. DATE */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Date</label>
+                  <label className="w-36 text-sm font-medium">Ngày</label>
                   <Input
                     type="date"
                     {...form.register("date")}
@@ -906,7 +906,7 @@ const StaffEventManagementPage: React.FC = () => {
 
                 {/* 4. TIME */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Time</label>
+                  <label className="w-36 text-sm font-medium">Giờ</label>
                   <div className="flex gap-2 flex-1">
                     <Input type="time" {...form.register("startTime")} />
                     <Input type="time" {...form.register("endTime")} />
@@ -915,28 +915,28 @@ const StaffEventManagementPage: React.FC = () => {
 
                 {/* 5. LOCATION */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Location</label>
+                  <label className="w-36 text-sm font-medium">Địa điểm</label>
                   <Input {...form.register("location")} className="flex-1" />
                 </div>
 
                 {/* 6. STATUS */}
                 <div className="flex items-center gap-4">
-                  <label className="w-36 text-sm font-medium">Status</label>
+                  <label className="w-36 text-sm font-medium">Trạng thái</label>
                   <Select
                     value={form.watch("status")}
                     onValueChange={(v) => form.setValue("status", v as any)}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Choose status" />
+                      <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Upcoming">Upcoming</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      <SelectItem value="Upcoming">Sắp tới</SelectItem>
+                      <SelectItem value="Cancelled">Đã hủy</SelectItem>
                       <SelectItem value="Ongoing" disabled>
-                        Ongoing (auto)
+                        Đang diễn ra (tự động)
                       </SelectItem>
                       <SelectItem value="Ended" disabled>
-                        Ended (auto)
+                        Đã kết thúc (tự động)
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -949,13 +949,13 @@ const StaffEventManagementPage: React.FC = () => {
                     type="button"
                     onClick={() => setDialogOpen(false)}
                   >
-                    Cancel
+                    Hủy
                   </Button>
                   <Button
                     className="bg-blue-500 text-white hover:bg-blue-500"
                     type="submit"
                   >
-                    Save Changes
+                    Lưu Thay đổi
                   </Button>
                 </div>
               </form>

@@ -528,32 +528,65 @@ const StaffFeedbackManagement: React.FC = () => {
       </Card>
 
       {/* Feedback Table */}
-      <Card className="bg-white shadow-sm border rounded-xl">
-        <CardHeader>
-          <CardTitle>Danh sách Feedback</CardTitle>
+      <Card className="bg-white shadow-lg border-0 rounded-xl overflow-hidden ring-1 ring-gray-200">
+        <CardHeader className="bg-gray-50/50 border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold text-gray-800">
+              Danh sách Feedback
+            </CardTitle>
+            {/* Có thể thêm badge tổng số lượng ở đây nếu muốn */}
+            <div className="text-sm text-gray-500 font-medium">
+              Tổng: {total} bản ghi
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12"></TableHead>
-                  <TableHead>Cư dân</TableHead>
-                  <TableHead>Phòng</TableHead>
-                  <TableHead>Danh mục</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Nội dung</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Nhân viên</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Thao tác</TableHead>
+                <TableRow className="bg-gray-100/80 hover:bg-gray-100/80 border-b border-gray-200">
+                  <TableHead className="w-12 text-center"></TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Cư dân
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700 w-20">
+                    Phòng
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Danh mục
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Loại
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700 w-64">
+                    Nội dung
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Trạng thái
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Nhân viên
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700">
+                    Ngày tạo
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-700 text-center w-32">
+                    Thao tác
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFeedbacks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
-                      Không có feedback nào.
+                    <TableCell
+                      colSpan={10}
+                      className="text-center py-12 text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="text-lg">📭</span>
+                        <span>Không có feedback nào phù hợp.</span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -562,54 +595,86 @@ const StaffFeedbackManagement: React.FC = () => {
                     return (
                       <React.Fragment key={feedback.feedback_id}>
                         <TableRow
-                          className="cursor-pointer hover:bg-muted/50 transition-all duration-150"
+                          className={`cursor-pointer transition-all duration-200 border-b border-gray-100 group
+                      ${
+                        isExpanded
+                          ? "bg-blue-50/60 border-blue-100"
+                          : "hover:bg-blue-50/30"
+                      }
+                    `}
                           onClick={() =>
                             toggleRowExpansion(feedback.feedback_id)
                           }
                         >
-                          <TableCell>
-                            {isExpanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
+                          <TableCell className="text-center">
+                            <div
+                              className={`p-1 rounded-full transition-colors ${
+                                isExpanded
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "text-gray-400 group-hover:text-gray-600"
+                              }`}
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium text-gray-800 py-4">
                             {feedback.resident?.full_name || "N/A"}
                           </TableCell>
-                          <TableCell>
-                            {feedback.resident?.room?.room_number || "N/A"}
+                          <TableCell className="py-4">
+                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">
+                              {feedback.resident?.room?.room_number || "N/A"}
+                            </span>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-gray-600 py-4">
                             {feedback.category?.name || "N/A"}
                           </TableCell>
-                          <TableCell>{feedback.type || "N/A"}</TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {feedback.message.substring(0, 50)}
-                            {feedback.message.length > 50 ? "..." : ""}
+                          <TableCell className="text-gray-600 py-4">
+                            {feedback.type || "N/A"}
                           </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(feedback.status)}>
+                          <TableCell className="max-w-xs py-4">
+                            <p
+                              className="truncate text-gray-600"
+                              title={feedback.message}
+                            >
+                              {feedback.message}
+                            </p>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge
+                              className={`${getStatusColor(
+                                feedback.status
+                              )} px-3 py-1 shadow-sm font-normal`}
+                            >
                               {mapStatusToFrontend(feedback.status)}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-sm text-gray-600 py-4">
                             {feedback.assigned_staff?.staffProfile?.full_name ||
-                              feedback.assigned_staff?.user_id ||
-                              "Chưa phân công"}
+                              feedback.assigned_staff?.user_id || (
+                                <span className="text-gray-400 italic">
+                                  Chưa phân công
+                                </span>
+                              )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-gray-600 py-4 text-sm whitespace-nowrap">
                             {new Date(feedback.created_at).toLocaleDateString(
                               "vi-VN"
                             )}
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <div className="flex gap-2">
+                          <TableCell
+                            onClick={(e) => e.stopPropagation()}
+                            className="py-4"
+                          >
+                            <div className="flex items-center justify-center gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openUpdateDialog(feedback)}
-                                className="cursor-pointer"
+                                className="h-8 px-3 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                               >
                                 Cập nhật
                               </Button>
@@ -617,88 +682,135 @@ const StaffFeedbackManagement: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openNotificationDialog(feedback)}
-                                className="cursor-pointer"
+                                className="h-8 w-8 p-0 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+                                title="Gửi thông báo"
                               >
-                                <Send className="h-4 w-4" />
+                                <Send className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
+
+                        {/* Expanded Detail Row */}
                         {isExpanded && (
-                          <TableRow>
-                            <TableCell colSpan={10} className="bg-gray-50">
-                              <div className="p-4 space-y-4">
-                                <div>
-                                  <strong>Nội dung đầy đủ:</strong>
-                                  <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
-                                    {feedback.message}
-                                  </p>
-                                </div>
-                                {feedback.staff_notes && (
-                                  <div>
-                                    <strong>Ghi chú nhân viên:</strong>
-                                    <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
-                                      {feedback.staff_notes}
+                          <TableRow className="bg-blue-50/30 hover:bg-blue-50/30">
+                            <TableCell
+                              colSpan={10}
+                              className="p-0 border-b border-blue-100"
+                            >
+                              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
+                                {/* Cột 1: Nội dung chính */}
+                                <div className="md:col-span-2 space-y-4">
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                      📝 Nội dung chi tiết
+                                    </h4>
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                      {feedback.message}
                                     </p>
                                   </div>
-                                )}
-                                {feedback.attachments &&
-                                  feedback.attachments.length > 0 && (
-                                    <div>
-                                      <strong>File đính kèm:</strong>
-                                      <div className="mt-2 space-y-2">
-                                        {feedback.attachments.map(
-                                          (url, idx) => (
-                                            <a
-                                              key={idx}
-                                              href={url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-blue-600 hover:underline block"
-                                            >
-                                              File {idx + 1}
-                                            </a>
-                                          )
-                                        )}
+
+                                  {feedback.staff_notes && (
+                                    <div className="bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
+                                      <h4 className="text-sm font-semibold text-yellow-800 mb-2">
+                                        📌 Ghi chú nhân viên
+                                      </h4>
+                                      <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                        {feedback.staff_notes}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {feedback.attachments &&
+                                    feedback.attachments.length > 0 && (
+                                      <div className="mt-2">
+                                        <strong className="text-sm text-gray-700">
+                                          📎 File đính kèm:
+                                        </strong>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                          {feedback.attachments.map(
+                                            (url, idx) => (
+                                              <a
+                                                key={idx}
+                                                href={url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-gray-100 text-blue-600 hover:bg-blue-100 transition-colors border border-gray-200"
+                                              >
+                                                File {idx + 1} ↗
+                                              </a>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
+
+                                {/* Cột 2: Thông tin phụ */}
+                                <div className="space-y-4 text-sm">
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                                    <h4 className="font-semibold text-gray-900 border-b pb-2">
+                                      Thông tin người gửi
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-y-2">
+                                      <div>
+                                        <span className="text-gray-500 block text-xs">
+                                          Người gửi:
+                                        </span>
+                                        <span className="font-medium text-gray-800">
+                                          {feedback.family_user?.familyProfile
+                                            ?.full_name || "N/A"}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 block text-xs">
+                                          Email:
+                                        </span>
+                                        <span className="font-medium text-gray-800">
+                                          {feedback.family_user?.email || "N/A"}
+                                        </span>
                                       </div>
                                     </div>
-                                  )}
-                                {feedback.resident?.dietTags &&
-                                  feedback.resident.dietTags.length > 0 && (
-                                    <div>
-                                      <strong>Diet Tags:</strong>
-                                      <div className="mt-1 flex flex-wrap gap-2">
-                                        {feedback.resident.dietTags.map(
-                                          (tag) => (
-                                            <Badge
-                                              key={tag.tag_id}
-                                              variant="outline"
-                                            >
-                                              {tag.tag_name}
-                                            </Badge>
-                                          )
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <strong>Người gửi:</strong>{" "}
-                                    {feedback.family_user?.familyProfile
-                                      ?.full_name || "N/A"}
                                   </div>
-                                  <div>
-                                    <strong>Email:</strong>{" "}
-                                    {feedback.family_user?.email || "N/A"}
-                                  </div>
-                                  {feedback.resolved_at && (
+
+                                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
+                                    <h4 className="font-semibold text-gray-900 border-b pb-2">
+                                      Thông tin xử lý
+                                    </h4>
                                     <div>
-                                      <strong>Ngày giải quyết:</strong>{" "}
-                                      {new Date(
-                                        feedback.resolved_at
-                                      ).toLocaleString("vi-VN")}
+                                      <span className="text-gray-500 block text-xs">
+                                        Ngày giải quyết:
+                                      </span>
+                                      <span className="font-medium text-gray-800">
+                                        {feedback.resolved_at
+                                          ? new Date(
+                                              feedback.resolved_at
+                                            ).toLocaleString("vi-VN")
+                                          : "Chưa giải quyết"}
+                                      </span>
                                     </div>
-                                  )}
+                                    {feedback.resident?.dietTags &&
+                                      feedback.resident.dietTags.length > 0 && (
+                                        <div>
+                                          <span className="text-gray-500 block text-xs mb-1">
+                                            Diet Tags:
+                                          </span>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {feedback.resident.dietTags.map(
+                                              (tag) => (
+                                                <Badge
+                                                  key={tag.tag_id}
+                                                  variant="outline"
+                                                  className="text-xs bg-red-50 text-red-600 border-red-100"
+                                                >
+                                                  {tag.tag_name}
+                                                </Badge>
+                                              )
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>
@@ -712,27 +824,30 @@ const StaffFeedbackManagement: React.FC = () => {
             </Table>
           </div>
 
-          {/* Pagination */}
+          {/* Footer / Pagination */}
           {total > limit && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-600">
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/50">
+              <div className="text-sm text-gray-600 font-medium">
                 Hiển thị {(page - 1) * limit + 1} -{" "}
-                {Math.min(page * limit, total)} trong tổng số {total}
+                {Math.min(page * limit, total)}{" "}
+                <span className="text-gray-400 mx-1">/</span> {total}
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-white bg-white shadow-sm"
                 >
                   Trước
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setPage((p) => p + 1)}
                   disabled={page * limit >= total}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-white bg-white shadow-sm"
                 >
                   Sau
                 </Button>

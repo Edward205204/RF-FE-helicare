@@ -262,7 +262,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Calories (per 100g) *
+                  Calo (mỗi 100g) *
                 </label>
                 <Input
                   type="number"
@@ -279,7 +279,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Texture *
+                  Độ đặc *
                 </label>
                 <Select
                   value={form.texture}
@@ -294,9 +294,9 @@ const FoodBankManagementPage: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="Regular">Regular</SelectItem>
-                    <SelectItem value="Minced">Minced</SelectItem>
-                    <SelectItem value="Pureed">Pureed</SelectItem>
+                    <SelectItem value="Regular">Thường</SelectItem>
+                    <SelectItem value="Minced">Băm nhỏ</SelectItem>
+                    <SelectItem value="Pureed">Nghiền nhuyễn</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -349,7 +349,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Allergen / Dietary Tags
+                  Dị ứng / Nhãn Dinh dưỡng
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {allergenTags.map((tag) => {
@@ -387,7 +387,7 @@ const FoodBankManagementPage: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold">Ingredients</h3>
+                <h3 className="text-sm font-semibold">Nguyên liệu</h3>
                 <Button
                   type="button"
                   size="sm"

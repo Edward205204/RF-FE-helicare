@@ -390,7 +390,7 @@ const ResidentPasswordManagement: React.FC = () => {
                               </Button>
                             </TableHead>
                             <TableHead className="border-gray-200">
-                              Username
+                              Tên đăng nhập
                             </TableHead>
                             <TableHead className="border-gray-200">
                               Phòng

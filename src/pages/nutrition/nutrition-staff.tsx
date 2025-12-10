@@ -77,11 +77,11 @@ export const mockConditions: Condition[] = [
 ];
 
 export const mockDietGroups: DietGroup[] = [
-  { id: "1", name: "Low Sugar", recommendedConditions: [mockConditions[0]] },
-  { id: "2", name: "Low Sodium", recommendedConditions: [mockConditions[1]] },
-  { id: "5", name: "Soft", recommendedConditions: [mockConditions[2]] },
-  { id: "3", name: "Low Carb", recommendedConditions: [] },
-  { id: "4", name: "High Protein", recommendedConditions: [] },
+  { id: "1", name: "Ít Đường", recommendedConditions: [mockConditions[0]] },
+  { id: "2", name: "Ít Muối", recommendedConditions: [mockConditions[1]] },
+  { id: "5", name: "Mềm", recommendedConditions: [mockConditions[2]] },
+  { id: "3", name: "Ít Carb", recommendedConditions: [] },
+  { id: "4", name: "Nhiều Protein", recommendedConditions: [] },
 ];
 
 export function resolveItem<T extends { id: string; name: string }>(
@@ -180,12 +180,12 @@ const ResidentDetailDialog = ({
       {/* Thêm bg-white vào DialogContent */}
       <DialogContent className={`bg-white ${className}`}>
         <DialogHeader>
-          <DialogTitle>Residents in {group.name}</DialogTitle>
+          <DialogTitle>Cư dân trong {group.name}</DialogTitle>
         </DialogHeader>
 
         <Input
           className="bg-gray-50 border-gray-200 focus:border-blue-400"
-          placeholder="Search resident"
+          placeholder="Tìm kiếm cư dân"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -200,7 +200,7 @@ const ResidentDetailDialog = ({
                 <p className="font-medium">
                   {r.name}{" "}
                   <span className="text-gray-500 font-normal">
-                    (Room {r.room})
+                    (Phòng {r.room})
                   </span>
                 </p>
                 <div className="flex gap-1 mt-1">
@@ -223,7 +223,7 @@ const ResidentDetailDialog = ({
 
               <Select onValueChange={(val) => onAssign(r.id, val)}>
                 <SelectTrigger className={`w-40 ${SELECT_TRIGGER_STYLE}`}>
-                  <SelectValue placeholder="Change group" />
+                  <SelectValue placeholder="Đổi nhóm" />
                 </SelectTrigger>
                 {/* Thêm bg-white vào SelectContent */}
                 <SelectContent className="bg-white">
@@ -304,7 +304,7 @@ const DishDetailDialog = ({
       .map((r) => ({
         resident_id: r.id,
         resident_name: r.name,
-        allergen_substance: "Unknown",
+        allergen_substance: "Không xác định",
       }));
 
   const hasLowSaltWarning = checkLowSaltWarning(dish);
@@ -322,7 +322,7 @@ const DishDetailDialog = ({
             {isSelected && (
               <Badge className="bg-green-500 text-white">
                 <Check className="w-3 h-3 mr-1" />
-                Selected
+                Đã chọn
               </Badge>
             )}
           </DialogTitle>
@@ -331,7 +331,7 @@ const DishDetailDialog = ({
         <div className="space-y-4">
           {/* Nutrition Info */}
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-900 mb-2">Nutrition Info</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">Thông tin Dinh dưỡng</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
               {nutrition ? (
                 <>
@@ -343,7 +343,7 @@ const DishDetailDialog = ({
                   </div>
                   {nutrition.sodium !== undefined && (
                     <div>
-                      <span className="text-gray-600">Sodium:</span>
+                      <span className="text-gray-600">Natri:</span>
                       <span className="ml-2 font-semibold">
                         {nutrition.sodium} mg
                       </span>
@@ -359,7 +359,7 @@ const DishDetailDialog = ({
                   )}
                   {nutrition.fat !== undefined && (
                     <div>
-                      <span className="text-gray-600">Fat:</span>
+                      <span className="text-gray-600">Chất béo:</span>
                       <span className="ml-2 font-semibold">
                         {nutrition.fat}g
                       </span>
@@ -367,7 +367,7 @@ const DishDetailDialog = ({
                   )}
                   {nutrition.carbs !== undefined && (
                     <div>
-                      <span className="text-gray-600">Carbs:</span>
+                      <span className="text-gray-600">Carb:</span>
                       <span className="ml-2 font-semibold">
                         {nutrition.carbs}g
                       </span>
@@ -377,14 +377,14 @@ const DishDetailDialog = ({
               ) : (
                 <>
                   <div>
-                    <span className="text-gray-600">Calories (per 100g):</span>
+                    <span className="text-gray-600">Calories (mỗi 100g):</span>
                     <span className="ml-2 font-semibold">
                       {dish.calories_per_100g} kcal
                     </span>
                   </div>
                   {dish.sodium_level !== undefined && (
                     <div>
-                      <span className="text-gray-600">Sodium (per 100g):</span>
+                      <span className="text-gray-600">Natri (mỗi 100g):</span>
                       <span className="ml-2 font-semibold">
                         {dish.sodium_level} mg
                       </span>
@@ -399,12 +399,12 @@ const DishDetailDialog = ({
           {/* Ingredients List */}
           {ingredients.length > 0 ? (
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-gray-900 mb-2">Ingredients</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Nguyên liệu</h3>
               <ul className="space-y-1">
                 {ingredients.map((di: DishIngredient) => (
                   <li key={di.dish_ingredient_id} className="text-sm">
                     <span className="font-medium">
-                      {di.ingredient?.name || "Unknown"}
+                      {di.ingredient?.name || "Không xác định"}
                     </span>
                     <span className="text-gray-600 ml-2">
                       {di.amount} {di.ingredient?.unit || "g"}
@@ -416,7 +416,7 @@ const DishDetailDialog = ({
           ) : (
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
               <p className="text-sm text-gray-500 italic">
-                No ingredients listed
+                Không có nguyên liệu nào được liệt kê
               </p>
             </div>
           )}
@@ -426,21 +426,21 @@ const DishDetailDialog = ({
             <Alert className="bg-red-50 border-red-200">
               <AlertTriangle className="h-4 w-4 text-red-600" />
               <AlertDescription>
-                <strong className="text-red-700">Allergen Alert</strong>
+                <strong className="text-red-700">Cảnh báo Dị ứng</strong>
                 <p className="text-sm text-red-600 mt-1">
-                  This dish contains allergens that affect{" "}
-                  {allergyWarnings.total_affected} resident(s):
+                  Món ăn này chứa chất gây dị ứng ảnh hưởng đến{" "}
+                  {allergyWarnings.total_affected} cư dân:
                 </p>
                 <ul className="list-disc list-inside mt-1 text-sm text-red-600">
                   {allergyWarnings.affected_residents.slice(0, 5).map((r) => (
                     <li key={r.resident_id}>
-                      {r.resident_name} - Allergic to: {r.allergen_substance}
+                      {r.resident_name} - Dị ứng với: {r.allergen_substance}
                     </li>
                   ))}
                   {allergyWarnings.affected_residents.length > 5 && (
                     <li>
-                      ...and {allergyWarnings.affected_residents.length - 5}{" "}
-                      more
+                      ...và {allergyWarnings.affected_residents.length - 5}{" "}
+                      cư dân khác
                     </li>
                   )}
                 </ul>
@@ -448,7 +448,7 @@ const DishDetailDialog = ({
                   allergyWarnings.suggested_alternatives.length > 0 && (
                     <div className="mt-3">
                       <p className="text-sm font-semibold text-red-700">
-                        Suggested Safe Alternatives:
+                        Món thay thế an toàn được đề xuất:
                       </p>
                       <ul className="list-disc list-inside mt-1 text-sm text-red-600">
                         {allergyWarnings.suggested_alternatives.map((alt) => (
@@ -458,8 +458,8 @@ const DishDetailDialog = ({
                     </div>
                   )}
                 <p className="text-xs text-red-500 mt-2 italic">
-                  Special portions needed: {specialPortions?.allergy_safe || 0}{" "}
-                  allergy-safe servings
+                  Phần đặc biệt cần thiết: {specialPortions?.allergy_safe || 0}{" "}
+                  phần an toàn dị ứng
                 </p>
               </AlertDescription>
             </Alert>
@@ -471,12 +471,12 @@ const DishDetailDialog = ({
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
                 <h3 className="font-bold text-lg text-blue-900 mb-3 flex items-center gap-2">
                   <span className="text-2xl">📊</span>
-                  Servings Breakdown Analysis
+                  Phân tích Phân chia Phần ăn
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   <div className="bg-white rounded-lg p-3 shadow-sm border">
                     <div className="text-xs text-gray-500 uppercase tracking-wide">
-                      Total Servings
+                      Tổng Phần ăn
                     </div>
                     <div className="text-2xl font-bold text-blue-700 mt-1">
                       {detailedBreakdown.total_servings}
@@ -484,7 +484,7 @@ const DishDetailDialog = ({
                   </div>
                   <div className="bg-white rounded-lg p-3 shadow-sm border">
                     <div className="text-xs text-gray-500 uppercase tracking-wide">
-                      Regular
+                      Thông thường
                     </div>
                     <div className="text-2xl font-bold text-green-700 mt-1">
                       {detailedBreakdown.regular_servings}
@@ -501,7 +501,7 @@ const DishDetailDialog = ({
                   </div>
                   <div className="bg-white rounded-lg p-3 shadow-sm border">
                     <div className="text-xs text-gray-500 uppercase tracking-wide">
-                      Texture Variants
+                      Biến thể Kết cấu
                     </div>
                     <div className="text-lg font-semibold text-purple-700 mt-1">
                       M:{" "}
@@ -520,7 +520,7 @@ const DishDetailDialog = ({
                     <div className="bg-red-50 rounded-lg p-3 border border-red-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-red-900">
-                          ⚠️ Allergy-Safe Servings
+                          ⚠️ Phần ăn An toàn Dị ứng
                         </span>
                         <span className="text-xl font-bold text-red-700">
                           {
@@ -532,7 +532,7 @@ const DishDetailDialog = ({
                       {detailedBreakdown.special_servings.allergy_safe
                         .excluded_ingredients.length > 0 && (
                         <div className="text-xs text-red-700 mt-2">
-                          <strong>Excluded:</strong>{" "}
+                          <strong>Loại trừ:</strong>{" "}
                           {detailedBreakdown.special_servings.allergy_safe.excluded_ingredients
                             .map((ing) => ing.ingredient_name)
                             .join(", ")}
@@ -541,7 +541,7 @@ const DishDetailDialog = ({
                       {detailedBreakdown.special_servings.allergy_safe
                         .affected_residents.length > 0 && (
                         <div className="text-xs text-red-600 mt-1">
-                          <strong>Affected:</strong>{" "}
+                          <strong>Ảnh hưởng:</strong>{" "}
                           {detailedBreakdown.special_servings.allergy_safe.affected_residents
                             .slice(0, 3)
                             .map((r) => r.resident_name)
@@ -562,7 +562,7 @@ const DishDetailDialog = ({
                     <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-yellow-900">
-                          🍯 Low Sugar Servings
+                          🍯 Phần ăn Ít Đường
                         </span>
                         <span className="text-xl font-bold text-yellow-700">
                           {detailedBreakdown.special_servings.low_sugar.count}
@@ -571,7 +571,7 @@ const DishDetailDialog = ({
                       {detailedBreakdown.special_servings.low_sugar
                         .sugar_reduction_percentage && (
                         <div className="text-xs text-yellow-700 mt-2">
-                          <strong>Reduction:</strong>{" "}
+                          <strong>Giảm:</strong>{" "}
                           {
                             detailedBreakdown.special_servings.low_sugar
                               .sugar_reduction_percentage
@@ -587,7 +587,7 @@ const DishDetailDialog = ({
                     <div className="bg-cyan-50 rounded-lg p-3 border border-cyan-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-cyan-900">
-                          🧂 Low Sodium Servings
+                          🧂 Phần ăn Ít Muối
                         </span>
                         <span className="text-xl font-bold text-cyan-700">
                           {detailedBreakdown.special_servings.low_sodium.count}
@@ -596,7 +596,7 @@ const DishDetailDialog = ({
                       {detailedBreakdown.special_servings.low_sodium
                         .sodium_reduction_percentage && (
                         <div className="text-xs text-cyan-700 mt-2">
-                          <strong>Reduction:</strong>{" "}
+                          <strong>Giảm:</strong>{" "}
                           {
                             detailedBreakdown.special_servings.low_sodium
                               .sodium_reduction_percentage
@@ -611,7 +611,7 @@ const DishDetailDialog = ({
                 {/* Nutrition Breakdown by Type */}
                 <div className="mt-4 p-3 bg-white rounded-lg border">
                   <h4 className="font-semibold text-gray-800 mb-3">
-                    Nutrition Breakdown (per serving)
+                    Phân tích Dinh dưỡng (mỗi phần ăn)
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
@@ -665,7 +665,7 @@ const DishDetailDialog = ({
                 {detailedBreakdown.ingredients_breakdown.regular.length > 0 && (
                   <div className="mt-4 p-3 bg-white rounded-lg border">
                     <h4 className="font-semibold text-gray-800 mb-2">
-                      Ingredients Required (Regular Servings)
+                      Nguyên liệu Cần thiết (Phần ăn Thông thường)
                     </h4>
                     <div className="space-y-1 text-sm">
                       {detailedBreakdown.ingredients_breakdown.regular.map(
@@ -692,17 +692,17 @@ const DishDetailDialog = ({
                   .length > 0 && (
                   <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
                     <h4 className="font-semibold text-orange-900 mb-2">
-                      Special Modifications Required
+                      Điều chỉnh Đặc biệt Cần thiết
                     </h4>
                     {detailedBreakdown.ingredients_breakdown.special_modifications.map(
                       (mod, idx) => (
                         <div key={idx} className="mb-3 last:mb-0">
                           <div className="font-semibold text-orange-800 mb-1">
                             {mod.modification_type === "allergy_safe"
-                              ? "⚠️ Allergy-Safe"
+                              ? "⚠️ An toàn Dị ứng"
                               : mod.modification_type === "low_sugar"
-                              ? "🍯 Low Sugar"
-                              : "🧂 Low Sodium"}
+                              ? "🍯 Ít Đường"
+                              : "🧂 Ít Muối"}
                           </div>
                           {mod.excluded_ingredients.length > 0 && (
                             <div className="text-xs text-orange-700">
@@ -714,7 +714,7 @@ const DishDetailDialog = ({
                           )}
                           {mod.adjusted_ingredients.length > 0 && (
                             <div className="text-xs text-orange-700 mt-1">
-                              <strong>Adjusted:</strong>{" "}
+                              <strong>Điều chỉnh:</strong>{" "}
                               {mod.adjusted_ingredients
                                 .slice(0, 3)
                                 .map(
@@ -743,12 +743,12 @@ const DishDetailDialog = ({
           {!detailedBreakdown && specialPortions && (
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
               <h3 className="font-semibold text-purple-900 mb-2">
-                Special Portions Required
+                Phần ăn Đặc biệt Cần thiết
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                 {specialPortions.allergy_safe > 0 && (
                   <div>
-                    <span className="text-gray-600">Allergy-Safe:</span>
+                    <span className="text-gray-600">An toàn Dị ứng:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.allergy_safe}
                     </span>
@@ -756,7 +756,7 @@ const DishDetailDialog = ({
                 )}
                 {specialPortions.low_sugar > 0 && (
                   <div>
-                    <span className="text-gray-600">Low Sugar:</span>
+                    <span className="text-gray-600">Ít Đường:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.low_sugar}
                     </span>
@@ -764,7 +764,7 @@ const DishDetailDialog = ({
                 )}
                 {specialPortions.low_sodium > 0 && (
                   <div>
-                    <span className="text-gray-600">Low Sodium:</span>
+                    <span className="text-gray-600">Ít Muối:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.low_sodium}
                     </span>
@@ -772,7 +772,7 @@ const DishDetailDialog = ({
                 )}
                 {specialPortions.soft_texture > 0 && (
                   <div>
-                    <span className="text-gray-600">Soft Texture:</span>
+                    <span className="text-gray-600">Kết cấu Mềm:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.soft_texture}
                     </span>
@@ -780,7 +780,7 @@ const DishDetailDialog = ({
                 )}
                 {specialPortions.pureed > 0 && (
                   <div>
-                    <span className="text-gray-600">Pureed:</span>
+                    <span className="text-gray-600">Nghiền nhuyễn:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.pureed}
                     </span>
@@ -795,10 +795,10 @@ const DishDetailDialog = ({
             <Alert className="bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
               <AlertDescription>
-                <strong className="text-yellow-700">Low Sodium Warning</strong>
+                <strong className="text-yellow-700">Cảnh báo Ít Muối</strong>
                 <p className="text-sm text-yellow-600 mt-1">
-                  This dish exceeds the recommended sodium level (500mg/100g)
-                  for low-sodium diet groups.
+                  Món ăn này vượt quá mức natri được khuyến nghị (500mg/100g)
+                  cho các nhóm ăn kiêng ít muối.
                 </p>
               </AlertDescription>
             </Alert>
@@ -809,9 +809,9 @@ const DishDetailDialog = ({
             <Alert className="bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
               <AlertDescription>
-                <strong className="text-yellow-700">Low Sugar Warning</strong>
+                <strong className="text-yellow-700">Cảnh báo Ít Đường</strong>
                 <p className="text-sm text-yellow-600 mt-1">
-                  This dish may not be suitable for low-sugar diet groups.
+                  Món ăn này có thể không phù hợp cho các nhóm ăn kiêng ít đường.
                 </p>
               </AlertDescription>
             </Alert>
@@ -831,10 +831,10 @@ const DishDetailDialog = ({
           {/* Actions */}
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose}>
-              Close
+              Đóng
             </Button>
             <Button onClick={onSelect} disabled={isSelected}>
-              {isSelected ? "Already Selected" : "Select Dish"}
+              {isSelected ? "Đã chọn" : "Chọn Món"}
             </Button>
           </div>
         </div>
@@ -885,7 +885,7 @@ const SummaryScreen = ({
           existing.totalAmount += amount;
         } else {
           ingredientMap.set(key, {
-            name: di.ingredient?.name || "Unknown",
+            name: di.ingredient?.name || "Không xác định",
             totalAmount: amount,
             unit: di.ingredient?.unit || "g",
           });
@@ -898,13 +898,13 @@ const SummaryScreen = ({
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Weekly Menu Summary</DialogTitle>
+          <DialogTitle>Tóm tắt Thực đơn Tuần</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Selected Dishes */}
           <div>
-            <h3 className="font-semibold text-lg mb-3">Selected Dishes</h3>
+            <h3 className="font-semibold text-lg mb-3">Món đã Chọn</h3>
             <div className="space-y-4">
               {days.map((day, dayIndex) => (
                 <div
@@ -932,7 +932,7 @@ const SummaryScreen = ({
                                 {dish.name}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
-                                {item.servings} servings
+                                {item.servings} phần
                               </div>
                               {dish.calories_per_100g && (
                                 <div className="text-xs text-gray-400 mt-1">
@@ -945,8 +945,8 @@ const SummaryScreen = ({
                               )}
                             </>
                           ) : (
-                            <div className="text-xs text-gray-400 mt-1">
-                              None
+                              <div className="text-xs text-gray-400 mt-1">
+                              Không có
                             </div>
                           )}
                         </div>
@@ -962,17 +962,17 @@ const SummaryScreen = ({
           {servingsSummary && (
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h3 className="font-semibold text-blue-900 mb-2">
-                Portion Counts
+                Số lượng Phần ăn
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                 <div>
-                  <span className="text-gray-600">Total Residents:</span>
+                  <span className="text-gray-600">Tổng Cư dân:</span>
                   <span className="ml-2 font-semibold">
                     {servingsSummary.total_residents}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Total Servings:</span>
+                  <span className="text-gray-600">Tổng Phần ăn:</span>
                   <span className="ml-2 font-semibold">
                     {servingsSummary.total_servings}
                   </span>
@@ -984,13 +984,13 @@ const SummaryScreen = ({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Minced:</span>
+                  <span className="text-gray-600">Xay nhỏ:</span>
                   <span className="ml-2 font-semibold">
                     {servingsSummary.breakdown_by_texture.Minced}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Pureed:</span>
+                  <span className="text-gray-600">Nghiền nhuyễn:</span>
                   <span className="ml-2 font-semibold">
                     {servingsSummary.breakdown_by_texture.Pureed}
                   </span>
@@ -1003,7 +1003,7 @@ const SummaryScreen = ({
           {nutritionReport && (
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
               <h3 className="font-semibold text-green-900 mb-2">
-                Weekly Nutrition Average
+                Trung bình Dinh dưỡng Tuần
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                 <div>
@@ -1032,7 +1032,7 @@ const SummaryScreen = ({
                 </div>
                 {nutritionReport.weekly_average.sodium && (
                   <div>
-                    <span className="text-gray-600">Sodium:</span>
+                    <span className="text-gray-600">Natri:</span>
                     <span className="ml-2 font-semibold">
                       {nutritionReport.weekly_average.sodium} mg
                     </span>
@@ -1046,7 +1046,7 @@ const SummaryScreen = ({
           {ingredientMap.size > 0 && (
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
               <h3 className="font-semibold text-purple-900 mb-2">
-                Total Ingredients Required
+                Tổng Nguyên liệu Cần thiết
               </h3>
               <div className="space-y-1">
                 {Array.from(ingredientMap.values()).map((ing, idx) => (
@@ -1064,9 +1064,9 @@ const SummaryScreen = ({
           {/* Actions */}
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onBack}>
-              Back to Edit
+              Quay lại Chỉnh sửa
             </Button>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>Đóng</Button>
           </div>
         </div>
       </DialogContent>
@@ -1304,7 +1304,7 @@ const NutritionPage: React.FC = () => {
 
                     {r.allergies.length > 0 && (
                       <p className="text-red-500 text-xs mt-1 italic">
-                        * Resident has allergies.
+                        * Cư dân có dị ứng.
                       </p>
                     )}
                   </div>
@@ -1323,7 +1323,7 @@ const NutritionPage: React.FC = () => {
                     }}
                     disabled={r.dietGroupId === assignGroup?.id}
                   >
-                    {r.dietGroupId === assignGroup?.id ? "Assigned" : "Assign"}
+                    {r.dietGroupId === assignGroup?.id ? "Đã phân công" : "Phân công"}
                   </Button>
                 </div>
               ))}
@@ -1348,11 +1348,11 @@ const NutritionPage: React.FC = () => {
           <CardHeader>
             <div className="flex justify-between items-center mb-4">
               <CardTitle className="text-lg font-semibold">
-                Weekly Menu Planner
+                Lập Kế hoạch Thực đơn Tuần
               </CardTitle>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Week:</label>
+                  <label className="text-sm font-medium">Tuần:</label>
                   <Input
                     type="date"
                     value={selectedWeekStart}
@@ -1379,14 +1379,14 @@ const NutritionPage: React.FC = () => {
                   className="cursor-pointer data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                   data-state={activeTab === "create" ? "active" : ""}
                 >
-                  Create / Edit Menu
+                  Tạo / Chỉnh sửa Thực đơn
                 </TabsTrigger>
                 <TabsTrigger
                   value="view"
                   className="cursor-pointer data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                   data-state={activeTab === "view" ? "active" : ""}
                 >
-                  View Menu
+                  Xem Thực đơn
                 </TabsTrigger>
               </TabsList>
 
@@ -1399,7 +1399,7 @@ const NutritionPage: React.FC = () => {
                       loadPreviousMenus();
                     }}
                   >
-                    Copy Previous Week
+                    Sao chép Tuần Trước
                   </Button>
                   <Button
                     variant="outline"
@@ -1407,26 +1407,26 @@ const NutritionPage: React.FC = () => {
                     onClick={() => {
                       if (
                         confirm(
-                          "Are you sure you want to clear all selections? All changes will be lost."
+                          "Bạn có chắc chắn muốn xóa tất cả lựa chọn? Tất cả thay đổi sẽ bị mất."
                         )
                       ) {
                         setMenuItems({});
                       }
                     }}
                   >
-                    Clear All
+                    Xóa Tất cả
                   </Button>
                   <Button
                     className="cursor-pointer bg-indigo-500 text-white hover:bg-indigo-600"
                     onClick={() => setShowSummary(true)}
                   >
-                    View Summary
+                    Xem Tóm tắt
                   </Button>
                   <Button
                     className="cursor-pointer bg-green-500 text-white hover:bg-green-600"
                     onClick={handleSaveWeeklyMenu}
                   >
-                    Save Menu
+                    Lưu Thực đơn
                   </Button>
                 </div>
               </TabsContent>
@@ -1434,7 +1434,7 @@ const NutritionPage: React.FC = () => {
               <TabsContent value="view" className="mt-4">
                 <div className="flex gap-2 mb-4 items-center">
                   <div className="flex items-center gap-2 flex-1">
-                    <label className="text-sm font-medium">View Menu:</label>
+                    <label className="text-sm font-medium">Xem Thực đơn:</label>
                     <Select
                       value={selectedMenuId || ""}
                       onValueChange={async (menuId) => {
@@ -1503,7 +1503,7 @@ const NutritionPage: React.FC = () => {
                           }
                         }}
                       >
-                        Export Excel
+                        Xuất Excel
                       </Button>
                       <Button
                         className="cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
@@ -1535,7 +1535,7 @@ const NutritionPage: React.FC = () => {
                           setShowUpdateDialog(true);
                         }}
                       >
-                        Update Menu
+                        Cập nhật Thực đơn
                       </Button>
                       <Button
                         variant="outline"
@@ -1543,12 +1543,12 @@ const NutritionPage: React.FC = () => {
                         onClick={async () => {
                           if (
                             confirm(
-                              "Are you sure you want to delete this menu? This action cannot be undone."
+                              "Bạn có chắc chắn muốn xóa thực đơn này? Hành động này không thể hoàn tác."
                             )
                           ) {
                             try {
                               await deleteWeeklyMenu(viewMenu.menu_id);
-                              toast.success("Menu deleted successfully");
+                              toast.success("Xóa thực đơn thành công");
                               setViewMenu(null);
                               setSelectedMenuId(null);
                               setMenuServingsBreakdown(null);
@@ -1563,25 +1563,24 @@ const NutritionPage: React.FC = () => {
                             } catch (error: any) {
                               toast.error(
                                 error.response?.data?.message ||
-                                  "Failed to delete menu"
+                                  "Xóa thực đơn thất bại"
                               );
                             }
                           }
                         }}
                       >
-                        Delete Menu
+                        Xóa Thực đơn
                       </Button>
                     </>
                   )}
                 </div>
                 {!viewMenu ? (
                   <div className="text-center py-10 text-gray-400 italic border-2 border-dashed border-gray-100 rounded-lg">
-                    No menu selected. Please select a menu from the dropdown
-                    above.
+                    Chưa chọn thực đơn. Vui lòng chọn thực đơn từ danh sách thả xuống ở trên.
                   </div>
                 ) : (
                   <div className="text-sm text-gray-600 mb-4">
-                    Viewing menu for:{" "}
+                    Đang xem thực đơn cho:{" "}
                     {new Date(viewMenu.week_start_date).toLocaleDateString()} -{" "}
                     {new Date(viewMenu.week_end_date).toLocaleDateString()}
                   </div>
@@ -1668,7 +1667,7 @@ const NutritionPage: React.FC = () => {
 
                                             if (isDuplicate) {
                                               toast.warning(
-                                                "This dish is already selected for another meal in the same day"
+                                                "Món ăn này đã được chọn cho bữa ăn khác trong cùng ngày"
                                               );
                                               return;
                                             }
@@ -1756,7 +1755,7 @@ const NutritionPage: React.FC = () => {
                                           }`}
                                         >
                                           <div className="flex items-center justify-between w-full">
-                                            <SelectValue placeholder="Select dish" />
+                                            <SelectValue placeholder="Chọn món" />
                                             {menuItems[dayIndex]?.[slot] && (
                                               <Check className="w-4 h-4 text-green-600" />
                                             )}
@@ -1764,7 +1763,7 @@ const NutritionPage: React.FC = () => {
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
                                           <SelectItem value="none">
-                                            None
+                                            Không có
                                           </SelectItem>
                                           {Array.isArray(dishes) &&
                                             dishes.map((dish) => {
@@ -1938,7 +1937,7 @@ const NutritionPage: React.FC = () => {
                                                   ? ""
                                                   : "bg-gray-100 cursor-not-allowed"
                                               }`}
-                                              placeholder="Servings"
+                                              placeholder="Phần ăn"
                                             />
                                             <input
                                               type="checkbox"
@@ -2016,7 +2015,7 @@ const NutritionPage: React.FC = () => {
                         </div>
                         <div className="bg-white rounded-lg p-2 shadow-sm">
                           <div className="text-xs text-gray-500">
-                            Allergy-Safe
+                            An toàn Dị ứng
                           </div>
                           <div className="text-xl font-bold text-red-700">
                             {
@@ -2036,7 +2035,7 @@ const NutritionPage: React.FC = () => {
                         </div>
                         <div className="bg-white rounded-lg p-2 shadow-sm">
                           <div className="text-xs text-gray-500">
-                            Low Sodium
+                            Ít Muối
                           </div>
                           <div className="text-xl font-bold text-cyan-700">
                             {
@@ -2093,10 +2092,10 @@ const NutritionPage: React.FC = () => {
                             "Sun",
                           ];
                           const mealSlotNames: Record<MealSlot, string> = {
-                            Breakfast: "Breakfast",
-                            Lunch: "Lunch",
-                            Afternoon: "Afternoon",
-                            Dinner: "Dinner",
+                            Breakfast: "Sáng",
+                            Lunch: "Trưa",
+                            Afternoon: "Chiều",
+                            Dinner: "Tối",
                           };
                           return (
                             <div
@@ -2111,7 +2110,7 @@ const NutritionPage: React.FC = () => {
                                   <p className="text-sm text-gray-600">
                                     {dayNames[dishBreakdown.day_of_week]} -{" "}
                                     {mealSlotNames[dishBreakdown.meal_slot]} |
-                                    Servings: {dishBreakdown.servings}
+                                    Phần ăn: {dishBreakdown.servings}
                                   </p>
                                 </div>
                               </div>
@@ -2119,7 +2118,7 @@ const NutritionPage: React.FC = () => {
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                                 <div className="bg-green-50 rounded p-2 border border-green-200">
                                   <div className="text-xs text-green-700">
-                                    Regular
+                                    Thông thường
                                   </div>
                                   <div className="font-bold text-green-900">
                                     {
@@ -2132,7 +2131,7 @@ const NutritionPage: React.FC = () => {
                                   .special_servings.allergy_safe.count > 0 && (
                                   <div className="bg-red-50 rounded p-2 border border-red-200">
                                     <div className="text-xs text-red-700">
-                                      Allergy-Safe
+                                      An toàn Dị ứng
                                     </div>
                                     <div className="font-bold text-red-900">
                                       {
@@ -2146,7 +2145,7 @@ const NutritionPage: React.FC = () => {
                                   .special_servings.low_sugar.count > 0 && (
                                   <div className="bg-yellow-50 rounded p-2 border border-yellow-200">
                                     <div className="text-xs text-yellow-700">
-                                      Low Sugar
+                                      Ít Đường
                                     </div>
                                     <div className="font-bold text-yellow-900">
                                       {
@@ -2160,7 +2159,7 @@ const NutritionPage: React.FC = () => {
                                   .special_servings.low_sodium.count > 0 && (
                                   <div className="bg-cyan-50 rounded p-2 border border-cyan-200">
                                     <div className="text-xs text-cyan-700">
-                                      Low Sodium
+                                      Ít Muối
                                     </div>
                                     <div className="font-bold text-cyan-900">
                                       {
@@ -2175,7 +2174,7 @@ const NutritionPage: React.FC = () => {
                               {/* Nutrition Summary */}
                               <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
                                 <div className="text-xs font-semibold text-gray-700 mb-2">
-                                  Nutrition (per serving)
+                                  Dinh dưỡng (mỗi phần ăn)
                                 </div>
                                 <div className="grid grid-cols-4 gap-2 text-xs">
                                   <div>
@@ -2200,7 +2199,7 @@ const NutritionPage: React.FC = () => {
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-gray-600">Fat:</span>
+                                    <span className="text-gray-600">Chất béo:</span>
                                     <span className="ml-1 font-semibold">
                                       {dishBreakdown.nutrition_summary.fat.toFixed(
                                         1
@@ -2231,7 +2230,7 @@ const NutritionPage: React.FC = () => {
                   // Fallback to old summary if menu breakdown not available
                   <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <h3 className="font-semibold text-blue-900 mb-2">
-                      General Servings Summary
+                      Tóm tắt Phần ăn Chung
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
                       <div>
@@ -2349,7 +2348,7 @@ const NutritionPage: React.FC = () => {
 
                                             if (isDuplicate) {
                                               toast.warning(
-                                                "This dish is already selected for another meal in the same day"
+                                                "Món ăn này đã được chọn cho bữa ăn khác trong cùng ngày"
                                               );
                                               return;
                                             }
@@ -2437,7 +2436,7 @@ const NutritionPage: React.FC = () => {
                                           }`}
                                         >
                                           <div className="flex items-center justify-between w-full">
-                                            <SelectValue placeholder="Select dish" />
+                                            <SelectValue placeholder="Chọn món" />
                                             {menuItems[dayIndex]?.[slot] && (
                                               <Check className="w-4 h-4 text-green-600" />
                                             )}
@@ -2445,7 +2444,7 @@ const NutritionPage: React.FC = () => {
                                         </SelectTrigger>
                                         <SelectContent className="bg-white">
                                           <SelectItem value="none">
-                                            None
+                                            Không có
                                           </SelectItem>
                                           {Array.isArray(dishes) &&
                                             dishes.map((dish) => {
@@ -2619,7 +2618,7 @@ const NutritionPage: React.FC = () => {
                                                   ? ""
                                                   : "bg-gray-100 cursor-not-allowed"
                                               }`}
-                                              placeholder="Servings"
+                                              placeholder="Phần ăn"
                                             />
                                             <input
                                               type="checkbox"
@@ -2669,11 +2668,11 @@ const NutritionPage: React.FC = () => {
                 {/* Nutrition Report */}
                 {nutritionReport && (
                   <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">Nutrition Summary</h3>
+                    <h3 className="font-semibold mb-2">Tóm tắt Dinh dưỡng</h3>
                     <div className="space-y-2">
                       <div>
                         <span className="text-sm">
-                          Weekly Average Calories:{" "}
+                          Trung bình Calories Tuần:{" "}
                         </span>
                         <span className="font-semibold">
                           {nutritionReport.weekly_average.calories} kcal
@@ -2688,7 +2687,7 @@ const NutritionPage: React.FC = () => {
                       {nutritionReport.warnings.length > 0 && (
                         <Alert className="bg-yellow-50 border-yellow-200">
                           <AlertDescription>
-                            <strong>Warnings:</strong>
+                            <strong>Cảnh báo:</strong>
                             <ul className="list-disc list-inside mt-1">
                               {nutritionReport.warnings.map((w, i) => (
                                 <li key={i} className="text-sm">
@@ -2748,18 +2747,18 @@ const NutritionPage: React.FC = () => {
         <Dialog open={showCopyWeekDialog} onOpenChange={setShowCopyWeekDialog}>
           <DialogContent className="bg-white max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Copy Previous Week Menu</DialogTitle>
+              <DialogTitle>Sao chép Thực đơn Tuần Trước</DialogTitle>
             </DialogHeader>
             {loadingMenus ? (
-              <div className="text-center py-8">Loading previous menus...</div>
+              <div className="text-center py-8">Đang tải thực đơn trước...</div>
             ) : previousMenus.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
-                No previous menus found
+                Không tìm thấy thực đơn trước
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="text-sm text-gray-600 mb-4">
-                  Select a previous week menu to copy to the current week (
+                  Chọn thực đơn tuần trước để sao chép sang tuần hiện tại (
                   {new Date(selectedWeekStart).toLocaleDateString()})
                 </div>
                 <div className="space-y-2 max-h-[60vh] overflow-y-auto">
@@ -2776,7 +2775,7 @@ const NutritionPage: React.FC = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-semibold">
-                            Week:{" "}
+                            Tuần:{" "}
                             {new Date(
                               menu.week_start_date
                             ).toLocaleDateString()}{" "}
@@ -2784,11 +2783,11 @@ const NutritionPage: React.FC = () => {
                             {new Date(menu.week_end_date).toLocaleDateString()}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
-                            Menu Items: {menu.menuItems?.length || 0}
+                            Món ăn: {menu.menuItems?.length || 0}
                           </div>
                           {menu.created_by?.staffProfile?.full_name && (
                             <div className="text-xs text-gray-500 mt-1">
-                              Created by:{" "}
+                              Tạo bởi:{" "}
                               {menu.created_by.staffProfile.full_name}
                             </div>
                           )}
@@ -2802,8 +2801,8 @@ const NutritionPage: React.FC = () => {
                           }}
                         >
                           {selectedMenuForCopy?.menu_id === menu.menu_id
-                            ? "Selected"
-                            : "Select"}
+                            ? "Đã chọn"
+                            : "Chọn"}
                         </Button>
                       </div>
                     </Card>
@@ -2813,7 +2812,7 @@ const NutritionPage: React.FC = () => {
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h3 className="font-semibold">Selected Menu Details</h3>
+                        <h3 className="font-semibold">Chi tiết Thực đơn Đã chọn</h3>
                         <p className="text-sm text-gray-600">
                           {new Date(
                             selectedMenuForCopy.week_start_date
@@ -2829,7 +2828,7 @@ const NutritionPage: React.FC = () => {
                           variant="outline"
                           onClick={() => setSelectedMenuForCopy(null)}
                         >
-                          Clear
+                          Xóa
                         </Button>
                         <Button
                           className="bg-green-500 text-white hover:bg-green-600"
@@ -2842,7 +2841,7 @@ const NutritionPage: React.FC = () => {
                                 target_week_start_date: selectedWeekStart,
                                 adjust_servings: true,
                               });
-                              toast.success("Week menu copied successfully");
+                              toast.success("Sao chép thực đơn tuần thành công");
                               setShowCopyWeekDialog(false);
                               setSelectedMenuForCopy(null);
                               // Reload menu
@@ -2859,12 +2858,12 @@ const NutritionPage: React.FC = () => {
                             } catch (error: any) {
                               toast.error(
                                 error.response?.data?.message ||
-                                  "Failed to copy week menu"
+                                  "Sao chép thực đơn tuần thất bại"
                               );
                             }
                           }}
                         >
-                          Copy to Current Week
+                          Sao chép sang Tuần Hiện tại
                         </Button>
                       </div>
                     </div>
@@ -2882,8 +2881,7 @@ const NutritionPage: React.FC = () => {
                             >
                               <div className="font-semibold text-xs">{day}</div>
                               <div className="text-xs text-gray-600 mt-1">
-                                {dayItems.length} item
-                                {dayItems.length !== 1 ? "s" : ""}
+                                {dayItems.length} món
                               </div>
                             </div>
                           );
@@ -2902,7 +2900,7 @@ const NutritionPage: React.FC = () => {
           <DialogContent className="bg-white max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                Update Menu -{" "}
+                Cập nhật Thực đơn -{" "}
                 {viewMenu
                   ? `${new Date(
                       viewMenu.week_start_date
@@ -2914,8 +2912,8 @@ const NutritionPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div className="text-sm text-gray-600 mb-4">
-                Edit dishes for each meal slot. Changes will be saved when you
-                click "Submit Update".
+                Chỉnh sửa món ăn cho mỗi bữa ăn. Thay đổi sẽ được lưu khi bạn
+                nhấp vào "Gửi Cập nhật".
               </div>
 
               {/* Weekly Menu - Tabs Layout for Editing */}
@@ -2996,7 +2994,7 @@ const NutritionPage: React.FC = () => {
 
                                           if (isDuplicate) {
                                             toast.warning(
-                                              "This dish is already selected for another meal in the same day"
+                                              "Món ăn này đã được chọn cho bữa ăn khác trong cùng ngày"
                                             );
                                             return;
                                           }
@@ -3079,7 +3077,7 @@ const NutritionPage: React.FC = () => {
                                         }`}
                                       >
                                         <div className="flex items-center justify-between w-full">
-                                          <SelectValue placeholder="Select dish" />
+                                          <SelectValue placeholder="Chọn món" />
                                           {updateMenuItems[dayIndex]?.[
                                             slot
                                           ] && (
@@ -3179,7 +3177,7 @@ const NutritionPage: React.FC = () => {
                     setUpdateMenuItems({});
                   }}
                 >
-                  Cancel
+                  Hủy
                 </Button>
                 <Button
                   className="bg-green-500 text-white hover:bg-green-600"
@@ -3220,7 +3218,7 @@ const NutritionPage: React.FC = () => {
                       const menuData = responseData?.data ?? responseData;
 
                       if (menuData && menuData.menu_id) {
-                        toast.success("Menu updated successfully");
+                        toast.success("Cập nhật thực đơn thành công");
                         setShowUpdateDialog(false);
                         setUpdateMenuItems({});
 
@@ -3257,13 +3255,13 @@ const NutritionPage: React.FC = () => {
                         setAllMenus(allMenusData);
                       }
                     } catch (error: any) {
-                      toast.error(
-                        error.response?.data?.message || "Failed to update menu"
+                        toast.error(
+                        error.response?.data?.message || "Cập nhật thực đơn thất bại"
                       );
                     }
                   }}
                 >
-                  Submit Update
+                  Gửi Cập nhật
                 </Button>
               </div>
             </div>
@@ -3350,11 +3348,11 @@ const NutritionPage: React.FC = () => {
         // Show success message based on wasUpdate flag from backend
         toast.success(
           wasUpdate
-            ? "Weekly menu updated successfully"
-            : "Weekly menu created successfully"
+            ? "Cập nhật thực đơn tuần thành công"
+            : "Tạo thực đơn tuần thành công"
         );
       } else {
-        toast.error("Failed to create weekly menu: Invalid response");
+        toast.error("Tạo thực đơn tuần thất bại: Phản hồi không hợp lệ");
       }
     } catch (error: any) {
       const errorMessage =
@@ -3362,7 +3360,7 @@ const NutritionPage: React.FC = () => {
         error.message ||
         "Failed to create weekly menu";
       if (errorMessage.includes("not found")) {
-        toast.error("Menu not found. Please try again.");
+        toast.error("Không tìm thấy thực đơn. Vui lòng thử lại.");
       } else {
         toast.error(errorMessage);
       }

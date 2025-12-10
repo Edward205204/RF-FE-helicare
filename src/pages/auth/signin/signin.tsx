@@ -100,8 +100,7 @@ const Signin = () => {
           <div className="absolute bottom-0 left-0 z-10 p-8 w-full text-left">
             <h1 className="mb-4 text-3xl font-bold text-white">HeLiCare</h1>
             <p className="max-w-xl text-lg leading-relaxed text-white">
-              Helps you keep track of and stay connected with your loved ones in
-              the nursing home anytime, no matter where you are.
+              Giúp bạn theo dõi và kết nối với người thân tại viện dưỡng lão mọi lúc, mọi nơi.
             </p>
           </div>
         </div>
@@ -113,7 +112,7 @@ const Signin = () => {
           className="p-6 w-full max-w-md bg-white rounded-lg shadow-lg"
         >
           <h2 className="mb-6 text-3xl font-semibold text-center text-gray-800">
-            Sign in
+            Đăng nhập
           </h2>
 
           <div className="mb-4">
@@ -126,7 +125,7 @@ const Signin = () => {
             <Input
               id="email"
               type="text"
-              placeholder="Email"
+              placeholder="Nhập email của bạn"
               {...register("email")}
               className={
                 errors.email
@@ -145,7 +144,7 @@ const Signin = () => {
                 htmlFor="password"
                 className="font-medium text-left text-gray-700"
               >
-                Your password
+                Mật khẩu
               </Label>
               <Button
                 type="button"
@@ -158,7 +157,7 @@ const Signin = () => {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Nhập mật khẩu"
               {...register("password")}
               className={
                 errors.password
@@ -177,13 +176,13 @@ const Signin = () => {
               onClick={() => navigate(path.forgotPasswordEmail)}
               className="text-sm text-blue-600 shadow-none cursor-pointer hover:underline focus:outline-none"
             >
-              Forgot your password?
+              Quên mật khẩu?
             </Button>
           </div>
 
           <div className="flex items-center my-4">
             <div className="flex-grow h-px bg-gray-300"></div>
-            <span className="mx-4 text-sm font-medium text-gray-500">OR</span>
+            <span className="mx-4 text-sm font-medium text-gray-500">HOẶC</span>
             <div className="flex-grow h-px bg-gray-300"></div>
           </div>
 
@@ -192,7 +191,7 @@ const Signin = () => {
             className="flex gap-3 justify-center items-center px-4 py-3 mb-4 w-full font-medium text-gray-800 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-100 focus:outline-none"
           >
             <img src={googleIcon} alt="Google" className="w-5 h-5" />
-            Continue with Google
+            Tiếp tục với Google
           </button>
 
           <button
@@ -200,17 +199,17 @@ const Signin = () => {
             className="py-3 mb-4 w-full font-semibold text-white bg-blue-600 rounded-md cursor-pointer hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            Sign in
+            {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
           <div className="text-sm text-center text-gray-500">
-            Don't have an account?{" "}
+            Chưa có tài khoản?{" "}
             <button
               type="button"
               onClick={() => navigate(path.signup)}
               className="font-medium text-blue-600 cursor-pointer hover:underline focus:outline-none"
             >
-              Sign up
+              Đăng ký
             </button>
           </div>
         </form>

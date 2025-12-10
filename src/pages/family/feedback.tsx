@@ -281,7 +281,7 @@ const FamilyFeedbackSupport: React.FC = () => {
         className="text-2xl font-bold mb-6 text-center"
         style={{ color: "#5985D8" }}
       >
-        Feedback & Support
+        Phản hồi & Hỗ trợ
       </h1>
 
       {/* Submit Feedback Section */}
@@ -315,7 +315,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                           value={cat.category_id || ""}
                         className="cursor-pointer"
                       >
-                          {cat.name || "Unnamed Category"}
+                          {cat.name || "Danh mục chưa đặt tên"}
                         </SelectItem>
                       ))
                     ) : (
@@ -357,7 +357,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                               value={type || ""}
                             className="cursor-pointer"
                           >
-                              {type || "Unknown"}
+                              {type || "Không xác định"}
                             </SelectItem>
                           ))
                         ) : (
@@ -396,7 +396,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                             value={resident.resident_id || ""}
                           className="cursor-pointer"
                         >
-                            {resident.full_name || "Unknown Resident"}
+                            {resident.full_name || "Cư dân không xác định"}
                         </SelectItem>
                         ))
                       ) : null}
@@ -486,7 +486,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                           {mapStatusToFrontend(submission.status)}
                         </Badge>
                         <span className="text-sm text-gray-600">
-                          {submission.category?.name || "N/A"}
+                          {submission.category?.name || "Không có"}
                         </span>
                         {submission.type && (
                           <span className="text-xs text-gray-500">
@@ -551,7 +551,7 @@ const FamilyFeedbackSupport: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <strong>Danh mục:</strong>{" "}
-                {selectedSubmission.category?.name || "N/A"}
+                {selectedSubmission.category?.name || "Không có"}
               </div>
               {selectedSubmission.type && (
                 <div>
@@ -594,7 +594,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                 <div>
                   <strong>Nhân viên phụ trách:</strong>{" "}
                   {selectedSubmission.assigned_staff.staffProfile?.full_name ||
-                    "N/A"}
+                    "Không có"}
                 </div>
               )}
               <div>
@@ -614,7 +614,7 @@ const FamilyFeedbackSupport: React.FC = () => {
               {selectedSubmission.attachments &&
                 selectedSubmission.attachments.length > 0 && (
                   <div>
-                    <strong>File đính kèm:</strong>
+                    <strong>Tệp đính kèm:</strong>
                     <div className="mt-2 space-y-2">
                       {selectedSubmission.attachments.map((url, idx) => (
                         <a
@@ -624,7 +624,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline block"
                         >
-                          File {idx + 1}
+                          Tệp {idx + 1}
                         </a>
                       ))}
                     </div>

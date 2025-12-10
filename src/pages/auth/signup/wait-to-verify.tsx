@@ -14,7 +14,7 @@ export default function WaitToVerify() {
 
   const handleResendEmail = async () => {
     await resendEmailVerify(emailToVerify as string);
-    toast.success("Email verification sent successfully!");
+    toast.success("Đã gửi email xác minh thành công!");
   };
 
   const handleGoBack = () => {
@@ -33,13 +33,13 @@ export default function WaitToVerify() {
       ></div>
       <div className="flex fixed inset-0 z-10 justify-center items-center">
         <div className="absolute top-6 right-10 text-sm text-gray-700">
-          Already have an account?{" "}
+          Đã có tài khoản?{" "}
           <button
             type="button"
             className="underline hover:text-[#5985d8] transition-colors"
             onClick={handleGoToSignin}
           >
-            Log in
+            Đăng nhập
           </button>
         </div>
 
@@ -49,41 +49,40 @@ export default function WaitToVerify() {
           </div>
 
           <h2 className="text-2xl font-semibold mb-4 text-center text-[#5985d8]">
-            Check your email
+            Kiểm tra email của bạn
           </h2>
 
           <div className="text-center mb-8">
             <p className="text-gray-600 mb-4">
-              We've sent a verification link to your email address.
+              Chúng tôi đã gửi liên kết xác minh đến địa chỉ email của bạn.
             </p>
             <p className="text-sm text-gray-500">
-              Please check your inbox and click the link to activate your
-              account.
+              Vui lòng kiểm tra hộp thư đến và nhấp vào liên kết để kích hoạt tài khoản của bạn.
             </p>
           </div>
 
           <div className="w-full mb-8 p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Instructions:
+              Hướng dẫn:
             </h3>
             <ol className="text-sm text-gray-600 space-y-2">
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-5 h-5 mr-2 text-xs bg-[#5985d8] text-white rounded-full flex items-center justify-center">
                   1
                 </span>
-                Open your Gmail app or email client
+                Mở ứng dụng Gmail hoặc email client của bạn
               </li>
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-5 h-5 mr-2 text-xs bg-[#5985d8] text-white rounded-full flex items-center justify-center">
                   2
                 </span>
-                Look for an email from HeLiCare (check your Spam folder)
+                Tìm email từ HeLiCare (kiểm tra thư mục Spam)
               </li>
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-5 h-5 mr-2 text-xs bg-[#5985d8] text-white rounded-full flex items-center justify-center">
                   3
                 </span>
-                Click the "Verify Account" link in the email
+                Nhấp vào liên kết "Xác minh Tài khoản" trong email
               </li>
             </ol>
           </div>
@@ -94,7 +93,7 @@ export default function WaitToVerify() {
               className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              Resend verification email
+              Gửi lại email xác minh
             </Button>
 
             <Button
@@ -103,19 +102,19 @@ export default function WaitToVerify() {
               className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to sign up
+              Quay lại Đăng ký
             </Button>
           </div>
 
           <div className="mt-8 text-xs text-center text-gray-500">
             <p>
-              Didn't receive the email? Check your Spam folder or{" "}
+              Không nhận được email? Kiểm tra thư mục Spam hoặc{" "}
               <button
                 type="button"
                 className="underline hover:text-[#5985d8] transition-colors"
                 onClick={handleResendEmail}
               >
-                resend
+                gửi lại
               </button>
             </p>
           </div>

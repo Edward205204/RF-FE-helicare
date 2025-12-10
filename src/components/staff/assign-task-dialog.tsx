@@ -31,11 +31,11 @@ interface AssignTaskDialogProps {
 }
 
 const TASK_TYPES = [
-  { value: "meal", label: "Meal" },
-  { value: "exercise", label: "Exercise" },
-  { value: "hygiene", label: "Hygiene" },
-  { value: "medication", label: "Medication" },
-  { value: "custom", label: "Custom" },
+  { value: "meal", label: "Bữa ăn" },
+  { value: "exercise", label: "Tập thể dục" },
+  { value: "hygiene", label: "Vệ sinh" },
+  { value: "medication", label: "Thuốc" },
+  { value: "custom", label: "Tùy chỉnh" },
 ];
 
 export function AssignTaskDialog({
@@ -97,14 +97,14 @@ export function AssignTaskDialog({
       };
 
       await assignTaskToStaff(staffId, payload);
-      toast.success("Task đã được assign thành công");
+      toast.success("Nhiệm vụ đã được phân công thành công");
       onOpenChange(false);
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
       console.error("Error assigning task:", error);
-      toast.error(error.response?.data?.message || "Không thể assign task");
+      toast.error(error.response?.data?.message || "Không thể phân công nhiệm vụ");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,15 +114,15 @@ export function AssignTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Assign Task to Staff</DialogTitle>
+          <DialogTitle>Phân công Nhiệm vụ cho Nhân viên</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Task Type *</Label>
+              <Label>Loại Nhiệm vụ *</Label>
               <Select value={taskType} onValueChange={setTaskType}>
                 <SelectTrigger className="border border-gray-200 bg-white">
-                  <SelectValue placeholder="Chọn loại task" />
+                  <SelectValue placeholder="Chọn loại nhiệm vụ" />
                 </SelectTrigger>
                 <SelectContent className="border border-gray-200 bg-white">
                   {TASK_TYPES.map((type) => (
@@ -135,18 +135,18 @@ export function AssignTaskDialog({
             </div>
 
             <div>
-              <Label>Title *</Label>
+              <Label>Tiêu đề *</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Nhập tiêu đề task"
+                placeholder="Nhập tiêu đề nhiệm vụ"
                 className="border border-gray-200 bg-white"
                 required
               />
             </div>
 
             <div>
-              <Label>Resident (Optional)</Label>
+              <Label>Cư dân (Tùy chọn)</Label>
               <ResidentComboBox
                 value={residentId}
                 onSelect={setResidentId}
@@ -155,7 +155,7 @@ export function AssignTaskDialog({
             </div>
 
             <div>
-              <Label>Due Time *</Label>
+              <Label>Thời hạn *</Label>
               <Input
                 type="datetime-local"
                 value={dueTime}
@@ -166,11 +166,11 @@ export function AssignTaskDialog({
             </div>
 
             <div>
-              <Label>Description (Optional)</Label>
+              <Label>Mô tả (Tùy chọn)</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Nhập mô tả task"
+                placeholder="Nhập mô tả nhiệm vụ"
                 rows={3}
                 className="border border-gray-200 bg-white"
               />
@@ -193,10 +193,10 @@ export function AssignTaskDialog({
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang assign...
+                  Đang phân công...
                 </span>
               ) : (
-                "Assign Task"
+                "Phân công Nhiệm vụ"
               )}
             </Button>
           </DialogFooter>

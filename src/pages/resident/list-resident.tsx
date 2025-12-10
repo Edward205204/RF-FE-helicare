@@ -136,7 +136,7 @@ export default function ListResident(): React.JSX.Element {
       setPagination(paginationMeta || fallbackMeta);
     } catch (error: any) {
       console.error("Error fetching residents:", error);
-      toast.error(error.response?.data?.message || "Failed to load residents");
+      toast.error(error.response?.data?.message || "Không thể tải danh sách cư dân");
     } finally {
       setLoading(false);
     }
@@ -251,20 +251,19 @@ export default function ListResident(): React.JSX.Element {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold" style={{ color: "#5985d8" }}>
-                  Resident List
+                  Danh sách Cư dân
                 </h1>
                 <p className="text-sm text-gray-500">{today}</p>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <div className="text-xs sm:text-sm text-gray-500 max-w-md">
-                  <span className="font-medium">Note:</span> BP (Blood
-                  Pressure), HR (Heart Rate), Temp (Temperature), RR
-                  (Respiration Rate), SpO₂ (Oxygen Saturation)
+                  <span className="font-medium">Lưu ý:</span> BP (Huyết áp), HR (Nhịp tim), Temp (Nhiệt độ), RR
+                  (Nhịp thở), SpO₂ (Độ bão hòa Oxy)
                 </div>
                 <button
                   onClick={() => navigate(path.residentInformation)}
                   className="flex items-center justify-center w-10 h-10 bg-[#5985d8] text-white rounded-lg hover:bg-[#4a7bc8] transition-colors shadow-md font-bold text-xl flex-shrink-0 cursor-pointer"
-                  aria-label="Add Resident"
+                  aria-label="Thêm Cư dân"
                 >
                   +
                 </button>
@@ -338,28 +337,28 @@ export default function ListResident(): React.JSX.Element {
                     <thead className="bg-gray-50 sticky top-0 z-10">
                       <tr>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[12%]">
-                          Full name
+                          Họ và tên
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[10%]">
-                          Date of Birth
+                          Ngày sinh
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[10%]">
-                          Room/Bed
+                          Phòng/Giường
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Comorbidity
+                          Bệnh nền
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[18%]">
-                          Last vital sign
+                          Dấu hiệu sinh tồn gần nhất
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[10%]">
-                          Diet group
+                          Nhóm dinh dưỡng
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Family's Contact
+                          Liên hệ Gia đình
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[12%]">
-                          Actions
+                          Thao tác
                         </th>
                       </tr>
                     </thead>
@@ -389,7 +388,7 @@ export default function ListResident(): React.JSX.Element {
                           ).toLocaleDateString();
                           const diseases =
                             r.chronicDiseases?.map((d) => d.name).join(", ") ||
-                            "None";
+                            "Không có";
                           const familyEmail =
                             r.familyResidentLinks?.[0]?.family_email || "-";
 
@@ -405,11 +404,11 @@ export default function ListResident(): React.JSX.Element {
                               <td className="px-4 py-4 text-gray-800">{dob}</td>
                               <td className="px-4 py-4 text-gray-800">
                                 {r.room?.room_number
-                                  ? `Room ${r.room.room_number}`
-                                  : "Not assigned"}
+                                  ? `Phòng ${r.room.room_number}`
+                                  : "Chưa phân bổ"}
                               </td>
                               <td className="px-4 py-4 text-gray-800">
-                                {diseases}
+                                {diseases === "None" ? "Không có" : diseases}
                               </td>
                               <td className="px-4 py-4 text-gray-800 text-sm">
                                 {(() => {
@@ -447,7 +446,7 @@ export default function ListResident(): React.JSX.Element {
                                 })()}
                               </td>
                               <td className="px-4 py-4 text-gray-800">
-                                {diseases !== "None"
+                                {diseases !== "None" && diseases !== "Không có"
                                   ? diseases.split(",")[0]
                                   : "-"}
                               </td>
@@ -463,7 +462,7 @@ export default function ListResident(): React.JSX.Element {
                                       onClickView(r);
                                     }}
                                   >
-                                    View
+                                    Xem
                                   </button>
                                   <button
                                     className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer"
@@ -472,7 +471,7 @@ export default function ListResident(): React.JSX.Element {
                                       onClickEdit(r);
                                     }}
                                   >
-                                    Edit
+                                    Sửa
                                   </button>
                                   <button
                                     className="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 cursor-pointer"
@@ -481,7 +480,7 @@ export default function ListResident(): React.JSX.Element {
                                       onClickDelete(r);
                                     }}
                                   >
-                                    Delete
+                                    Xóa
                                   </button>
                                 </div>
                               </td>
@@ -602,7 +601,7 @@ export default function ListResident(): React.JSX.Element {
           </DialogHeader>
           <div className="space-y-3 text-left">
             <div>
-              <label className="text-sm text-gray-700">Full name</label>
+              <label className="text-sm text-gray-700">Họ và tên</label>
               <input
                 className="mt-1 w-full border rounded px-3 py-2"
                 value={editName}

@@ -110,7 +110,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
             <p className="text-sm font-medium text-gray-900">
               {familyMemberName}
             </p>
-            <p className="text-xs text-gray-500">Family Member</p>
+            <p className="text-xs text-gray-500">Thành viên Gia đình</p>
           </div>
         </div>
 

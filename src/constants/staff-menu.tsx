@@ -19,82 +19,82 @@ import path from "./path";
 
 export const staffMenu: StaffMenuItem[] = [
   {
-    label: "Resident List",
+    label: "Danh sách Cư dân",
     path: path.residentList,
     icon: <Users size={20} />,
   },
   {
-    label: "Resident Profile",
+    label: "Hồ sơ Cư dân",
     path: path.residentInformation,
     icon: <User size={20} />,
   },
   {
-    label: "Vital Signs Input",
+    label: "Nhập Dấu hiệu Sinh tồn",
     path: path.vitalSignForm,
     icon: <Activity size={20} />,
   },
   {
-    label: "Medication & Care Plan",
+    label: "Thuốc & Kế hoạch Chăm sóc",
     path: path.staffMedicationCareplan,
     icon: <Pill size={20} />,
   },
   {
-    label: "Daily Schedule",
+    label: "Lịch trình Hàng ngày",
     path: path.staffManageEvent,
     icon: <Calendar size={20} />,
   },
   {
-    label: "Create Event",
+    label: "Tạo Sự kiện",
     path: path.staffCreateEvent,
     icon: <Plus size={20} />,
   },
   {
-    label: "Family Communication",
+    label: "Giao tiếp Gia đình",
     path: path.newsFeed,
     icon: <MessageSquare size={20} />,
   },
   {
-    label: "Staff List",
+    label: "Danh sách Nhân viên",
     path: path.staffList,
     icon: <Users size={20} />,
   },
   {
-    label: "Staff Onboarding",
+    label: "Tuyển dụng Nhân viên",
     path: path.staffOnboard,
     icon: <UserCircle size={20} />,
   },
   {
-    label: "Diet Plans",
+    label: "Kế hoạch Dinh dưỡng",
     path: path.staffNutrition,
     icon: <Utensils size={20} />,
   },
   {
-    label: "Food Bank",
+    label: "Kho Thực phẩm",
     path: path.staffFoodBankManagement,
     icon: <CookingPot size={20} />,
   },
   {
-    label: "Room Allocation",
+    label: "Phân bổ Phòng",
     path: path.roomManagement,
     icon: <Bed size={20} />,
   },
   {
-    label: "SOS & Incidents",
+    label: "SOS & Sự cố",
     path: path.staffIncidents,
     icon: <AlertTriangle size={20} />,
   },
   {
-    label: "Service Requests",
+    label: "Yêu cầu Dịch vụ",
     path: path.staffServiceRequests,
     icon: <CreditCard size={20} />,
   },
   {
-    label: "Feedback Management",
+    label: "Quản lý Phản hồi",
     path: path.staffFeedbackManagement,
     icon: <MessageSquare size={20} />,
   },
   {
-    label: "Resident Password Management",
+    label: "Quản lý Mật khẩu Cư dân",
     path: path.staffResidentPasswordManagement,
     icon: <Lock size={20} />,
   },

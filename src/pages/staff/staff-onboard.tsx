@@ -49,14 +49,14 @@ type CreateStaffFormValues = {
 };
 
 const STAFF_POSITIONS: { value: string; label: string }[] = [
-  { value: "NURSE", label: "Nurse" },
-  { value: "CAREGIVER", label: "Caregiver" },
-  { value: "THERAPIST", label: "Therapist" },
-  { value: "PHYSICIAN", label: "Physician" },
-  { value: "SOCIAL_WORKER", label: "Social Worker" },
-  { value: "ACTIVITY_COORDINATOR", label: "Activity Coordinator" },
-  { value: "DIETITIAN", label: "Dietitian" },
-  { value: "OTHER", label: "Other" },
+  { value: "NURSE", label: "Y tá" },
+  { value: "CAREGIVER", label: "Người chăm sóc" },
+  { value: "THERAPIST", label: "Nhà trị liệu" },
+  { value: "PHYSICIAN", label: "Bác sĩ" },
+  { value: "SOCIAL_WORKER", label: "Nhân viên Xã hội" },
+  { value: "ACTIVITY_COORDINATOR", label: "Điều phối viên Hoạt động" },
+  { value: "DIETITIAN", label: "Chuyên gia Dinh dưỡng" },
+  { value: "OTHER", label: "Khác" },
 ];
 
 const DEFAULT_INPUT_STYLE =
@@ -272,7 +272,7 @@ const StaffOnboard: React.FC = () => {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">
-            Staff Onboarding & Access
+            Tuyển dụng Nhân viên & Cấp quyền truy cập
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-gray-600">
             Hoàn thiện quy trình mời nhân viên tham gia hệ thống: tải ảnh đại

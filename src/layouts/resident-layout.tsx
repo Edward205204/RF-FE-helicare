@@ -76,7 +76,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
                   <p className="text-sm font-medium text-gray-900">
                     {residentName}
                   </p>
-                  <p className="text-xs text-gray-500">Resident</p>
+                  <p className="text-xs text-gray-500">Cư dân</p>
                 </div>
               </button>
             </DropdownMenuTrigger>
