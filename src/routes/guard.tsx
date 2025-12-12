@@ -96,14 +96,33 @@ export function ProtectedRoute() {
       }
     }
 
-    // Staff/Admin redirect logic
+    // Admin/RootAdmin redirect logic
     if (
-      (userRole === UserRole.Staff ||
-        userRole === UserRole.Admin ||
-        userRole === UserRole.RootAdmin) &&
+      (userRole === UserRole.Admin || userRole === UserRole.RootAdmin) &&
       location.pathname === path.familyHome
     ) {
+      return <Navigate to={path.adminDashboard} replace />;
+    }
+
+    // Staff redirect logic
+    if (userRole === UserRole.Staff && location.pathname === path.familyHome) {
       return <Navigate to={path.residentList} replace />;
+    }
+
+    // Admin routes guard - only allow Admin and RootAdmin
+    const adminRoutes = [
+      path.adminDashboard,
+      path.adminResidents,
+      path.adminStaff,
+      path.adminTasks,
+      path.adminSettings,
+      path.adminRegister,
+    ];
+
+    if (adminRoutes.includes(location.pathname as any)) {
+      if (userRole !== UserRole.Admin && userRole !== UserRole.RootAdmin) {
+        return <Navigate to={path.signin} replace />;
+      }
     }
 
     // Resident routes guard - only allow resident role
@@ -193,11 +212,10 @@ export function RejectedRoute() {
   // Đã authenticated - redirect dựa theo role
   if (profile) {
     const userRole = (profile as any).role;
-    if (
-      userRole === UserRole.Staff ||
-      userRole === UserRole.Admin ||
-      userRole === UserRole.RootAdmin
-    ) {
+    if (userRole === UserRole.Admin || userRole === UserRole.RootAdmin) {
+      return <Navigate to={path.adminDashboard} replace />;
+    }
+    if (userRole === UserRole.Staff) {
       return <Navigate to={path.residentList} replace />;
     }
     if (userRole === UserRole.Family) {

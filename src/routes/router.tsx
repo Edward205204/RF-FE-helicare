@@ -44,8 +44,17 @@ import { RoomBedFamilyPage } from "@/pages/room/family-get-room";
 import FamilyNotifications from "@/pages/family/notification";
 import FamilyFeedbackSupport from "@/pages/family/feedback";
 import PaymentModuleFamily from "@/pages/payment/family-payment";
+import PaymentResult from "@/pages/payment/payment-result";
 import FamilyOverview from "@/pages/family/overview";
 import ResidentLayout from "@/layouts/resident-layout";
+import AdminLayout from "@/layouts/admin-layout";
+import AdminLogin from "@/pages/admin/auth/admin-login";
+import AdminRegister from "@/pages/admin/auth/admin-register";
+import AdminDashboard from "@/pages/admin/dashboard-new";
+import AdminResidentsManagement from "@/pages/admin/residents-management";
+import AdminStaffManagement from "@/pages/admin/staff-management";
+import AdminTasksManagement from "@/pages/admin/tasks-management";
+import AdminSettings from "@/pages/admin/settings";
 import ResidentHome from "@/pages/resident/resident-home";
 import ResidentSchedule from "@/pages/resident/resident-schedule";
 import ResidentMealNutrition from "@/pages/resident/resident-meal-nutrition";
@@ -378,6 +387,55 @@ export default function useReactRouter() {
             </ResidentLayout>
           ),
         },
+        // Admin pages
+        {
+          path: path.adminDashboard,
+          element: (
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          ),
+        },
+        {
+          path: path.adminResidents,
+          element: (
+            <AdminLayout>
+              <AdminResidentsManagement />
+            </AdminLayout>
+          ),
+        },
+        {
+          path: path.adminStaff,
+          element: (
+            <AdminLayout>
+              <AdminStaffManagement />
+            </AdminLayout>
+          ),
+        },
+        {
+          path: path.adminTasks,
+          element: (
+            <AdminLayout>
+              <AdminTasksManagement />
+            </AdminLayout>
+          ),
+        },
+        {
+          path: path.adminSettings,
+          element: (
+            <AdminLayout>
+              <AdminSettings />
+            </AdminLayout>
+          ),
+        },
+        {
+          path: path.adminRegister,
+          element: (
+            <AdminLayout>
+              <AdminRegister />
+            </AdminLayout>
+          ),
+        },
       ],
     },
 
@@ -385,6 +443,14 @@ export default function useReactRouter() {
       path: "",
       element: <RejectedRoute />,
       children: [
+        {
+          path: path.paymentResult,
+          element: <PaymentResult />,
+        },
+        {
+          path: path.adminLogin,
+          element: <AdminLogin />,
+        },
         {
           path: path.signin,
           element: <Signin />,

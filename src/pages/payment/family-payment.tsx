@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
+import { Input } from "@/components/ui";
+import { Label } from "@/components/ui";
+import { Textarea } from "@/components/ui";
 import {
   Table,
   TableBody,
@@ -17,95 +20,230 @@ import {
   DialogTitle,
 } from "@/components/ui";
 import { RadioGroup, RadioGroupItem } from "@/components/ui";
-import { Label } from "@/components/ui";
-
-// Mock data for invoices
-const mockInvoices = [
-  {
-    id: 1,
-    serviceName: "Home Care Service",
-    description: "Weekly home care visit",
-    amount: 500000, // VND
-    vat: 50000,
-    total: 550000,
-    status: "unpaid" as "paid" | "unpaid" | "failed",
-  },
-  {
-    id: 2,
-    serviceName: "Medical Checkup",
-    description: "Monthly health check",
-    amount: 300000,
-    vat: 30000,
-    total: 330000,
-    status: "paid" as "paid" | "unpaid" | "failed",
-  },
-  {
-    id: 3,
-    serviceName: "Emergency Assistance",
-    description: "One-time emergency call",
-    amount: 200000,
-    vat: 20000,
-    total: 220000,
-    status: "failed" as "paid" | "unpaid" | "failed",
-  },
-];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { toast } from "react-toastify";
+import {
+  getServiceContractsByFamily,
+  ServiceContractResponse,
+} from "@/apis/service-contract.api";
+import {
+  getPaymentsByFamily,
+  createPayment,
+  createVNPayPayment,
+  uploadProof,
+  cancelPayment,
+  PaymentResponse,
+  PaymentMethod,
+  PaymentStatus,
+} from "@/apis/payment.api";
+import { uploadImage } from "@/apis/media.api";
 
 const PaymentModuleFamily: React.FC = () => {
-  const [invoices, setInvoices] = useState(mockInvoices);
-  const [selectedInvoice, setSelectedInvoice] = useState<
-    (typeof mockInvoices)[0] | null
-  >(null);
-  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [contracts, setContracts] = useState<ServiceContractResponse[]>([]);
+  const [payments, setPayments] = useState<PaymentResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedContract, setSelectedContract] =
+    useState<ServiceContractResponse | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] =
+    useState<PaymentResponse | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [transactionRef, setTransactionRef] = useState("");
+  const [notes, setNotes] = useState("");
 
-  const handlePayNow = (invoice: (typeof mockInvoices)[0]) => {
-    setSelectedInvoice(invoice);
+  // Load data
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [contractsRes, paymentsRes] = await Promise.all([
+        getServiceContractsByFamily(),
+        getPaymentsByFamily(),
+      ]);
+      setContracts(contractsRes.data || []);
+      setPayments(paymentsRes.data || []);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể tải dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Kiểm tra xem contract có cần thanh toán không
+  const needsPayment = (contract: ServiceContractResponse): boolean => {
+    const today = new Date();
+    const nextBillingDate = new Date(contract.next_billing_date);
+    return today >= nextBillingDate && contract.is_active;
+  };
+
+  // Tính toán period dates cho payment
+  const calculatePeriodDates = (
+    contract: ServiceContractResponse
+  ): { start: string; end: string } => {
+    const nextBilling = new Date(contract.next_billing_date);
+    const start = new Date(nextBilling);
+    start.setDate(1); // Ngày đầu tháng
+
+    const end = new Date(start);
+    if (contract.billing_cycle === "MONTHLY") {
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0); // Ngày cuối tháng
+    } else {
+      end.setFullYear(end.getFullYear() + 1);
+      end.setDate(0);
+    }
+
+    return {
+      start: start.toISOString(),
+      end: end.toISOString(),
+    };
+  };
+
+  const handlePayNow = (contract: ServiceContractResponse) => {
+    setSelectedContract(contract);
     setIsPaymentModalOpen(true);
+    setPaymentMethod("");
   };
 
-  const handlePaymentSubmit = () => {
-    if (!selectedInvoice || !paymentMethod) return;
+  const handlePaymentSubmit = async () => {
+    if (!selectedContract || !paymentMethod) return;
 
-    // Mock API call for payment
-    setTimeout(() => {
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv.id === selectedInvoice.id
-            ? { ...inv, status: "paid" as const }
-            : inv
-        )
+    try {
+      if (paymentMethod === "VNPAY") {
+        // Thanh toán VNPay
+        const periodDates = calculatePeriodDates(selectedContract);
+        const response = await createVNPayPayment({
+          contract_id: selectedContract.contract_id,
+          period_start: periodDates.start,
+          period_end: periodDates.end,
+        });
+
+        // Redirect đến VNPay
+        window.location.href = response.data.payment_url;
+      } else if (paymentMethod === "CASH") {
+        // Tạo payment với CASH (cần upload proof)
+        const periodDates = calculatePeriodDates(selectedContract);
+        const response = await createPayment({
+          contract_id: selectedContract.contract_id,
+          payment_method: "CASH",
+          amount: selectedContract.amount,
+          period_start: periodDates.start,
+          period_end: periodDates.end,
+          notes: notes || undefined,
+        });
+
+        // Mở modal upload proof
+        setSelectedPayment(response.data);
+        setIsPaymentModalOpen(false);
+        setIsUploadModalOpen(true);
+        setNotes("");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể tạo thanh toán");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setProofFile(e.target.files[0]);
+    }
+  };
+
+  const handleUploadProof = async () => {
+    if (!selectedPayment || !proofFile) {
+      toast.error("Vui lòng chọn ảnh chứng từ");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      // Upload ảnh
+      const uploadResult = await uploadImage([proofFile]);
+      if (!uploadResult || uploadResult.length === 0) {
+        throw new Error("Upload ảnh thất bại");
+      }
+
+      // Upload proof
+      await uploadProof(selectedPayment.payment_id, {
+        proof_image_url: uploadResult[0].url,
+        transaction_ref: transactionRef || undefined,
+        notes: notes || undefined,
+      });
+
+      toast.success("Đã upload ảnh chứng từ thành công");
+      setIsUploadModalOpen(false);
+      setSelectedPayment(null);
+      setProofFile(null);
+      setTransactionRef("");
+      setNotes("");
+      loadData();
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Không thể upload ảnh chứng từ"
       );
-      setIsPaymentModalOpen(false);
-      setIsSuccessModalOpen(true);
-      setPaymentMethod("");
-      setSelectedInvoice(null);
-    }, 1000); // Simulate delay
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleDownloadPDF = (invoice: (typeof mockInvoices)[0]) => {
-    // Mock download
-    alert(`Downloading PDF for invoice ${invoice.id}`);
+  const handleCancelPayment = async (paymentId: string) => {
+    if (!window.confirm("Bạn có chắc muốn hủy thanh toán này?")) return;
+
+    try {
+      await cancelPayment(paymentId);
+      toast.success("Đã hủy thanh toán");
+      loadData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể hủy thanh toán");
+    }
   };
 
-  const getStatusBadge = (status: string) => {
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status: PaymentStatus) => {
     switch (status) {
-      case "paid":
+      case "SUCCESS":
         return (
-          <Badge variant="default" className="text-lg">
-            Paid
+          <Badge variant="default" className="text-lg bg-green-500">
+            Thành công
           </Badge>
         );
-      case "unpaid":
+      case "PENDING":
         return (
-          <Badge variant="secondary" className="text-lg">
-            Unpaid
+          <Badge variant="secondary" className="text-lg bg-yellow-500">
+            Đang chờ
           </Badge>
         );
-      case "failed":
+      case "FAILED":
         return (
           <Badge variant="destructive" className="text-lg">
-            Failed
+            Thất bại
+          </Badge>
+        );
+      case "REFUNDED":
+        return (
+          <Badge variant="outline" className="text-lg">
+            Đã hoàn tiền
           </Badge>
         );
       default:
@@ -113,127 +251,314 @@ const PaymentModuleFamily: React.FC = () => {
     }
   };
 
+  const getPaymentMethodBadge = (method: PaymentMethod) => {
+    switch (method) {
+      case "VNPAY":
+        return <Badge className="text-sm bg-blue-500">VNPay</Badge>;
+      case "CASH":
+        return <Badge className="text-sm bg-gray-500">Chuyển khoản</Badge>;
+      default:
+        return <Badge className="text-sm">Unknown</Badge>;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-lg">Đang tải dữ liệu...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
-            Payment Module - Family Member
+            Thanh toán dịch vụ
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-lg">Service Name</TableHead>
-                <TableHead className="text-lg">Description</TableHead>
-                <TableHead className="text-lg">Amount (VND)</TableHead>
-                <TableHead className="text-lg">VAT (VND)</TableHead>
-                <TableHead className="text-lg">Total (VND)</TableHead>
-                <TableHead className="text-lg">Status</TableHead>
-                <TableHead className="text-lg">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="text-lg">
-                    {invoice.serviceName}
-                  </TableCell>
-                  <TableCell className="text-lg">
-                    {invoice.description}
-                  </TableCell>
-                  <TableCell className="text-lg">
-                    {invoice.amount.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-lg">
-                    {invoice.vat.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-lg font-bold">
-                    {invoice.total.toLocaleString()}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                  <TableCell className="space-x-2">
-                    {invoice.status === "unpaid" && (
-                      <Button
-                        onClick={() => handlePayNow(invoice)}
-                        className="text-lg"
-                      >
-                        Pay Now
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDownloadPDF(invoice)}
-                      className="text-lg"
-                    >
-                      Download PDF
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Tabs defaultValue="contracts" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="contracts">Hợp đồng dịch vụ</TabsTrigger>
+              <TabsTrigger value="payments">Lịch sử thanh toán</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="contracts" className="space-y-4">
+              {contracts.length === 0 ? (
+                <p className="text-center text-lg text-gray-500 py-8">
+                  Chưa có hợp đồng dịch vụ nào
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-lg">Cư dân</TableHead>
+                      <TableHead className="text-lg">Chu kỳ</TableHead>
+                      <TableHead className="text-lg">Số tiền</TableHead>
+                      <TableHead className="text-lg">
+                        Ngày thanh toán tiếp
+                      </TableHead>
+                      <TableHead className="text-lg">Trạng thái</TableHead>
+                      <TableHead className="text-lg">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contracts.map((contract) => (
+                      <TableRow key={contract.contract_id}>
+                        <TableCell className="text-lg">
+                          {contract.resident?.full_name || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-lg">
+                          {contract.billing_cycle === "MONTHLY"
+                            ? "Hàng tháng"
+                            : "Hàng năm"}
+                        </TableCell>
+                        <TableCell className="text-lg font-bold">
+                          {formatCurrency(contract.amount)}
+                        </TableCell>
+                        <TableCell className="text-lg">
+                          {formatDate(contract.next_billing_date)}
+                        </TableCell>
+                        <TableCell>
+                          {needsPayment(contract) ? (
+                            <Badge variant="destructive" className="text-lg">
+                              Cần thanh toán
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="default"
+                              className="text-lg bg-green-500"
+                            >
+                              Đã thanh toán
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {needsPayment(contract) && (
+                            <Button
+                              onClick={() => handlePayNow(contract)}
+                              className="text-lg"
+                            >
+                              Thanh toán ngay
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            <TabsContent value="payments" className="space-y-4">
+              {payments.length === 0 ? (
+                <p className="text-center text-lg text-gray-500 py-8">
+                  Chưa có thanh toán nào
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-lg">Cư dân</TableHead>
+                      <TableHead className="text-lg">Số tiền</TableHead>
+                      <TableHead className="text-lg">Phương thức</TableHead>
+                      <TableHead className="text-lg">Kỳ thanh toán</TableHead>
+                      <TableHead className="text-lg">Trạng thái</TableHead>
+                      <TableHead className="text-lg">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((payment) => (
+                      <TableRow key={payment.payment_id}>
+                        <TableCell className="text-lg">
+                          {payment.contract?.resident?.full_name || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-lg font-bold">
+                          {formatCurrency(payment.amount)}
+                        </TableCell>
+                        <TableCell>
+                          {getPaymentMethodBadge(payment.payment_method)}
+                        </TableCell>
+                        <TableCell className="text-lg">
+                          {formatDate(payment.period_start)} -{" "}
+                          {formatDate(payment.period_end)}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                        <TableCell>
+                          {payment.status === "PENDING" &&
+                            payment.payment_method === "CASH" &&
+                            !payment.proof_image_url && (
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedPayment(payment);
+                                  setIsUploadModalOpen(true);
+                                }}
+                                className="text-sm"
+                              >
+                                Upload chứng từ
+                              </Button>
+                            )}
+                          {payment.status === "PENDING" && (
+                            <Button
+                              variant="destructive"
+                              onClick={() =>
+                                handleCancelPayment(payment.payment_id)
+                              }
+                              className="text-sm ml-2"
+                            >
+                              Hủy
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
-      {/* Payment Modal */}
+      {/* Payment Method Modal */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">Select Payment Method</DialogTitle>
+            <DialogTitle className="text-xl">
+              Chọn phương thức thanh toán
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-lg">Invoice: {selectedInvoice?.serviceName}</p>
-            <p className="text-lg">
-              Total: {selectedInvoice?.total.toLocaleString()} VND
-            </p>
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+            {selectedContract && (
+              <>
+                <div>
+                  <p className="text-sm text-gray-600">Cư dân:</p>
+                  <p className="text-lg font-semibold">
+                    {selectedContract.resident?.full_name}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Số tiền:</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {formatCurrency(selectedContract.amount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Kỳ thanh toán:</p>
+                  <p className="text-lg">
+                    {formatDate(calculatePeriodDates(selectedContract).start)} -{" "}
+                    {formatDate(calculatePeriodDates(selectedContract).end)}
+                  </p>
+                </div>
+              </>
+            )}
+            <RadioGroup
+              value={paymentMethod}
+              onValueChange={(value) =>
+                setPaymentMethod(value as PaymentMethod)
+              }
+            >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="momo" id="momo" />
-                <Label htmlFor="momo" className="text-lg">
-                  MoMo
+                <RadioGroupItem value="VNPAY" id="vnpay" />
+                <Label htmlFor="vnpay" className="text-lg cursor-pointer">
+                  VNPay (Thanh toán online)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="zalopay" id="zalopay" />
-                <Label htmlFor="zalopay" className="text-lg">
-                  ZaloPay
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="paypal" id="paypal" />
-                <Label htmlFor="paypal" className="text-lg">
-                  PayPal
+                <RadioGroupItem value="CASH" id="cash" />
+                <Label htmlFor="cash" className="text-lg cursor-pointer">
+                  Chuyển khoản (Upload chứng từ)
                 </Label>
               </div>
             </RadioGroup>
+            {paymentMethod === "CASH" && (
+              <div className="space-y-2">
+                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Nhập ghi chú nếu có"
+                />
+              </div>
+            )}
             <Button
               onClick={handlePaymentSubmit}
               disabled={!paymentMethod}
               className="w-full text-lg"
             >
-              Confirm Payment
+              Xác nhận thanh toán
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Success Modal */}
-      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+      {/* Upload Proof Modal */}
+      <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">Payment Successful</DialogTitle>
+            <DialogTitle className="text-xl">Upload ảnh chứng từ</DialogTitle>
           </DialogHeader>
-          <p className="text-lg">
-            Your payment has been processed successfully.
-          </p>
-          <Button
-            onClick={() => setIsSuccessModalOpen(false)}
-            className="w-full text-lg"
-          >
-            Close
-          </Button>
+          <div className="space-y-4">
+            {selectedPayment && (
+              <div>
+                <p className="text-sm text-gray-600">Số tiền:</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(selectedPayment.amount)}
+                </p>
+              </div>
+            )}
+            <div>
+              <Label htmlFor="proof-file">Chọn ảnh chứng từ chuyển khoản</Label>
+              <Input
+                id="proof-file"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="mt-2"
+              />
+              {proofFile && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Đã chọn: {proofFile.name}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="transaction-ref">
+                Mã tham chiếu giao dịch (tùy chọn)
+              </Label>
+              <Input
+                id="transaction-ref"
+                value={transactionRef}
+                onChange={(e) => setTransactionRef(e.target.value)}
+                placeholder="Nhập mã tham chiếu nếu có"
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="upload-notes">Ghi chú (tùy chọn)</Label>
+              <Textarea
+                id="upload-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Nhập ghi chú nếu có"
+              />
+            </div>
+            <Button
+              onClick={handleUploadProof}
+              disabled={!proofFile || uploading}
+              className="w-full text-lg"
+            >
+              {uploading ? "Đang upload..." : "Upload chứng từ"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

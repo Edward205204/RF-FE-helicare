@@ -51,6 +51,7 @@ const path = {
   familyNotification: "/family/notification",
   familyFeedbackAndSupport: "/family/feedback-and-support",
   familyBillingAndPayment: "/family/billing-and-payment",
+  paymentResult: "/payment/result",
 
   // Resident pages
   residentHome: "/resident/home",
@@ -61,6 +62,15 @@ const path = {
   residentRoom: "/resident/room",
   residentNotification: "/resident/notifications",
   residentChangePassword: "/resident/change-password",
+
+  // Admin pages
+  adminLogin: "/admin/login",
+  adminRegister: "/admin/register",
+  adminDashboard: "/admin/dashboard",
+  adminResidents: "/admin/residents",
+  adminStaff: "/admin/staff",
+  adminTasks: "/admin/tasks",
+  adminSettings: "/admin/settings",
 } as const;
 
 export default path;
