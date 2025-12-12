@@ -14,7 +14,10 @@ const ResidentRoom: React.FC = () => {
 
   useEffect(() => {
     const fetchRoomInfo = async () => {
-      if (!resident?.room_id) {
+      // Check for room_id in resident object or nested room object
+      const roomId = resident?.room?.room_id || resident?.room_id;
+
+      if (!roomId) {
         setRoomInfo(null);
         setLoading(false);
         return;
@@ -22,7 +25,7 @@ const ResidentRoom: React.FC = () => {
 
       try {
         setLoading(true);
-        const response = await getRoomById(resident.room_id);
+        const response = await getRoomById(roomId);
         setRoomInfo(response.data || response);
       } catch (error: any) {
         console.error("Failed to fetch room info:", error);
@@ -36,7 +39,7 @@ const ResidentRoom: React.FC = () => {
     };
 
     fetchRoomInfo();
-  }, [resident?.room_id]);
+  }, [resident]);
 
   if (loading) {
     return (
@@ -84,6 +87,11 @@ const ResidentRoom: React.FC = () => {
                   ? "Đôi"
                   : "Nhiều người"}
               </p>
+              {roomInfo.notes && (
+                <p className="text-sm text-gray-500 mt-1 italic">
+                  Ghi chú: {roomInfo.notes}
+                </p>
+              )}
             </div>
             <Badge
               className={
@@ -100,18 +108,57 @@ const ResidentRoom: React.FC = () => {
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Sức chứa</p>
               <p className="text-2xl font-bold text-gray-900">
-                {roomInfo.capacity}
+                {roomInfo.capacity} người
               </p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Đang ở</p>
               <p className="text-2xl font-bold text-gray-900">
-                {roomInfo.current_occupancy}
+                {roomInfo.current_occupancy} người
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Roommates Section */}
+      {roomInfo.residents && roomInfo.residents.length > 0 && (
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-900">
+              Bạn cùng phòng
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roomInfo.residents.map((roommate) => (
+                <div
+                  key={roommate.resident_id}
+                  className={`p-4 rounded-lg border ${
+                    roommate.resident_id === resident?.resident_id
+                      ? "border-blue-200 bg-blue-50"
+                      : "border-gray-100 bg-gray-50"
+                  }`}
+                >
+                  <p className="font-semibold text-gray-900">
+                    {roommate.full_name}
+                    {roommate.resident_id === resident?.resident_id && " (Bạn)"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Giới tính: {roommate.gender === "Male" ? "Nam" : "Nữ"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Ngày sinh:{" "}
+                    {new Date(roommate.date_of_birth).toLocaleDateString(
+                      "vi-VN"
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
