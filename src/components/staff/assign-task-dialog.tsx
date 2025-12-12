@@ -31,11 +31,11 @@ interface AssignTaskDialogProps {
 }
 
 const TASK_TYPES = [
-  { value: "meal", label: "Bữa ăn" },
-  { value: "exercise", label: "Tập thể dục" },
-  { value: "hygiene", label: "Vệ sinh" },
-  { value: "medication", label: "Thuốc" },
-  { value: "custom", label: "Tùy chỉnh" },
+  { value: "meal", label: "Meal" },
+  { value: "exercise", label: "Exercise" },
+  { value: "hygiene", label: "Hygiene" },
+  { value: "medication", label: "Medication" },
+  { value: "custom", label: "Custom" },
 ];
 
 export function AssignTaskDialog({
@@ -74,7 +74,7 @@ export function AssignTaskDialog({
       setResidents(residents);
     } catch (error: any) {
       console.error("Error fetching residents:", error);
-      toast.error("Không thể tải danh sách residents");
+      toast.error("Cannot load residents list");
     }
   };
 
@@ -82,7 +82,7 @@ export function AssignTaskDialog({
     e.preventDefault();
 
     if (!taskType || !title || !dueTime) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -97,14 +97,14 @@ export function AssignTaskDialog({
       };
 
       await assignTaskToStaff(staffId, payload);
-      toast.success("Nhiệm vụ đã được phân công thành công");
+      toast.success("Task assigned successfully");
       onOpenChange(false);
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
       console.error("Error assigning task:", error);
-      toast.error(error.response?.data?.message || "Không thể phân công nhiệm vụ");
+      toast.error(error.response?.data?.message || "Cannot assign task");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,15 +114,15 @@ export function AssignTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Phân công Nhiệm vụ cho Nhân viên</DialogTitle>
+          <DialogTitle>Assign Task to Staff</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Loại Nhiệm vụ *</Label>
+              <Label>Task Type *</Label>
               <Select value={taskType} onValueChange={setTaskType}>
                 <SelectTrigger className="border border-gray-200 bg-white">
-                  <SelectValue placeholder="Chọn loại nhiệm vụ" />
+                  <SelectValue placeholder="Select task type" />
                 </SelectTrigger>
                 <SelectContent className="border border-gray-200 bg-white">
                   {TASK_TYPES.map((type) => (
@@ -135,27 +135,27 @@ export function AssignTaskDialog({
             </div>
 
             <div>
-              <Label>Tiêu đề *</Label>
+              <Label>Title *</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Nhập tiêu đề nhiệm vụ"
+                placeholder="Enter task title"
                 className="border border-gray-200 bg-white"
                 required
               />
             </div>
 
             <div>
-              <Label>Cư dân (Tùy chọn)</Label>
+              <Label>Resident (Optional)</Label>
               <ResidentComboBox
                 value={residentId}
                 onSelect={setResidentId}
-                placeholder="Chọn resident (tùy chọn)"
+                placeholder="Select resident (optional)"
               />
             </div>
 
             <div>
-              <Label>Thời hạn *</Label>
+              <Label>Due Date *</Label>
               <Input
                 type="datetime-local"
                 value={dueTime}
@@ -166,11 +166,11 @@ export function AssignTaskDialog({
             </div>
 
             <div>
-              <Label>Mô tả (Tùy chọn)</Label>
+              <Label>Description (Optional)</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Nhập mô tả nhiệm vụ"
+                placeholder="Enter task description"
                 rows={3}
                 className="border border-gray-200 bg-white"
               />
@@ -183,7 +183,7 @@ export function AssignTaskDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -193,10 +193,10 @@ export function AssignTaskDialog({
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang phân công...
+                  Assigning...
                 </span>
               ) : (
-                "Phân công Nhiệm vụ"
+                "Assign Task"
               )}
             </Button>
           </DialogFooter>

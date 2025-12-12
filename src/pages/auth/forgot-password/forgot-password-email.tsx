@@ -33,7 +33,7 @@ const ForgotPasswordEmail = () => {
     setIsLoading(true);
     try {
       const result = await forgotPassword(data.email);
-      toast.success(result.message || "Đã gửi liên kết xác minh thành công");
+      toast.success(result.message || "Verification link sent successfully");
       setEmailToVerify(data.email);
       navigate(path.waitToVerifyForgotPassword);
     } catch (error: any) {
@@ -48,7 +48,7 @@ const ForgotPasswordEmail = () => {
           });
         }
       } else {
-        toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
+        toast.error(error.response?.data?.message || "An error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -65,9 +65,9 @@ const ForgotPasswordEmail = () => {
           HeLiCare
         </h1>
         <div className="text-center text-base text-gray-700 mb-8">
-          Nhập địa chỉ email bạn đã đăng ký để
+          Enter the email address you registered with to
           <br />
-          nhận liên kết xác minh để đặt lại mật khẩu.
+          receive a verification link to reset your password.
         </div>
 
         <div className="w-full mb-4">
@@ -75,7 +75,7 @@ const ForgotPasswordEmail = () => {
             htmlFor="email"
             className="block text-sm font-normal text-left text-gray-700 mb-2"
           >
-            Địa chỉ Email
+            Email Address
           </Label>
           <Input
             type="email"
@@ -101,7 +101,7 @@ const ForgotPasswordEmail = () => {
           disabled={isLoading}
           className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Đang gửi..." : "Gửi liên kết xác minh"}
+          {isLoading ? "Sending..." : "Send verification link"}
         </Button>
 
         <Button
@@ -110,7 +110,7 @@ const ForgotPasswordEmail = () => {
           variant="outline"
           className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors"
         >
-          Quay lại Đăng nhập
+          Back to Sign In
         </Button>
       </form>
     </div>

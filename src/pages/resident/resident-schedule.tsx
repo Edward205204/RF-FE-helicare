@@ -49,14 +49,7 @@ type CareEvent = {
 };
 
 export function ResidentSchedule() {
-  const {
-    view,
-    setView,
-    cursor,
-    setCursor,
-    days,
-    label,
-  } = useCalendarState();
+  const { view, setView, cursor, setCursor, days, label } = useCalendarState();
   const { profile } = useContext(AppContext);
   const [selectedVisit, setSelectedVisit] = useState<VisitResponse | null>(
     null
@@ -113,9 +106,7 @@ export function ResidentSchedule() {
   }, [residentId]);
 
   // Fetch schedules for this resident only
-  const fetchSchedules = useCallback(async (): Promise<
-    ScheduleResponse[]
-  > => {
+  const fetchSchedules = useCallback(async (): Promise<ScheduleResponse[]> => {
     if (!residentId) {
       return [];
     }
@@ -152,9 +143,7 @@ export function ResidentSchedule() {
   }, [days, residentId]);
 
   // Fetch events for this resident's room
-  const fetchRoomEvents = useCallback(async (): Promise<
-    EventResponse[]
-  > => {
+  const fetchRoomEvents = useCallback(async (): Promise<EventResponse[]> => {
     if (!residentId || !residentInfo?.room_id) {
       return [];
     }
@@ -197,7 +186,11 @@ export function ResidentSchedule() {
       const visitEvents = mapVisitToEvent(filteredVisits);
       const scheduleEvents = mapSchedulesToEvents(schedulesData);
       const institutionEvents = mapInstitutionEventsToCareEvent(roomEventsData);
-      const allEvents = [...visitEvents, ...scheduleEvents, ...institutionEvents];
+      const allEvents = [
+        ...visitEvents,
+        ...scheduleEvents,
+        ...institutionEvents,
+      ];
       const uniqueEvents = Array.from(
         new Map(allEvents.map((e) => [e.id, e])).values()
       );
@@ -232,9 +225,12 @@ export function ResidentSchedule() {
           type: "care" as const,
           resident_id: s.resident_id || undefined,
           location: s.resident?.room_id
-            ? `Phòng ${s.resident.room_id}`
-            : s.activity?.name || "Chưa xác định",
-          staff: s.staff?.staffProfile?.full_name || s.assigned_staff_name || "Nhân viên",
+            ? `Room ${s.resident.room_id}`
+            : s.activity?.name || "Unknown",
+          staff:
+            s.staff?.staffProfile?.full_name ||
+            s.assigned_staff_name ||
+            "Staff",
           capacity: s.activity?.max_participants || undefined,
           registered: s.participant_count || undefined,
           note: s.notes || s.description || "",
@@ -278,8 +274,8 @@ export function ResidentSchedule() {
           time_block: v.time_block || undefined,
           name: timeBlockLabel,
           type: "visit" as const,
-          location: v.institution?.name || "Viện dưỡng lão",
-          staff: v.family_user?.familyProfile?.full_name || "Người thân",
+          location: v.institution?.name || "Nursing Home",
+          staff: v.family_user?.familyProfile?.full_name || "Family Member",
           capacity: undefined, // Visit không có capacity field
           registered: undefined, // Visit không có registered field
           note: v.notes || "",
@@ -290,21 +286,19 @@ export function ResidentSchedule() {
   }
 
   // Map institution events (from room) to CareEvent
-  function mapInstitutionEventsToCareEvent(events: EventResponse[]): CareEvent[] {
+  function mapInstitutionEventsToCareEvent(
+    events: EventResponse[]
+  ): CareEvent[] {
     return events
-      .filter(
-        (e) =>
-          e.status === "Upcoming" ||
-          e.status === "Ongoing"
-      ) // Only show upcoming/ongoing events
+      .filter((e) => e.status === "Upcoming" || e.status === "Ongoing") // Only show upcoming/ongoing events
       .map((e) => {
         const startDate = new Date(e.start_time);
         const dateStr = formatDateISO(startDate);
-        const startTime = startDate.toLocaleTimeString("en-GB", {
+        const startTime = startDate.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
         });
-        const endTime = new Date(e.end_time).toLocaleTimeString("en-GB", {
+        const endTime = new Date(e.end_time).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
         });
@@ -329,7 +323,7 @@ export function ResidentSchedule() {
           name: e.name,
           type: "care" as const,
           location: e.location,
-          staff: "Sự kiện",
+          staff: "Event",
           capacity: undefined,
           registered: undefined,
           note: `${startTime} - ${endTime}`,
@@ -341,17 +335,17 @@ export function ResidentSchedule() {
     try {
       const response = await visitApi.getVisitById(visitId);
       const visit = response.data as VisitResponse;
-      
+
       // Only show if this visit belongs to this resident
       if (visit.resident_id === residentId) {
         setSelectedVisit(visit);
         setShowQRDialog(true);
       } else {
-        toast.error("Bạn không có quyền xem lịch hẹn này.");
+        toast.error("You do not have permission to view this visit.");
       }
     } catch (error) {
       console.error("Failed to fetch visit:", error);
-      toast.error("Không thể tải thông tin lịch hẹn.");
+      toast.error("Cannot load visit information.");
     }
   };
 
@@ -359,14 +353,17 @@ export function ResidentSchedule() {
     return (
       <div className="p-4 md:p-6">
         <div className="text-center text-gray-500">
-          Không tìm thấy thông tin cư dân. Vui lòng đăng nhập lại.
+          Resident information not found. Please login again.
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4" style={{ width: "100%", overflowX: "auto", maxWidth: "100vw" }}>
+    <div
+      className="p-4 md:p-6 space-y-4"
+      style={{ width: "100%", overflowX: "auto", maxWidth: "100vw" }}
+    >
       <div className="space-y-4 border-none shadow-sm p-4 rounded-md">
         <Toolbar
           className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4"
@@ -394,8 +391,8 @@ export function ResidentSchedule() {
         {eventTypeFilter !== "all" && (
           <div className="px-4 text-xs text-slate-500">
             {eventTypeFilter === "care"
-              ? "Đang chỉ hiển thị hoạt động chăm sóc."
-              : "Đang chỉ hiển thị lịch thăm viếng."}
+              ? "Showing care activities only."
+              : "Showing visits only."}
           </div>
         )}
         <div className="grid grid-cols-7 p-4 border-none shadow-sm rounded-md">
@@ -409,7 +406,9 @@ export function ResidentSchedule() {
               currentResident={residentInfo}
               onSubmit={() => {
                 // Resident cannot book visits
-                toast.info("Cư dân không thể đặt lịch thăm viếng. Vui lòng liên hệ người thân.");
+                toast.info(
+                  "Residents cannot book visits. Please contact your family."
+                );
               }}
               residents={residentInfo ? [residentInfo] : []}
               onVisitClick={handleVisitClick}
@@ -423,7 +422,7 @@ export function ResidentSchedule() {
       <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
         <DialogContent className="border-none shadow-sm bg-white">
           <DialogHeader>
-            <DialogTitle>Chi tiết lịch thăm viếng</DialogTitle>
+            <DialogTitle>Visit Details</DialogTitle>
           </DialogHeader>
           {selectedVisit && (
             <div className="space-y-4">
@@ -438,20 +437,20 @@ export function ResidentSchedule() {
               {/* Visit Details */}
               <div className="space-y-2 text-sm">
                 <div>
-                  <strong>Ngày:</strong>{" "}
+                  <strong>Date:</strong>{" "}
                   {(() => {
                     const dateStr = selectedVisit.visit_date;
                     if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
                       const [year, month, day] = dateStr.split("-").map(Number);
                       const date = new Date(year, month - 1, day);
-                      return date.toLocaleDateString("vi-VN");
+                      return date.toLocaleDateString("en-US");
                     }
-                    return new Date(dateStr).toLocaleDateString("vi-VN");
+                    return new Date(dateStr).toLocaleDateString("en-US");
                   })()}
                 </div>
                 {selectedVisit.time_block && (
                   <div>
-                    <strong>Khung giờ:</strong>{" "}
+                    <strong>Time Slot:</strong>{" "}
                     {TIME_BLOCKS.find(
                       (tb) => tb.value === selectedVisit.time_block
                     )?.label || selectedVisit.time_block}
@@ -459,19 +458,21 @@ export function ResidentSchedule() {
                 )}
                 {selectedVisit.resident && (
                   <div>
-                    <strong>Cư dân:</strong> {selectedVisit.resident.full_name}
+                    <strong>Resident:</strong>{" "}
+                    {selectedVisit.resident.full_name}
                   </div>
                 )}
                 {selectedVisit.notes && (
                   <div>
-                    <strong>Ghi chú:</strong> {selectedVisit.notes}
+                    <strong>Notes:</strong> {selectedVisit.notes}
                   </div>
                 )}
               </div>
 
               {/* Note: Resident cannot cancel visits */}
               <div className="text-xs text-gray-500 italic">
-                Lưu ý: Cư dân không thể hủy lịch thăm viếng. Vui lòng liên hệ người thân nếu cần thay đổi.
+                Note: Residents cannot cancel visits. Please contact your family
+                if changes are needed.
               </div>
             </div>
           )}

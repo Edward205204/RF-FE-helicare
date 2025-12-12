@@ -58,9 +58,9 @@ import { getStaffList, type StaffResponse } from "@/apis/staff.api";
 
 const mapStatusToFrontend = (status: FeedbackStatus): string => {
   const mapping: Record<FeedbackStatus, string> = {
-    pending: "Đang chờ",
-    in_progress: "Đang xử lý",
-    resolved: "Đã giải quyết",
+    pending: "Pending",
+    in_progress: "In Progress",
+    resolved: "Resolved",
   };
   return mapping[status] || status;
 };
@@ -222,7 +222,7 @@ const StaffFeedbackManagement: React.FC = () => {
       setTotal(response.total || 0);
     } catch (error: any) {
       console.error("Failed to fetch feedbacks:", error);
-      toast.error("Không thể tải danh sách feedback. Vui lòng thử lại sau.");
+      toast.error("Cannot load feedback list. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -279,7 +279,7 @@ const StaffFeedbackManagement: React.FC = () => {
       };
 
       await updateFeedback(selectedFeedback.feedback_id, updateData);
-      toast.success("Cập nhật feedback thành công!");
+      toast.success("Feedback updated successfully!");
       setIsUpdateDialogOpen(false);
       await fetchFeedbacks();
       await fetchStats();
@@ -287,7 +287,7 @@ const StaffFeedbackManagement: React.FC = () => {
       console.error("Failed to update feedback:", error);
       toast.error(
         error.response?.data?.message ||
-          "Không thể cập nhật feedback. Vui lòng thử lại sau."
+          "Cannot update feedback. Please try again later."
       );
     }
   };
@@ -304,7 +304,7 @@ const StaffFeedbackManagement: React.FC = () => {
       };
 
       await sendNotification(notificationData);
-      toast.success("Gửi thông báo thành công!");
+      toast.success("Notification sent successfully!");
       setIsNotificationDialogOpen(false);
       setNotificationTitle("");
       setNotificationMessage("");
@@ -312,7 +312,7 @@ const StaffFeedbackManagement: React.FC = () => {
       console.error("Failed to send notification:", error);
       toast.error(
         error.response?.data?.message ||
-          "Không thể gửi thông báo. Vui lòng thử lại sau."
+          "Cannot send notification. Please try again later."
       );
     }
   };
@@ -328,12 +328,12 @@ const StaffFeedbackManagement: React.FC = () => {
   const openNotificationDialog = (feedback: FeedbackResponse) => {
     setSelectedFeedback(feedback);
     setNotificationTitle(
-      `Cập nhật về feedback: ${feedback.category?.name || "N/A"}`
+      `Update regarding feedback: ${feedback.category?.name || "N/A"}`
     );
     setNotificationMessage(
-      `Feedback của bạn về "${
+      `Your feedback regarding "${
         feedback.category?.name || "N/A"
-      }" đã được cập nhật.`
+      }" has been updated.`
     );
     setIsNotificationDialogOpen(true);
   };
@@ -350,7 +350,7 @@ const StaffFeedbackManagement: React.FC = () => {
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <h1 className="text-2xl font-bold mb-6" style={{ color: "#5985D8" }}>
-        Quản lý Feedback
+        Feedback Management
       </h1>
 
       {/* Stats Summary */}
@@ -358,13 +358,13 @@ const StaffFeedbackManagement: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-white shadow-sm border rounded-xl p-4">
             <CardContent className="p-0">
-              <div className="text-sm text-gray-600">Tổng số</div>
+              <div className="text-sm text-gray-600">Total</div>
               <div className="text-2xl font-bold">{stats.total}</div>
             </CardContent>
           </Card>
           <Card className="bg-white shadow-sm border rounded-xl p-4">
             <CardContent className="p-0">
-              <div className="text-sm text-gray-600">Đang chờ</div>
+              <div className="text-sm text-gray-600">Pending</div>
               <div className="text-2xl font-bold text-yellow-600">
                 {stats.byStatus?.pending || 0}
               </div>
@@ -372,7 +372,7 @@ const StaffFeedbackManagement: React.FC = () => {
           </Card>
           <Card className="bg-white shadow-sm border rounded-xl p-4">
             <CardContent className="p-0">
-              <div className="text-sm text-gray-600">Đang xử lý</div>
+              <div className="text-sm text-gray-600">In Progress</div>
               <div className="text-2xl font-bold text-blue-600">
                 {stats.byStatus?.in_progress || 0}
               </div>
@@ -380,7 +380,7 @@ const StaffFeedbackManagement: React.FC = () => {
           </Card>
           <Card className="bg-white shadow-sm border rounded-xl p-4">
             <CardContent className="p-0">
-              <div className="text-sm text-gray-600">Đã giải quyết</div>
+              <div className="text-sm text-gray-600">Resolved</div>
               <div className="text-2xl font-bold text-green-600">
                 {stats.byStatus?.resolved || 0}
               </div>
@@ -394,20 +394,20 @@ const StaffFeedbackManagement: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Bộ lọc
+            Filters
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <Label>Danh mục</Label>
+              <Label>Category</Label>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="cursor-pointer">
-                  <SelectValue placeholder="Tất cả" />
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="cursor-pointer">
-                    Tất cả
+                    All
                   </SelectItem>
                   {categories.map((cat) => (
                     <SelectItem
@@ -424,14 +424,14 @@ const StaffFeedbackManagement: React.FC = () => {
 
             {availableTypes.length > 0 && (
               <div>
-                <Label>Loại</Label>
+                <Label>Type</Label>
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger className="cursor-pointer">
-                    <SelectValue placeholder="Tất cả" />
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all" className="cursor-pointer">
-                      Tất cả
+                      All
                     </SelectItem>
                     {availableTypes.map((type) => (
                       <SelectItem
@@ -448,37 +448,37 @@ const StaffFeedbackManagement: React.FC = () => {
             )}
 
             <div>
-              <Label>Trạng thái</Label>
+              <Label>Status</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="cursor-pointer">
-                  <SelectValue placeholder="Tất cả" />
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="cursor-pointer">
-                    Tất cả
+                    All
                   </SelectItem>
                   <SelectItem value="pending" className="cursor-pointer">
-                    Đang chờ
+                    Pending
                   </SelectItem>
                   <SelectItem value="in_progress" className="cursor-pointer">
-                    Đang xử lý
+                    In Progress
                   </SelectItem>
                   <SelectItem value="resolved" className="cursor-pointer">
-                    Đã giải quyết
+                    Resolved
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Cư dân</Label>
+              <Label>Resident</Label>
               <Select value={filterResident} onValueChange={setFilterResident}>
                 <SelectTrigger className="cursor-pointer">
-                  <SelectValue placeholder="Tất cả" />
+                  <SelectValue placeholder="All" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="cursor-pointer">
-                    Tất cả
+                    All
                   </SelectItem>
                   {residents.map((resident) => (
                     <SelectItem
@@ -494,7 +494,7 @@ const StaffFeedbackManagement: React.FC = () => {
             </div>
 
             <div>
-              <Label>Từ ngày</Label>
+              <Label>From Date</Label>
               <Input
                 type="date"
                 value={startDate}
@@ -503,7 +503,7 @@ const StaffFeedbackManagement: React.FC = () => {
             </div>
 
             <div>
-              <Label>Đến ngày</Label>
+              <Label>To Date</Label>
               <Input
                 type="date"
                 value={endDate}
@@ -512,11 +512,11 @@ const StaffFeedbackManagement: React.FC = () => {
             </div>
 
             <div className="md:col-span-2">
-              <Label>Tìm kiếm</Label>
+              <Label>Search</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Tìm kiếm theo nội dung, danh mục, cư dân..."
+                  placeholder="Search by content, category, resident..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8"
@@ -532,11 +532,11 @@ const StaffFeedbackManagement: React.FC = () => {
         <CardHeader className="bg-gray-50/50 border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold text-gray-800">
-              Danh sách Feedback
+              Feedback List
             </CardTitle>
             {/* Có thể thêm badge tổng số lượng ở đây nếu muốn */}
             <div className="text-sm text-gray-500 font-medium">
-              Tổng: {total} bản ghi
+              Total: {total} records
             </div>
           </div>
         </CardHeader>
@@ -548,31 +548,31 @@ const StaffFeedbackManagement: React.FC = () => {
                 <TableRow className="bg-gray-100/80 hover:bg-gray-100/80 border-b border-gray-200">
                   <TableHead className="w-12 text-center"></TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Cư dân
+                    Resident
                   </TableHead>
                   <TableHead className="font-bold text-gray-700 w-20">
-                    Phòng
+                    Room
                   </TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Danh mục
+                    Category
                   </TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Loại
+                    Type
                   </TableHead>
                   <TableHead className="font-bold text-gray-700 w-64">
-                    Nội dung
+                    Content
                   </TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Trạng thái
+                    Status
                   </TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Nhân viên
+                    Staff
                   </TableHead>
                   <TableHead className="font-bold text-gray-700">
-                    Ngày tạo
+                    Created Date
                   </TableHead>
                   <TableHead className="font-bold text-gray-700 text-center w-32">
-                    Thao tác
+                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -585,7 +585,7 @@ const StaffFeedbackManagement: React.FC = () => {
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="text-lg">📭</span>
-                        <span>Không có feedback nào phù hợp.</span>
+                        <span>No matching feedback found.</span>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -656,13 +656,13 @@ const StaffFeedbackManagement: React.FC = () => {
                             {feedback.assigned_staff?.staffProfile?.full_name ||
                               feedback.assigned_staff?.user_id || (
                                 <span className="text-gray-400 italic">
-                                  Chưa phân công
+                                  Unassigned
                                 </span>
                               )}
                           </TableCell>
                           <TableCell className="text-gray-600 py-4 text-sm whitespace-nowrap">
                             {new Date(feedback.created_at).toLocaleDateString(
-                              "vi-VN"
+                              "en-US"
                             )}
                           </TableCell>
                           <TableCell
@@ -676,14 +676,14 @@ const StaffFeedbackManagement: React.FC = () => {
                                 onClick={() => openUpdateDialog(feedback)}
                                 className="h-8 px-3 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                               >
-                                Cập nhật
+                                Update
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openNotificationDialog(feedback)}
                                 className="h-8 w-8 p-0 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
-                                title="Gửi thông báo"
+                                title="Send thông báo"
                               >
                                 <Send className="h-3.5 w-3.5" />
                               </Button>
@@ -699,11 +699,11 @@ const StaffFeedbackManagement: React.FC = () => {
                               className="p-0 border-b border-blue-100"
                             >
                               <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
-                                {/* Cột 1: Nội dung chính */}
+                                {/* Cột 1: Content chính */}
                                 <div className="md:col-span-2 space-y-4">
                                   <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                                     <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                      📝 Nội dung chi tiết
+                                      📝 Detailed Content
                                     </h4>
                                     <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                                       {feedback.message}
@@ -713,7 +713,7 @@ const StaffFeedbackManagement: React.FC = () => {
                                   {feedback.staff_notes && (
                                     <div className="bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
                                       <h4 className="text-sm font-semibold text-yellow-800 mb-2">
-                                        📌 Ghi chú nhân viên
+                                        📌 Staff Notes
                                       </h4>
                                       <p className="text-sm text-gray-700 whitespace-pre-wrap">
                                         {feedback.staff_notes}
@@ -725,7 +725,7 @@ const StaffFeedbackManagement: React.FC = () => {
                                     feedback.attachments.length > 0 && (
                                       <div className="mt-2">
                                         <strong className="text-sm text-gray-700">
-                                          📎 File đính kèm:
+                                          📎 Attached Files:
                                         </strong>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                           {feedback.attachments.map(
@@ -750,12 +750,12 @@ const StaffFeedbackManagement: React.FC = () => {
                                 <div className="space-y-4 text-sm">
                                   <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
                                     <h4 className="font-semibold text-gray-900 border-b pb-2">
-                                      Thông tin người gửi
+                                      Sender Information
                                     </h4>
                                     <div className="grid grid-cols-1 gap-y-2">
                                       <div>
                                         <span className="text-gray-500 block text-xs">
-                                          Người gửi:
+                                          Sender:
                                         </span>
                                         <span className="font-medium text-gray-800">
                                           {feedback.family_user?.familyProfile
@@ -775,18 +775,18 @@ const StaffFeedbackManagement: React.FC = () => {
 
                                   <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
                                     <h4 className="font-semibold text-gray-900 border-b pb-2">
-                                      Thông tin xử lý
+                                      Processing Information
                                     </h4>
                                     <div>
                                       <span className="text-gray-500 block text-xs">
-                                        Ngày giải quyết:
+                                        Resolved Date:
                                       </span>
                                       <span className="font-medium text-gray-800">
                                         {feedback.resolved_at
                                           ? new Date(
                                               feedback.resolved_at
-                                            ).toLocaleString("vi-VN")
-                                          : "Chưa giải quyết"}
+                                            ).toLocaleString("en-US")
+                                          : "Unresolved"}
                                       </span>
                                     </div>
                                     {feedback.resident?.dietTags &&
@@ -828,7 +828,7 @@ const StaffFeedbackManagement: React.FC = () => {
           {total > limit && (
             <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/50">
               <div className="text-sm text-gray-600 font-medium">
-                Hiển thị {(page - 1) * limit + 1} -{" "}
+                Showing {(page - 1) * limit + 1} -{" "}
                 {Math.min(page * limit, total)}{" "}
                 <span className="text-gray-400 mx-1">/</span> {total}
               </div>
@@ -840,7 +840,7 @@ const StaffFeedbackManagement: React.FC = () => {
                   disabled={page === 1}
                   className="cursor-pointer hover:bg-white bg-white shadow-sm"
                 >
-                  Trước
+                  Previous
                 </Button>
                 <Button
                   variant="outline"
@@ -849,7 +849,7 @@ const StaffFeedbackManagement: React.FC = () => {
                   disabled={page * limit >= total}
                   className="cursor-pointer hover:bg-white bg-white shadow-sm"
                 >
-                  Sau
+                  Next
                 </Button>
               </div>
             </div>
@@ -861,12 +861,12 @@ const StaffFeedbackManagement: React.FC = () => {
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Cập nhật Feedback</DialogTitle>
+            <DialogTitle>Update Feedback</DialogTitle>
           </DialogHeader>
           {selectedFeedback && (
             <div className="space-y-4">
               <div>
-                <Label>Trạng thái *</Label>
+                <Label>Status *</Label>
                 <Select
                   value={updateStatus}
                   onValueChange={(v) => setUpdateStatus(v as FeedbackStatus)}
@@ -876,30 +876,30 @@ const StaffFeedbackManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending" className="cursor-pointer">
-                      Đang chờ
+                      Pending
                     </SelectItem>
                     <SelectItem value="in_progress" className="cursor-pointer">
-                      Đang xử lý
+                      In Progress
                     </SelectItem>
                     <SelectItem value="resolved" className="cursor-pointer">
-                      Đã giải quyết
+                      Resolved
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Ghi chú nội bộ</Label>
+                <Label>Internal Notes</Label>
                 <Textarea
                   value={updateStaffNotes}
                   onChange={(e) => setUpdateStaffNotes(e.target.value)}
-                  placeholder="Ghi chú nội bộ cho nhân viên..."
+                  placeholder="Internal notes for staff..."
                   rows={4}
                 />
               </div>
 
               <div>
-                <Label>Phân công nhân viên</Label>
+                <Label>Assign Staff</Label>
                 <Select
                   value={updateAssignedStaff || "none"}
                   onValueChange={(v) =>
@@ -907,11 +907,11 @@ const StaffFeedbackManagement: React.FC = () => {
                   }
                 >
                   <SelectTrigger className="cursor-pointer">
-                    <SelectValue placeholder="Chọn nhân viên" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none" className="cursor-pointer">
-                      Không phân công
+                      No assignment
                     </SelectItem>
                     {staffList.map((staff) => (
                       <SelectItem
@@ -933,14 +933,14 @@ const StaffFeedbackManagement: React.FC = () => {
               onClick={() => setIsUpdateDialogOpen(false)}
               className="cursor-pointer"
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               onClick={handleUpdateFeedback}
               style={{ backgroundColor: "#5985D8" }}
               className="cursor-pointer"
             >
-              Cập nhật
+              Update
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -953,11 +953,11 @@ const StaffFeedbackManagement: React.FC = () => {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Gửi Thông báo</DialogTitle>
+            <DialogTitle>Send Notification</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Người nhận</Label>
+              <Label>Recipient</Label>
               <Select
                 value={notificationRecipient}
                 onValueChange={(v: any) => setNotificationRecipient(v)}
@@ -967,33 +967,33 @@ const StaffFeedbackManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="family" className="cursor-pointer">
-                    Gia đình
+                    Family
                   </SelectItem>
                   <SelectItem value="resident" className="cursor-pointer">
-                    Tất cả thành viên gia đình của cư dân
+                    All resident family members
                   </SelectItem>
                   <SelectItem value="staff" className="cursor-pointer">
-                    Nhân viên
+                    Staff
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Tiêu đề *</Label>
+              <Label>Title *</Label>
               <Input
                 value={notificationTitle}
                 onChange={(e) => setNotificationTitle(e.target.value)}
-                placeholder="Tiêu đề thông báo"
+                placeholder="Notification title"
               />
             </div>
 
             <div>
-              <Label>Nội dung *</Label>
+              <Label>Content *</Label>
               <Textarea
                 value={notificationMessage}
                 onChange={(e) => setNotificationMessage(e.target.value)}
-                placeholder="Nội dung thông báo"
+                placeholder="Notification content"
                 rows={6}
               />
             </div>
@@ -1004,7 +1004,7 @@ const StaffFeedbackManagement: React.FC = () => {
               onClick={() => setIsNotificationDialogOpen(false)}
               className="cursor-pointer"
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               onClick={handleSendNotification}
@@ -1012,7 +1012,7 @@ const StaffFeedbackManagement: React.FC = () => {
               className="cursor-pointer"
               disabled={!notificationTitle || !notificationMessage}
             >
-              Gửi
+              Send
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -63,16 +63,13 @@ const FoodBankManagementPage: React.FC = () => {
   const [form, setForm] = useState<DishFormState>(EMPTY_FORM);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
 
-  const ingredientMap = useMemo(
-    () => {
-      const list = Array.isArray(ingredients) ? ingredients : [];
-      return list.reduce<Record<string, Ingredient>>((acc, ing) => {
-        acc[ing.ingredient_id] = ing;
-        return acc;
-      }, {});
-    },
-    [ingredients]
-  );
+  const ingredientMap = useMemo(() => {
+    const list = Array.isArray(ingredients) ? ingredients : [];
+    return list.reduce<Record<string, Ingredient>>((acc, ing) => {
+      acc[ing.ingredient_id] = ing;
+      return acc;
+    }, {});
+  }, [ingredients]);
 
   const loadReferenceData = async () => {
     try {
@@ -84,10 +81,12 @@ const FoodBankManagementPage: React.FC = () => {
       ]);
 
       const dishesList = (dishRes as { message?: string; data?: Dish[] }).data;
-      const ingredientsList = (ingRes as {
-        message?: string;
-        data?: Ingredient[];
-      }).data;
+      const ingredientsList = (
+        ingRes as {
+          message?: string;
+          data?: Ingredient[];
+        }
+      ).data;
       const allergenList = (
         allergenRes as { message?: string; data?: string[] }
       ).data;
@@ -98,8 +97,7 @@ const FoodBankManagementPage: React.FC = () => {
     } catch (error: any) {
       console.error("Failed to load food bank data:", error);
       toast.error(
-        error.response?.data?.message ||
-          "Không thể tải dữ liệu ngân hàng món ăn."
+        error.response?.data?.message || "Failed to load food bank data."
       );
     } finally {
       setLoading(false);
@@ -170,12 +168,15 @@ const FoodBankManagementPage: React.FC = () => {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      toast.error("Vui lòng nhập tên món.");
+      toast.error("Please enter dish name.");
       return;
     }
 
-    if (!form.calories_per_100g || Number.isNaN(Number(form.calories_per_100g))) {
-      toast.error("Calories phải là số hợp lệ.");
+    if (
+      !form.calories_per_100g ||
+      Number.isNaN(Number(form.calories_per_100g))
+    ) {
+      toast.error("Calories must be a valid number.");
       return;
     }
 
@@ -187,7 +188,7 @@ const FoodBankManagementPage: React.FC = () => {
       }));
 
     if (normalizedIngredients.length === 0) {
-      toast.error("Vui lòng thêm ít nhất một nguyên liệu.");
+      toast.error("Please add at least one ingredient.");
       return;
     }
 
@@ -196,9 +197,7 @@ const FoodBankManagementPage: React.FC = () => {
       calories_per_100g: Number(form.calories_per_100g),
       texture: form.texture,
       sugar_adjustable: form.sugar_adjustable,
-      sodium_level: form.sodium_level
-        ? Number(form.sodium_level)
-        : undefined,
+      sodium_level: form.sodium_level ? Number(form.sodium_level) : undefined,
       dietary_flags:
         form.dietary_flags && form.dietary_flags.length > 0
           ? form.dietary_flags
@@ -211,17 +210,17 @@ const FoodBankManagementPage: React.FC = () => {
       setSaving(true);
       if (editingDishId) {
         await updateDish(editingDishId, payload);
-        toast.success("Cập nhật món ăn thành công.");
+        toast.success("Dish updated successfully.");
       } else {
         await createDish(payload);
-        toast.success("Tạo món ăn thành công.");
+        toast.success("Dish created successfully.");
       }
       resetForm();
       await loadReferenceData();
     } catch (error: any) {
       console.error("Failed to save dish:", error);
       toast.error(
-        error.response?.data?.message || "Không thể lưu món ăn. Vui lòng thử lại."
+        error.response?.data?.message || "Cannot save dish. Please try again."
       );
     } finally {
       setSaving(false);
@@ -250,7 +249,7 @@ const FoodBankManagementPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Tên món *
+                  Dish Name *
                 </label>
                 <Input
                   value={form.name}
@@ -262,7 +261,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Calo (mỗi 100g) *
+                  Calories (per 100g) *
                 </label>
                 <Input
                   type="number"
@@ -279,7 +278,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Độ đặc *
+                  Texture *
                 </label>
                 <Select
                   value={form.texture}
@@ -294,9 +293,9 @@ const FoodBankManagementPage: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="Regular">Thường</SelectItem>
-                    <SelectItem value="Minced">Băm nhỏ</SelectItem>
-                    <SelectItem value="Pureed">Nghiền nhuyễn</SelectItem>
+                    <SelectItem value="Regular">Regular</SelectItem>
+                    <SelectItem value="Minced">Minced</SelectItem>
+                    <SelectItem value="Pureed">Pureed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -313,7 +312,7 @@ const FoodBankManagementPage: React.FC = () => {
                       }))
                     }
                   />
-                  Có thể điều chỉnh đường
+                  Sugar Adjustable
                 </label>
                 <label className="text-sm font-medium">
                   <input
@@ -327,12 +326,12 @@ const FoodBankManagementPage: React.FC = () => {
                       }))
                     }
                   />
-                  Có thể xay nhuyễn
+                  Blendable
                 </label>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Mức sodium (mg, optional)
+                  Sodium Level (mg, optional)
                 </label>
                 <Input
                   type="number"
@@ -349,7 +348,7 @@ const FoodBankManagementPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Dị ứng / Nhãn Dinh dưỡng
+                  Allergens / Nutrition Labels
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {allergenTags.map((tag) => {
@@ -378,7 +377,7 @@ const FoodBankManagementPage: React.FC = () => {
                   })}
                   {allergenTags.length === 0 && (
                     <span className="text-xs text-gray-400">
-                      Chưa có dữ liệu allergen từ cư dân / món ăn.
+                      No allergen data from residents / dishes.
                     </span>
                   )}
                 </div>
@@ -387,7 +386,7 @@ const FoodBankManagementPage: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold">Nguyên liệu</h3>
+                <h3 className="text-sm font-semibold">Ingredients</h3>
                 <Button
                   type="button"
                   size="sm"
@@ -395,13 +394,13 @@ const FoodBankManagementPage: React.FC = () => {
                   onClick={addIngredientRow}
                   disabled={ingredients.length === 0}
                 >
-                  Thêm nguyên liệu
+                  Add Ingredient
                 </Button>
               </div>
               {ingredients.length === 0 && (
                 <p className="text-xs text-gray-500">
-                  Chưa có nguyên liệu nào. Hãy nhờ admin/import dữ liệu ingredient
-                  trước.
+                  No ingredients available. Ask admin to import/create
+                  ingredients first.
                 </p>
               )}
               <div className="space-y-2">
@@ -418,7 +417,7 @@ const FoodBankManagementPage: React.FC = () => {
                         }
                       >
                         <SelectTrigger className="bg-white cursor-pointer">
-                          <SelectValue placeholder="Chọn nguyên liệu" />
+                          <SelectValue placeholder="Select nguyên liệu" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
                           {ingredients.map((i) => (
@@ -436,10 +435,14 @@ const FoodBankManagementPage: React.FC = () => {
                       <Input
                         type="number"
                         min={0}
-                        placeholder="Số lượng"
+                        placeholder="Amount"
                         value={ing.amount}
                         onChange={(e) =>
-                          handleIngredientChange(index, "amount", e.target.value)
+                          handleIngredientChange(
+                            index,
+                            "amount",
+                            e.target.value
+                          )
                         }
                         className="bg-white"
                       />
@@ -468,7 +471,7 @@ const FoodBankManagementPage: React.FC = () => {
                   className="cursor-pointer"
                   onClick={resetForm}
                 >
-                  Hủy chỉnh sửa
+                  Cancel Edit
                 </Button>
               )}
               <Button
@@ -477,10 +480,10 @@ const FoodBankManagementPage: React.FC = () => {
                 disabled={saving}
               >
                 {saving
-                  ? "Đang lưu..."
+                  ? "Saving..."
                   : editingDishId
-                  ? "Cập nhật món"
-                  : "Tạo món mới"}
+                  ? "Update Dish"
+                  : "Create Dish"}
               </Button>
             </div>
           </form>
@@ -489,23 +492,21 @@ const FoodBankManagementPage: React.FC = () => {
 
       <Card className={cardStyle}>
         <CardHeader>
-          <CardTitle>Danh sách món ăn</CardTitle>
+          <CardTitle>Dish List</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-gray-500">Đang tải dữ liệu...</p>
+            <p className="text-sm text-gray-500">Loading data...</p>
           ) : dishes.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              Chưa có món ăn nào trong Food Bank.
-            </p>
+            <p className="text-sm text-gray-500">No dishes in Food Bank.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 pr-4">Tên món</th>
+                    <th className="text-left py-2 pr-4">Dish Name</th>
                     <th className="text-left py-2 pr-4 hidden md:table-cell">
-                      Nguyên liệu chính
+                      Ingredients
                     </th>
                     <th className="text-left py-2 pr-4">Calories / 100g</th>
                     <th className="text-left py-2 pr-4">Allergens</th>
@@ -568,5 +569,3 @@ const FoodBankManagementPage: React.FC = () => {
 };
 
 export default FoodBankManagementPage;
-
-

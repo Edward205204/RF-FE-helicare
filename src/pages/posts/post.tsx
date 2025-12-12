@@ -90,7 +90,7 @@ const StaffCreatePost: React.FC = () => {
         });
       } catch (error) {
         console.error("Error loading post:", error);
-        alert("Không thể tải bài viết. Vui lòng thử lại.");
+        alert("Failed to load post. Please try again.");
         navigate(path.newsFeed);
       } finally {
         setLoadingPost(false);
@@ -122,7 +122,7 @@ const StaffCreatePost: React.FC = () => {
       }));
     } catch (error) {
       console.error("Error uploading images:", error);
-      alert("Không thể upload ảnh. Vui lòng thử lại.");
+      alert("Failed to upload image. Please try again.");
     } finally {
       setUploadingImages(false);
       // Reset input để có thể chọn lại file cùng tên
@@ -173,12 +173,12 @@ const StaffCreatePost: React.FC = () => {
   const handleSave = async () => {
     // Validation
     if (!formData.title.trim()) {
-      alert("Vui lòng nhập tiêu đề bài viết.");
+      alert("Please enter the post title.");
       return;
     }
 
     if (!formData.content.trim()) {
-      alert("Vui lòng nhập nội dung bài viết.");
+      alert("Please enter the post content.");
       return;
     }
 
@@ -203,7 +203,7 @@ const StaffCreatePost: React.FC = () => {
       navigate(path.newsFeed);
     } catch (error) {
       console.error("Error saving post:", error);
-      alert("Không thể lưu bài viết. Vui lòng thử lại.");
+      alert("Failed to save post. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -222,7 +222,7 @@ const StaffCreatePost: React.FC = () => {
       <Card className="border-gray-200">
         <CardHeader className="border-b border-gray-100">
           <CardTitle className="text-2xl font-bold text-gray-900">
-            {isEditMode ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
+            {isEditMode ? "Edit Post" : "Create New Post"}
           </CardTitle>
         </CardHeader>
 
@@ -230,7 +230,7 @@ const StaffCreatePost: React.FC = () => {
           {/* Visibility */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">
-              Quyền hiển thị
+              Visibility
             </Label>
             <Select
               value={formData.visibility}
@@ -244,11 +244,11 @@ const StaffCreatePost: React.FC = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="border border-gray-200 bg-white">
-                <SelectItem value="PUBLIC">Công khai</SelectItem>
+                <SelectItem value="PUBLIC">Public</SelectItem>
                 <SelectItem value="STAFF_AND_FAMILY_OF_RESIDENTS">
-                  Nhân viên và gia đình cư dân
+                  Staff and Resident Family
                 </SelectItem>
-                <SelectItem value="STAFF_ONLY">Chỉ nhân viên</SelectItem>
+                <SelectItem value="STAFF_ONLY">Staff Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -256,11 +256,11 @@ const StaffCreatePost: React.FC = () => {
           {/* Tags */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">
-              Tags (Phòng / Hoạt động / Ca làm việc)
+              Tags (Room / Activity / Shift)
             </Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Nhập tag (ví dụ: Morning Yoga)"
+                placeholder="Enter tag (e.g., Morning Yoga)"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -277,7 +277,7 @@ const StaffCreatePost: React.FC = () => {
                 onClick={handleAddTag}
                 className="border-gray-200"
               >
-                Thêm
+                Add
               </Button>
             </div>
             {formData.tags.length > 0 && (
@@ -304,10 +304,10 @@ const StaffCreatePost: React.FC = () => {
           {/* Title */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">
-              Tiêu đề <span className="text-red-500">*</span>
+              Title <span className="text-red-500">*</span>
             </Label>
             <Input
-              placeholder="Nhập tiêu đề bài viết"
+              placeholder="Enter post title"
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -319,10 +319,10 @@ const StaffCreatePost: React.FC = () => {
           {/* Content */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">
-              Nội dung <span className="text-red-500">*</span>
+              Content <span className="text-red-500">*</span>
             </Label>
             <Textarea
-              placeholder="Nhập nội dung chi tiết"
+              placeholder="Enter detailed content"
               value={formData.content}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, content: e.target.value }))
@@ -334,9 +334,7 @@ const StaffCreatePost: React.FC = () => {
 
           {/* Images */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">
-              Hình ảnh
-            </Label>
+            <Label className="text-sm font-medium text-gray-700">Images</Label>
             <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
               <div className="flex flex-col items-center justify-center space-y-4">
                 {uploadingImages ? (
@@ -349,7 +347,7 @@ const StaffCreatePost: React.FC = () => {
                     htmlFor="image-upload"
                     className="cursor-pointer text-sm text-[#5985d8] hover:text-[#4a75c7] font-medium"
                   >
-                    {uploadingImages ? "Đang upload..." : "Chọn hình ảnh"}
+                    {uploadingImages ? "Uploading..." : "Select Images"}
                   </Label>
                   <input
                     id="image-upload"
@@ -361,7 +359,7 @@ const StaffCreatePost: React.FC = () => {
                     className="hidden"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    PNG, JPG, GIF tối đa 10MB
+                    PNG, JPG, GIF max 10MB
                   </p>
                 </div>
               </div>
@@ -398,7 +396,7 @@ const StaffCreatePost: React.FC = () => {
             className="border-gray-200"
             disabled={loading || uploadingImages}
           >
-            Hủy
+            Cancel
           </Button>
           <Button
             onClick={handleSave}
@@ -408,10 +406,10 @@ const StaffCreatePost: React.FC = () => {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang lưu...
+                Saving...
               </>
             ) : (
-              "Lưu bài viết"
+              "Save Post"
             )}
           </Button>
         </CardFooter>

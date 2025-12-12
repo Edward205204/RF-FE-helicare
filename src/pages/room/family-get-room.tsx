@@ -39,7 +39,7 @@ const RoomBedFamilyPage: React.FC = () => {
       } catch (error: any) {
         console.error("Failed to fetch residents:", error);
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
-          toast.error("Không thể tải danh sách cư dân. Vui lòng thử lại sau.");
+          toast.error("Không thể tải danh sách cư dân. Please thử lại sau.");
         }
       } finally {
         setLoading(false);
@@ -63,7 +63,7 @@ const RoomBedFamilyPage: React.FC = () => {
       } catch (error: any) {
         console.error("Failed to fetch room info:", error);
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
-          toast.error("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
+          toast.error("Không thể tải thông tin phòng. Please thử lại sau.");
         }
         setRoomInfo(null);
       } finally {
@@ -112,7 +112,7 @@ const RoomBedFamilyPage: React.FC = () => {
   if (loading && residents.length === 0) {
     return (
       <div className="container mx-auto p-6 space-y-6 rounded-2xl">
-        <div className="text-center">Đang tải...</div>
+        <div className="text-center">Loading...</div>
       </div>
     );
   }
@@ -124,7 +124,7 @@ const RoomBedFamilyPage: React.FC = () => {
         <Card>
           <CardContent className="p-6">
             <div className="text-center text-gray-500">
-              Không có cư dân nào được liên kết với tài khoản của bạn.
+              None cư dân nào được liên kết với tài khoản của bạn.
             </div>
           </CardContent>
         </Card>
@@ -146,13 +146,13 @@ const RoomBedFamilyPage: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <label className="font-semibold">Chọn cư dân:</label>
+              <label className="font-semibold">Select cư dân:</label>
               <Select
                 value={selectedResidentId}
                 onValueChange={handleResidentChange}
               >
                 <SelectTrigger className="w-[300px] border-none shadow-sm">
-                  <SelectValue placeholder="Chọn cư dân" />
+                  <SelectValue placeholder="Select cư dân" />
                 </SelectTrigger>
                 <SelectContent className="border-none shadow-sm bg-white">
                   {residents.map((r) => (
@@ -170,27 +170,27 @@ const RoomBedFamilyPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Thông tin phòng của {selectedResident?.full_name || "Cư dân"}
+            Thông tin phòng của {selectedResident?.full_name || "Resident"}
           </CardTitle>
         </CardHeader>
 
         <CardContent>
           {!selectedResident?.room_id ? (
             <div className="text-center text-gray-500 py-8">
-              Cư dân chưa được phân bổ phòng.
+              Resident chưa được phân bổ phòng.
             </div>
           ) : loading ? (
-            <div className="text-center py-8">Đang tải thông tin phòng...</div>
+            <div className="text-center py-8">Loading thông tin phòng...</div>
           ) : roomInfo ? (
             <div className="flex justify-center">
               <div className="max-w-lg grid grid-cols-[150px_1fr] gap-y-4 text-base items-center">
                 <div className="font-semibold">Tên:</div>
                 <div>{selectedResident.full_name}</div>
 
-                <div className="font-semibold">Phòng:</div>
+                <div className="font-semibold">Room:</div>
                 <div>{roomInfo.room_number}</div>
 
-                <div className="font-semibold">Loại phòng:</div>
+                <div className="font-semibold">Type phòng:</div>
                 <div>
                   {roomInfo.type === "single"
                     ? "Đơn"

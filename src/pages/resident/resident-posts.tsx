@@ -169,12 +169,12 @@ const ResidentPosts: React.FC = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} mins ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -190,13 +190,13 @@ const ResidentPosts: React.FC = () => {
           <Card className="border-gray-200 bg-white">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-semibold text-gray-900">
-                Bộ lọc
+                Filters
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Thời gian
+                  Time
                 </label>
                 <Select
                   value={filter}
@@ -208,20 +208,20 @@ const ResidentPosts: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="border border-gray-200 bg-white">
-                    <SelectItem value="All">Tất cả</SelectItem>
-                    <SelectItem value="Day">Hôm nay</SelectItem>
-                    <SelectItem value="Week">Tuần này</SelectItem>
-                    <SelectItem value="Month">Tháng này</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                    <SelectItem value="Day">Today</SelectItem>
+                    <SelectItem value="Week">This week</SelectItem>
+                    <SelectItem value="Month">This month</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Tìm kiếm
+                  Search
                 </label>
                 <Input
-                  placeholder="Tìm kiếm bài viết..."
+                  placeholder="Search posts..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="border-gray-200"
@@ -236,7 +236,7 @@ const ResidentPosts: React.FC = () => {
             {safePosts.length === 0 && !loading && (
               <Card className="border-gray-200 bg-white">
                 <CardContent className="py-12 text-center">
-                  <p className="text-gray-500">Chưa có bài viết nào.</p>
+                  <p className="text-gray-500">No posts found.</p>
                 </CardContent>
               </Card>
             )}
@@ -324,13 +324,13 @@ const ResidentPosts: React.FC = () => {
                         }`}
                       />
                       <span className="text-sm">
-                        {post.likes > 0 ? post.likes : ""} Thích
+                        {post.likes > 0 ? post.likes : ""} Likes
                       </span>
                     </Button>
 
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <MessageCircle className="h-4 w-4" />
-                      <span>{post.comments.length} Bình luận</span>
+                      <span>{post.comments.length} Comments</span>
                     </div>
                   </div>
 
@@ -367,7 +367,7 @@ const ResidentPosts: React.FC = () => {
 
                   <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                     <Input
-                      placeholder="Viết bình luận..."
+                      placeholder="Write a comment..."
                       value={commentInputs[post.id] || ""}
                       onChange={(e) =>
                         setCommentInputs((prev) => ({
@@ -413,7 +413,7 @@ const ResidentPosts: React.FC = () => {
 
             {!hasMore && safePosts.length > 0 && (
               <div className="text-center py-8 text-gray-500 text-sm">
-                Đã hiển thị tất cả bài viết
+                All posts loaded
               </div>
             )}
           </div>
@@ -424,4 +424,3 @@ const ResidentPosts: React.FC = () => {
 };
 
 export default ResidentPosts;
-

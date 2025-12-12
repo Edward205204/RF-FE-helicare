@@ -32,7 +32,7 @@ interface ResidentComboBoxProps {
 export function ResidentComboBox({
   onSelect,
   value,
-  placeholder = "Chọn cư dân...",
+  placeholder = "Select resident...",
 }: ResidentComboBoxProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -57,7 +57,7 @@ export function ResidentComboBox({
       }));
       setResidents(residentsData);
     } catch (error) {
-      toast.error("Không thể tải danh sách cư dân");
+      toast.error("Cannot load resident list");
     } finally {
       setIsLoading(false);
     }
@@ -100,14 +100,14 @@ export function ResidentComboBox({
                 {selectedResident.full_name}
                 {selectedResident.room && (
                   <span className="text-sm text-gray-500 ml-1">
-                    - Phòng {selectedResident.room.room_number}
+                    - Room {selectedResident.room.room_number}
                   </span>
                 )}
               </span>
             </div>
           ) : (
             <span className="text-gray-500">
-              {isLoading ? "Đang tải..." : placeholder}
+              {isLoading ? "Loading..." : placeholder}
             </span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
@@ -117,12 +117,12 @@ export function ResidentComboBox({
       <PopoverContent className="w-full p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Tìm kiếm cư dân..."
+            placeholder="Search residents..."
             value={query}
             onValueChange={setQuery}
           />
           <CommandEmpty>
-            {isLoading ? "Đang tải..." : "Không tìm thấy cư dân nào"}
+            {isLoading ? "Loading..." : "No residents found"}
           </CommandEmpty>
 
           <CommandGroup>
@@ -139,7 +139,7 @@ export function ResidentComboBox({
                     <span className="font-medium">{resident.full_name}</span>
                     <div className="text-sm text-gray-500">
                       {resident.room && (
-                        <span>Phòng {resident.room.room_number}</span>
+                        <span>Room {resident.room.room_number}</span>
                       )}
                       {resident.institution && (
                         <span className="ml-2">

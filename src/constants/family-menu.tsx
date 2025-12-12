@@ -14,58 +14,58 @@ import {
 } from "lucide-react";
 
 export const familyMenu: FamilyMenuItem[] = [
-  { path: path.familyHome, label: "Tổng quan", icon: Home },
+  { path: path.familyHome, label: "Overview", icon: Home },
   {
     path: path.familyResidents,
-    label: "Cư dân của tôi",
+    label: "My Residents",
     icon: Users,
     requiresInstitution: false,
   }, // Always show - this is where they link
   {
     path: path.familyNewsFeed,
-    label: "Nhật ký Cư dân",
+    label: "Resident Journal",
     icon: BookOpen,
     requiresInstitution: true,
   },
   {
     path: path.familyHealthCare,
-    label: "Sức khỏe & Chăm sóc",
+    label: "Health & Care",
     icon: Heart,
     requiresInstitution: true,
   },
   {
     path: path.familySchedule,
-    label: "Lịch trình & Hoạt động",
+    label: "Schedule & Activities",
     icon: Calendar,
     requiresInstitution: true,
   },
   {
     path: path.familyMealAndNutrition,
-    label: "Bữa ăn & Dinh dưỡng",
+    label: "Meals & Nutrition",
     icon: Utensils,
     requiresInstitution: true,
   },
   {
     path: path.familyRoomAndFacility,
-    label: "Phòng & Tiện ích",
+    label: "Room & Facilities",
     icon: Building,
     requiresInstitution: true,
   },
   {
     path: path.familyNotification,
-    label: "Thông báo",
+    label: "Notifications",
     icon: Bell,
     requiresInstitution: true,
   },
   {
     path: path.familyFeedbackAndSupport,
-    label: "Phản hồi & Hỗ trợ",
+    label: "Feedback & Support",
     icon: MessageSquare,
     requiresInstitution: true,
   },
   {
     path: path.familyBillingAndPayment,
-    label: "Thanh toán & Hóa đơn",
+    label: "Billing & Payment",
     icon: CreditCard,
     requiresInstitution: true,
   },

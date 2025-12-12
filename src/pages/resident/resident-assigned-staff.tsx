@@ -60,7 +60,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
 
   useEffect(() => {
     if (!resident_id) {
-      toast.error("Resident ID không hợp lệ");
+      toast.error("Invalid resident ID");
       navigate(path.residentList);
       return;
     }
@@ -79,7 +79,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
         setAssignedStaff(assignedStaffResponse.data);
       } catch (error: any) {
         console.error("Error fetching data:", error);
-        toast.error(error.response?.data?.message || "Không thể tải thông tin");
+        toast.error(error.response?.data?.message || "Cannot load information");
       } finally {
         setLoading(false);
       }
@@ -90,7 +90,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
 
   const handleAssignStaff = async () => {
     if (!selectedStaffId || !resident_id) {
-      toast.error("Vui lòng chọn staff");
+      toast.error("Please select staff");
       return;
     }
 
@@ -101,7 +101,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
         shift: selectedShift || undefined,
       };
       await assignStaffToResident(resident_id, payload);
-      toast.success("Staff đã được assign thành công");
+      toast.success("Staff assigned successfully");
       setAssignDialogOpen(false);
       setSelectedStaffId("");
       setSelectedShift("");
@@ -111,7 +111,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
       setAssignedStaff(assignedStaffResponse.data);
     } catch (error: any) {
       console.error("Error assigning staff:", error);
-      toast.error(error.response?.data?.message || "Không thể assign staff");
+      toast.error(error.response?.data?.message || "Cannot assign staff");
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +128,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
   if (!resident) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Không tìm thấy thông tin resident</p>
+        <p className="text-gray-500">Resident information not found</p>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
             className="border-gray-200 "
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại
+            Back
           </Button>
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
@@ -196,7 +196,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
                       {assignedStaff.staffProfile?.hire_date
                         ? new Date(
                             assignedStaff.staffProfile.hire_date
-                          ).toLocaleDateString("vi-VN")
+                          ).toLocaleDateString("en-US")
                         : "-"}
                     </TableCell>
                   </TableRow>
@@ -205,7 +205,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p>Chưa có staff được assign</p>
+                <p>No staff assigned</p>
               </div>
             )}
           </CardContent>
@@ -225,7 +225,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
                   onValueChange={setSelectedStaffId}
                 >
                   <SelectTrigger className="border border-gray-200 bg-white">
-                    <SelectValue placeholder="Chọn staff" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent className="border border-gray-200 bg-white">
                     {staffList.map((staff) => (
@@ -242,7 +242,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
                 <Label>Shift (Optional)</Label>
                 <Select value={selectedShift} onValueChange={setSelectedShift}>
                   <SelectTrigger className="border border-gray-200 bg-white">
-                    <SelectValue placeholder="Chọn shift (tùy chọn)" />
+                    <SelectValue placeholder="Select shift (optional)" />
                   </SelectTrigger>
                   <SelectContent className="border border-gray-200 bg-white">
                     {SHIFTS.map((shift) => (
@@ -261,7 +261,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
                 onClick={() => setAssignDialogOpen(false)}
                 disabled={isSubmitting}
               >
-                Hủy
+                Cancel
               </Button>
               <Button
                 onClick={handleAssignStaff}
@@ -271,7 +271,7 @@ export default function ResidentAssignedStaff(): React.JSX.Element {
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Đang assign...
+                    Assigning...
                   </span>
                 ) : (
                   "Assign Staff"

@@ -109,7 +109,7 @@ export default function StaffPerformance(): React.JSX.Element {
           </Button>
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
-              Hiệu suất Nhân viên
+              Hiệu suất Staff
             </h1>
             <p className="mt-1 text-sm text-gray-600">{staff.full_name}</p>
           </div>
@@ -120,7 +120,7 @@ export default function StaffPerformance(): React.JSX.Element {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <Label htmlFor="month-select" className="text-sm font-medium">
-                Chọn tháng:
+                Select tháng:
               </Label>
               <Input
                 id="month-select"

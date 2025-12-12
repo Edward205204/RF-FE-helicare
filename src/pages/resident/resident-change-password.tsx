@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Label, Alert, AlertDescription } from "@/components/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Input,
+  Label,
+  Alert,
+  AlertDescription,
+} from "@/components/ui";
 import { changePassword } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import path from "@/constants/path";
@@ -27,30 +38,31 @@ const ResidentChangePassword: React.FC = () => {
     const newErrors: typeof errors = {};
 
     if (!formData.current_password.trim()) {
-      newErrors.current_password = "Vui lòng nhập mật khẩu hiện tại";
+      newErrors.current_password = "Please enter current password";
     }
 
     if (!formData.new_password.trim()) {
-      newErrors.new_password = "Vui lòng nhập mật khẩu mới";
+      newErrors.new_password = "Please enter new password";
     } else if (formData.new_password.length < 6) {
-      newErrors.new_password = "Mật khẩu phải có ít nhất 6 ký tự";
+      newErrors.new_password = "Password must be at least 6 characters";
     } else if (
       !/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])/.test(
         formData.new_password
       )
     ) {
       newErrors.new_password =
-        "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt";
+        "Password must contain uppercase, lowercase, number and special characters";
     }
 
     if (!formData.confirm_password.trim()) {
-      newErrors.confirm_password = "Vui lòng xác nhận mật khẩu mới";
+      newErrors.confirm_password = "Please confirm new password";
     } else if (formData.new_password !== formData.confirm_password) {
-      newErrors.confirm_password = "Mật khẩu xác nhận không khớp";
+      newErrors.confirm_password = "Confirm password does not match";
     }
 
     if (formData.current_password === formData.new_password) {
-      newErrors.new_password = "Mật khẩu mới phải khác mật khẩu hiện tại";
+      newErrors.new_password =
+        "New password must be different from current password";
     }
 
     setErrors(newErrors);
@@ -72,13 +84,13 @@ const ResidentChangePassword: React.FC = () => {
         confirm_password: formData.confirm_password,
       });
 
-      toast.success("Đổi mật khẩu thành công!");
+      toast.success("Password changed successfully!");
       setFormData({
         current_password: "",
         new_password: "",
         confirm_password: "",
       });
-      
+
       // Redirect after 1 second
       setTimeout(() => {
         navigate(path.residentHome);
@@ -86,10 +98,14 @@ const ResidentChangePassword: React.FC = () => {
     } catch (error: any) {
       console.error("Error changing password:", error);
       const errorMessage =
-        error.response?.data?.message || "Không thể đổi mật khẩu. Vui lòng thử lại.";
-      
-      if (errorMessage.includes("current password") || errorMessage.includes("mật khẩu hiện tại")) {
-        setErrors({ current_password: "Mật khẩu hiện tại không đúng" });
+        error.response?.data?.message ||
+        "Cannot change password. Please try again.";
+
+      if (
+        errorMessage.includes("current password") ||
+        errorMessage.includes("mật khẩu hiện tại")
+      ) {
+        setErrors({ current_password: "Incorrect current password" });
       } else {
         toast.error(errorMessage);
       }
@@ -109,10 +125,10 @@ const ResidentChangePassword: React.FC = () => {
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900">
-                  Đổi Mật Khẩu
+                  Change Password
                 </CardTitle>
                 <CardDescription className="text-gray-600 mt-1">
-                  Vui lòng nhập mật khẩu hiện tại và mật khẩu mới của bạn
+                  Please enter your current password and new password
                 </CardDescription>
               </div>
             </div>
@@ -121,8 +137,11 @@ const ResidentChangePassword: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Current Password */}
               <div className="space-y-2">
-                <Label htmlFor="current_password" className="text-sm font-medium text-gray-700">
-                  Mật khẩu hiện tại *
+                <Label
+                  htmlFor="current_password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Current Password *
                 </Label>
                 <div className="relative">
                   <Input
@@ -130,12 +149,15 @@ const ResidentChangePassword: React.FC = () => {
                     type={showCurrentPassword ? "text" : "password"}
                     value={formData.current_password}
                     onChange={(e) =>
-                      setFormData({ ...formData, current_password: e.target.value })
+                      setFormData({
+                        ...formData,
+                        current_password: e.target.value,
+                      })
                     }
                     className={`border-gray-200 shadow-none bg-white pr-10 ${
                       errors.current_password ? "border-red-300" : ""
                     }`}
-                    placeholder="Nhập mật khẩu hiện tại"
+                    placeholder="Enter current password"
                   />
                   <Button
                     type="button"
@@ -161,8 +183,11 @@ const ResidentChangePassword: React.FC = () => {
 
               {/* New Password */}
               <div className="space-y-2">
-                <Label htmlFor="new_password" className="text-sm font-medium text-gray-700">
-                  Mật khẩu mới *
+                <Label
+                  htmlFor="new_password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  New Password *
                 </Label>
                 <div className="relative">
                   <Input
@@ -175,7 +200,7 @@ const ResidentChangePassword: React.FC = () => {
                     className={`border-gray-200 shadow-none bg-white pr-10 ${
                       errors.new_password ? "border-red-300" : ""
                     }`}
-                    placeholder="Nhập mật khẩu mới"
+                    placeholder="Enter new password"
                   />
                   <Button
                     type="button"
@@ -198,14 +223,18 @@ const ResidentChangePassword: React.FC = () => {
                   </p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                  Password must be at least 6 characters, including uppercase,
+                  lowercase, number and special characters
                 </p>
               </div>
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirm_password" className="text-sm font-medium text-gray-700">
-                  Xác nhận mật khẩu mới *
+                <Label
+                  htmlFor="confirm_password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Confirm New Password *
                 </Label>
                 <div className="relative">
                   <Input
@@ -213,12 +242,15 @@ const ResidentChangePassword: React.FC = () => {
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirm_password}
                     onChange={(e) =>
-                      setFormData({ ...formData, confirm_password: e.target.value })
+                      setFormData({
+                        ...formData,
+                        confirm_password: e.target.value,
+                      })
                     }
                     className={`border-gray-200 shadow-none bg-white pr-10 ${
                       errors.confirm_password ? "border-red-300" : ""
                     }`}
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder="Re-enter new password"
                   />
                   <Button
                     type="button"
@@ -246,7 +278,8 @@ const ResidentChangePassword: React.FC = () => {
               <Alert className="bg-blue-50 border-blue-200">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
-                  Sau khi đổi mật khẩu thành công, bạn sẽ cần đăng nhập lại với mật khẩu mới.
+                  After changing password successfully, you will need to login
+                  again with new password.
                 </AlertDescription>
               </Alert>
 
@@ -259,14 +292,14 @@ const ResidentChangePassword: React.FC = () => {
                   className="flex-1 border-gray-200"
                   disabled={loading}
                 >
-                  Hủy
+                  Cancel
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
                   disabled={loading}
                 >
-                  {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
+                  {loading ? "In Progress..." : "Change Password"}
                 </Button>
               </div>
             </form>
@@ -278,4 +311,3 @@ const ResidentChangePassword: React.FC = () => {
 };
 
 export default ResidentChangePassword;
-

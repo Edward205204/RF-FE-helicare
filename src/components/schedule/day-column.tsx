@@ -103,7 +103,7 @@ export function DayColumn({
           isPastDate ? "text-gray-400" : ""
         }`}
       >
-        {date.toLocaleDateString("vi-VN", {
+        {date.toLocaleDateString("en-US", {
           weekday: "short",
           day: "2-digit",
           month: "short",
@@ -163,7 +163,12 @@ export function DayColumn({
                   ? residentNameMap[currentResidentId] || ""
                   : "")
               }
-              disabled={hasVisitEvent || isPastDate || isTimeBlockPassed || !allowBooking}
+              disabled={
+                hasVisitEvent ||
+                isPastDate ||
+                isTimeBlockPassed ||
+                !allowBooking
+              }
               allowBooking={allowBooking}
             />
           );
@@ -202,7 +207,7 @@ export function DayColumn({
               >
                 <div className="font-medium text-xs truncate">{ev.name}</div>
                 <div className="text-[10px] text-gray-500 mt-1">
-                  {isCareEvent ? "Chăm sóc" : "Đã đặt lịch"}
+                  {isCareEvent ? "Care" : "Booked"}
                 </div>
                 {ev.staff && (
                   <div className="text-[10px] text-gray-400 mt-0.5 truncate">
@@ -231,7 +236,7 @@ export function DayColumn({
                 }}
               >
                 <div className="font-semibold truncate text-[11px]">
-                  Đã đặt lịch cư dân khác
+                  Booked for another resident
                 </div>
                 {otherResidentName && (
                   <div className="truncate mt-0.5">{otherResidentName}</div>

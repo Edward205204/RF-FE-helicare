@@ -9,12 +9,13 @@ const ResidentNotifications: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Thông Báo
+            Notifications
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-gray-600">
-            Tính năng đang được phát triển. Bạn sẽ nhận được thông báo về lịch trình, sức khỏe và các hoạt động tại đây.
+            Feature in development. You will receive notifications about
+            schedules, health, and activities here.
           </p>
         </CardContent>
       </Card>
@@ -23,4 +24,3 @@ const ResidentNotifications: React.FC = () => {
 };
 
 export default ResidentNotifications;
-

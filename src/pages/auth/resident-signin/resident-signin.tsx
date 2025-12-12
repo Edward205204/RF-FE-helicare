@@ -70,7 +70,7 @@ const ResidentSignin = () => {
             });
           }
         } else {
-          toast.error(err.response?.data?.message || "Đăng nhập thất bại");
+          toast.error(err.response?.data?.message || "Login failed");
         }
       })
       .finally(() => {
@@ -90,8 +90,8 @@ const ResidentSignin = () => {
           <div className="absolute bottom-0 left-0 z-10 p-8 w-full text-left">
             <h1 className="mb-4 text-3xl font-bold text-white">HeLiCare</h1>
             <p className="max-w-xl text-lg leading-relaxed text-white">
-              Đăng nhập để xem thông tin sức khỏe, lịch trình và các hoạt động
-              của bạn tại viện dưỡng lão.
+              Sign in to view your health information, schedule, and activities
+              at the nursing home.
             </p>
           </div>
         </div>
@@ -103,7 +103,7 @@ const ResidentSignin = () => {
           className="p-6 w-full max-w-md bg-white rounded-lg shadow-lg"
         >
           <h2 className="mb-6 text-3xl font-semibold text-center text-gray-800">
-            Đăng nhập Cư dân
+            Resident Sign In
           </h2>
 
           <div className="mb-4">
@@ -116,7 +116,7 @@ const ResidentSignin = () => {
             <Input
               id="username"
               type="text"
-              placeholder="Nhập username của bạn"
+              placeholder="Enter your username"
               autoComplete="username"
               {...register("username")}
               className={
@@ -136,7 +136,7 @@ const ResidentSignin = () => {
                 htmlFor="password"
                 className="font-medium text-left text-gray-700"
               >
-                Mật khẩu
+                Password
               </Label>
               <Button
                 type="button"
@@ -149,7 +149,7 @@ const ResidentSignin = () => {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Nhập mật khẩu"
+              placeholder="Enter password"
               autoComplete="current-password"
               {...register("password")}
               className={
@@ -169,7 +169,7 @@ const ResidentSignin = () => {
               onClick={() => navigate(path.forgotPasswordEmail)}
               className="text-sm text-blue-600 shadow-none cursor-pointer hover:underline focus:outline-none"
             >
-              Quên mật khẩu?
+              Forgot password?
             </Button>
           </div>
 
@@ -178,17 +178,17 @@ const ResidentSignin = () => {
             className="py-3 mb-4 w-full font-semibold text-white bg-blue-600 rounded-md cursor-pointer hover:bg-blue-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
 
           <div className="text-sm text-center text-gray-500">
-            Bạn không phải cư dân?{" "}
+            Not a resident?{" "}
             <button
               type="button"
               onClick={() => navigate(path.signin)}
               className="font-medium text-blue-600 cursor-pointer hover:underline focus:outline-none"
             >
-              Đăng nhập với tư cách khác
+              Sign in as different role
             </button>
           </div>
         </form>

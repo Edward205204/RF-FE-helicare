@@ -68,7 +68,7 @@ export function Toolbar({
           onClick={onToday}
           className="cursor-pointer bg-green-500 text-white hover:bg-green-600"
         >
-          Hôm nay
+          Today
         </Button>
         <div className="text-lg font-semibold ml-2">{label}</div>
       </div>
@@ -78,29 +78,29 @@ export function Toolbar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-white border-none shadow-sm">
-            <SelectItem value="day">Ngày</SelectItem>
-            <SelectItem value="week">Tuần</SelectItem>
+            <SelectItem value="day">Day</SelectItem>
+            <SelectItem value="week">Week</SelectItem>
           </SelectContent>
         </Select>
         {showResidentSelector && (
-        <Select
-          value={resident ?? ""}
-          onValueChange={(value) => value && setResident(value)}
-        >
-          <SelectTrigger className="w-[220px] border-none shadow-sm cursor-pointer">
-            <SelectValue placeholder="Chọn cư dân" />
-          </SelectTrigger>
-          <SelectContent className="border-none shadow-sm bg-white">
-            {residents.map((r) => (
-              <SelectItem key={r.resident_id} value={r.resident_id}>
-                {r.full_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select
+            value={resident ?? ""}
+            onValueChange={(value) => value && setResident(value)}
+          >
+            <SelectTrigger className="w-[220px] border-none shadow-sm cursor-pointer">
+              <SelectValue placeholder="Select resident" />
+            </SelectTrigger>
+            <SelectContent className="border-none shadow-sm bg-white">
+              {residents.map((r) => (
+                <SelectItem key={r.resident_id} value={r.resident_id}>
+                  {r.full_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
         <div className="relative">
-          <Input placeholder="Tìm kiếm sự kiện..." className="pl-9 w-[220px]" />
+          <Input placeholder="Search events..." className="pl-9 w-[220px]" />
           <CalendarIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         </div>
 
@@ -114,16 +114,16 @@ export function Toolbar({
             <Filter className="h-4 w-4 text-slate-400" />
             <span>
               {eventTypeFilter === "care"
-                ? "Chăm sóc"
+                ? "Care"
                 : eventTypeFilter === "visit"
-                ? "Thăm viếng"
-                : "Tất cả"}
+                ? "Visit"
+                : "All"}
             </span>
           </SelectTrigger>
           <SelectContent className="border-none shadow-sm bg-white">
-            <SelectItem value="care">Chăm sóc</SelectItem>
-            <SelectItem value="visit">Thăm viếng</SelectItem>
-            <SelectItem value="all">Tất cả</SelectItem>
+            <SelectItem value="care">Care</SelectItem>
+            <SelectItem value="visit">Visit</SelectItem>
+            <SelectItem value="all">All</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -30,7 +30,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
 
   // Handle logout
   const handleLogout = () => {
-    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+    if (window.confirm("Are you sure you want to log out?")) {
       removeLocalStorage();
     }
   };
@@ -110,7 +110,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
             <p className="text-sm font-medium text-gray-900">
               {familyMemberName}
             </p>
-            <p className="text-xs text-gray-500">Thành viên Gia đình</p>
+            <p className="text-xs text-gray-500">Family Member</p>
           </div>
         </div>
 
@@ -118,7 +118,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-                {visibleMenuItems.map(({ path, label, icon: Icon }) => {
+          {visibleMenuItems.map(({ path, label, icon: Icon }) => {
             const isNotification = path === pathConst.familyNotification;
             return (
               <NavLink
@@ -155,7 +155,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
             className="w-full flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors "
           >
             <LogOut className="h-5 w-5" />
-            <span>Đăng xuất</span>
+            <span>Logout</span>
           </Button>
         </div>
       </aside>

@@ -126,7 +126,7 @@ const ResidentInformation: React.FC = () => {
         setRooms(availableRooms);
       } catch (error) {
         console.error("Error fetching rooms:", error);
-        toast.error("Không thể tải danh sách phòng");
+        toast.error("Cannot load room list");
       } finally {
         setLoadingRooms(false);
       }
@@ -143,7 +143,7 @@ const ResidentInformation: React.FC = () => {
         setAllergenList(response.data || []);
       } catch (error) {
         console.error("Error fetching allergens:", error);
-        toast.error("Không thể tải danh sách dị ứng");
+        toast.error("Cannot load allergy list");
       } finally {
         setLoadingAllergens(false);
       }
@@ -160,7 +160,7 @@ const ResidentInformation: React.FC = () => {
         setMedicationList(response.data || []);
       } catch (error) {
         console.error("Error fetching medications:", error);
-        toast.error("Không thể tải danh sách thuốc");
+        toast.error("Cannot load medication list");
       } finally {
         setLoadingMedications(false);
       }
@@ -211,14 +211,14 @@ const ResidentInformation: React.FC = () => {
   // Current date string used in the header
   const today = useMemo(() => {
     const d = new Date();
-    return d.toLocaleDateString();
+    return d.toLocaleDateString("en-US");
   }, []);
 
   // Check email handler
   const handleCheckEmail = async () => {
     const email = familyContact.email.trim();
     if (!email) {
-      toast.error("Vui lòng nhập địa chỉ email");
+      toast.error("Please enter email address");
       return;
     }
 
@@ -239,7 +239,7 @@ const ResidentInformation: React.FC = () => {
         verified: true,
       });
 
-      toast.success(`Tìm thấy thành viên gia đình: ${fullName}`, {
+      toast.success(`Found family member: ${fullName}`, {
         autoClose: 2000,
       });
     } catch (error: any) {
@@ -250,7 +250,7 @@ const ResidentInformation: React.FC = () => {
       });
       toast.error(
         error.response?.data?.message ||
-          "Không tìm thấy thành viên gia đình hoặc chưa đăng ký"
+          "Family member not found or is not registered"
       );
     } finally {
       setCheckingEmail(false);
@@ -386,7 +386,7 @@ const ResidentInformation: React.FC = () => {
 
   const handleConfirm = async () => {
     if (!familyContact.verified) {
-      toast.error("Vui lòng xác minh email gia đình trước");
+      toast.error("Please verify family email first");
       return;
     }
 
@@ -421,10 +421,10 @@ const ResidentInformation: React.FC = () => {
           password: response.data.account.password,
         });
         toast.success(
-          "Tạo cư dân thành công! Vui lòng kiểm tra thông tin tài khoản."
+          "Resident created successfully! Please check account information."
         );
       } else {
-        toast.success("Tạo cư dân và liên kết với gia đình thành công!");
+        toast.success("Resident created and linked with family successfully!");
         // Navigate to list-resident page if no account generated
         setTimeout(() => {
           navigate(path.residentList);
@@ -433,7 +433,7 @@ const ResidentInformation: React.FC = () => {
       console.log("Created resident:", response);
     } catch (error: any) {
       console.error("Error creating resident:", error);
-      toast.error(error.response?.data?.message || "Không thể tạo cư dân");
+      toast.error(error.response?.data?.message || "Cannot create resident");
     }
   };
 
@@ -461,12 +461,12 @@ const ResidentInformation: React.FC = () => {
               <header className="px-6 py-7 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
                 <div className="relative">
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 rounded-xl bg-slate-50 px-4 py-2 text-xs text-slate-600 hidden md:block">
-                    <span className="font-medium">Kiểm toán:</span> nhân viên &
-                    thời gian sẽ được ghi lại khi tạo.
+                    <span className="font-medium">Audit:</span> Staff & time
+                    will be recorded upon creation.
                   </div>
                   <div className="text-left">
                     <h1 className="text-xl font-semibold text-gray-900">
-                      Thông tin Cư dân
+                      Resident Information
                     </h1>
                     <p className="text-sm text-gray-500">{today}</p>
                   </div>
@@ -478,15 +478,15 @@ const ResidentInformation: React.FC = () => {
                   <header className="mb-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-900">
-                        Tạo Cư dân
+                        Create Resident
                       </h2>
                       <p className="text-sm text-slate-500">
-                        Biểu mẫu thông tin cá nhân & tình trạng sức khỏe ban đầu
+                        Personal information & initial health status form
                       </p>
                     </div>
                     <div className="mt-3 rounded-xl bg-slate-50 px-4 py-2 text-xs text-slate-600 md:hidden text-center">
-                      <span className="font-medium">Kiểm tra:</span> nhân viên &
-                      thời gian sẽ được ghi lại khi tạo.
+                      <span className="font-medium">Audit:</span> Staff & time
+                      will be recorded upon creation.
                     </div>
                   </header>
 
@@ -497,23 +497,23 @@ const ResidentInformation: React.FC = () => {
                     <div className="lg:col-span-2">
                       <Card className="rounded-2xl border-gray-200">
                         <CardHeader>
-                          <CardTitle>Thông tin Cá nhân</CardTitle>
+                          <CardTitle>Personal Information</CardTitle>
                           <CardDescription>
-                            Các trường bắt buộc được đánh dấu bằng *
+                            Required fields are marked with *
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div className="flex flex-col gap-1">
-                            <Label>Họ và tên *</Label>
+                            <Label>Full name *</Label>
                             <Input
                               value={fullName}
                               onChange={(e) => setFullName(e.target.value)}
-                              placeholder="Nguyễn Văn A"
+                              placeholder="Ex: John Doe"
                               className="border border-gray-200 shadow-none bg-white"
                             />
                           </div>
                           <div className="flex flex-col gap-1">
-                            <Label>Ngày sinh *</Label>
+                            <Label>Date of birth *</Label>
                             <div className="relative">
                               <CalendarIcon
                                 className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer z-10"
@@ -540,7 +540,7 @@ const ResidentInformation: React.FC = () => {
                                     setDob(value);
                                   } else {
                                     alert(
-                                      "Ngày sinh không hợp lệ. Vui lòng nhập ngày hợp lệ."
+                                      "Invalid date of birth. Please enter a valid date."
                                     );
                                   }
                                 }}
@@ -550,23 +550,23 @@ const ResidentInformation: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <Label>Giới tính</Label>
+                            <Label>Gender</Label>
                             <Select
                               value={gender}
                               onValueChange={(v) => setGender(v)}
                             >
                               <SelectTrigger className="!bg-white border border-gray-200 shadow-none">
-                                <SelectValue placeholder="— Chọn —" />
+                                <SelectValue placeholder="— Select —" />
                               </SelectTrigger>
                               <SelectContent className="border border-gray-200 shadow-none bg-white">
-                                <SelectItem value="male">Nam</SelectItem>
-                                <SelectItem value="female">Nữ</SelectItem>
-                                <SelectItem value="other">Khác</SelectItem>
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <Label>Phòng (Tùy chọn)</Label>
+                            <Label>Room (Optional)</Label>
                             <Select
                               value={selectedRoom}
                               onValueChange={(v) => setSelectedRoom(v)}
@@ -576,8 +576,8 @@ const ResidentInformation: React.FC = () => {
                                 <SelectValue
                                   placeholder={
                                     loadingRooms
-                                      ? "Đang tải..."
-                                      : "— Chưa phân bổ phòng —"
+                                      ? "Loading..."
+                                      : "— No room assigned —"
                                   }
                                 />
                               </SelectTrigger>
@@ -587,7 +587,7 @@ const ResidentInformation: React.FC = () => {
                                     key={room.room_id}
                                     value={room.room_id}
                                   >
-                                    Phòng {room.room_number} (
+                                    Room {room.room_number} (
                                     {room.current_occupancy}/{room.capacity})
                                   </SelectItem>
                                 ))}
@@ -599,7 +599,7 @@ const ResidentInformation: React.FC = () => {
                                 onClick={() => setSelectedRoom("")}
                                 className="text-xs text-blue-600 hover:underline mt-1 text-left"
                               >
-                                Xóa lựa chọn phòng
+                                Clear room selection
                               </button>
                             )}
                           </div>
@@ -610,14 +610,14 @@ const ResidentInformation: React.FC = () => {
                     <div className="lg:col-span-1">
                       <Card className="rounded-2xl border-gray-200">
                         <CardHeader>
-                          <CardTitle>Liên hệ Gia đình (Khẩn cấp) *</CardTitle>
+                          <CardTitle>Family Contact (Emergency) *</CardTitle>
                           <CardDescription>
-                            Nhập email của thành viên gia đình đã đăng ký
+                            Enter registered family member's email
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 gap-4">
                           <div className="flex flex-col gap-2">
-                            <Label>Email Gia đình *</Label>
+                            <Label>Family Email *</Label>
                             <div className="flex gap-2">
                               <Input
                                 type="email"
@@ -641,7 +641,7 @@ const ResidentInformation: React.FC = () => {
                                 }
                                 className="whitespace-nowrap"
                               >
-                                {checkingEmail ? "Đang kiểm tra..." : "Xác minh"}
+                                {checkingEmail ? "Checking..." : "Verify"}
                               </Button>
                             </div>
                             {familyContact.verified &&
@@ -651,7 +651,7 @@ const ResidentInformation: React.FC = () => {
                                     variant="outline"
                                     className="bg-green-50"
                                   >
-                                    ✓ Đã xác minh
+                                    ✓ Verified
                                   </Badge>
                                   <span>
                                     {familyContact.full_name}
@@ -668,14 +668,14 @@ const ResidentInformation: React.FC = () => {
                     <div className="lg:col-span-2">
                       <Card className="rounded-2xl border-gray-200">
                         <CardHeader>
-                          <CardTitle>Tình trạng Sức khỏe Ban đầu</CardTitle>
+                          <CardTitle>Initial Health Status</CardTitle>
                           <CardDescription>
-                            Dị ứng & thuốc hiện tại
+                            Allergies & current medications
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6 text-left">
                           <div>
-                            <Label>Bệnh nền</Label>
+                            <Label>Comorbidities</Label>
                             <div className="mt-2 flex flex-wrap gap-2">
                               {comorbidities.map((c) => (
                                 <Badge
@@ -686,7 +686,7 @@ const ResidentInformation: React.FC = () => {
                                   {c}
                                   <button
                                     type="button"
-                                    aria-label={`Xóa ${c}`}
+                                    aria-label={`Delete ${c}`}
                                     onClick={() => removeComorbidity(c)}
                                     className="ml-1 inline-flex size-4 items-center justify-center rounded hover:bg-slate-200"
                                   >
@@ -707,13 +707,13 @@ const ResidentInformation: React.FC = () => {
                                     addComorbidity();
                                   }
                                 }}
-                                placeholder="Nhập bệnh nền và nhấn Enter"
+                                placeholder="Enter comorbidity and press Enter"
                                 className="border border-gray-200 shadow-none bg-white"
                               />
                             </div>
                           </div>
                           <div>
-                            <Label>Dị ứng</Label>
+                            <Label>Allergies</Label>
                             <div className="mt-2 flex flex-wrap gap-2">
                               {allergies.map((a) => (
                                 <Badge
@@ -724,7 +724,7 @@ const ResidentInformation: React.FC = () => {
                                   {a}
                                   <button
                                     type="button"
-                                    aria-label={`Xóa ${a}`}
+                                    aria-label={`Delete ${a}`}
                                     onClick={() => removeAllergy(a)}
                                     className="ml-1 inline-flex size-4 items-center justify-center rounded hover:bg-slate-200"
                                   >
@@ -748,8 +748,8 @@ const ResidentInformation: React.FC = () => {
                                     <SelectValue
                                       placeholder={
                                         loadingAllergens
-                                          ? "Đang tải dị ứng..."
-                                          : "— Chọn dị ứng —"
+                                          ? "Loading allergies..."
+                                          : "— Select allergy —"
                                       }
                                     />
                                   </SelectTrigger>
@@ -784,8 +784,8 @@ const ResidentInformation: React.FC = () => {
                                     }}
                                     placeholder={
                                       loadingAllergens
-                                        ? "Đang tải dị ứng..."
-                                        : "Nhập dị ứng thủ công"
+                                        ? "Loading allergies..."
+                                        : "Enter allergy manually"
                                     }
                                     disabled={loadingAllergens}
                                     className="flex-1 border border-gray-200 shadow-none bg-white"
@@ -798,7 +798,7 @@ const ResidentInformation: React.FC = () => {
                                     }
                                     className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
                                   >
-                                    Thêm
+                                    Add
                                   </Button>
                                 </>
                               )}
@@ -807,13 +807,13 @@ const ResidentInformation: React.FC = () => {
 
                           <div>
                             <div className="mb-2 flex items-center justify-between">
-                              <Label>Thuốc hiện tại</Label>
+                              <Label>Current medications</Label>
                               <Button
                                 type="button"
                                 variant="secondary"
                                 onClick={addMedicationRow}
                               >
-                                + Thêm dòng
+                                + Add row
                               </Button>
                             </div>
                             <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -821,13 +821,13 @@ const ResidentInformation: React.FC = () => {
                                 <TableHeader>
                                   <TableRow className="border-gray-200">
                                     <TableHead className="border-gray-200">
-                                      Tên thuốc
+                                      Medication Name
                                     </TableHead>
                                     <TableHead className="border-gray-200">
-                                      Liều lượng
+                                      Dosage
                                     </TableHead>
                                     <TableHead className="border-gray-200">
-                                      Tần suất
+                                      Frequency
                                     </TableHead>
                                     <TableHead className="w-12 border-gray-200"></TableHead>
                                   </TableRow>
@@ -858,9 +858,9 @@ const ResidentInformation: React.FC = () => {
                                               <SelectValue
                                                 placeholder={
                                                   loadingMedications
-                                                    ? "Đang tải..."
+                                                    ? "Loading..."
                                                     : m.name ||
-                                                      "— Chọn thuốc —"
+                                                      "— Select medication —"
                                                 }
                                               />
                                             </SelectTrigger>
@@ -885,7 +885,7 @@ const ResidentInformation: React.FC = () => {
                                             }
                                             placeholder={
                                               loadingMedications
-                                                ? "Đang tải thuốc..."
+                                                ? "Loading medications..."
                                                 : "Amlodipine"
                                             }
                                             disabled={loadingMedications}
@@ -913,7 +913,7 @@ const ResidentInformation: React.FC = () => {
                                               freq: e.target.value,
                                             })
                                           }
-                                          placeholder="Một lần mỗi ngày"
+                                          placeholder="Once daily"
                                           className="border border-gray-200 shadow-none bg-white"
                                         />
                                       </TableCell>
@@ -937,11 +937,11 @@ const ResidentInformation: React.FC = () => {
                           </div>
 
                           <div>
-                            <Label>Ghi chú bổ sung</Label>
+                            <Label>Additional notes</Label>
                             <Textarea
                               value={notes}
                               onChange={(e) => setNotes(e.target.value)}
-                              placeholder="Nhập bất kỳ ghi chú sức khỏe bổ sung nào…"
+                              placeholder="Enter any additional health notes..."
                               className="border border-gray-200 shadow-none bg-white"
                             />
                           </div>
@@ -1021,7 +1021,7 @@ const ResidentInformation: React.FC = () => {
                         className="bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-md"
                         onClick={() => navigate("/list-resident")}
                       >
-                        Hủy
+                        Cancel
                       </Button>
                       <Button
                         type="submit"
@@ -1030,7 +1030,7 @@ const ResidentInformation: React.FC = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           if (!requiredOk) {
-                            alert("Vui lòng điền đầy đủ các trường bắt buộc.");
+                            alert("Please fill in all required fields.");
                             return;
                           }
 
@@ -1041,7 +1041,7 @@ const ResidentInformation: React.FC = () => {
                           handleConfirm();
                         }}
                       >
-                        Tiếp tục
+                        Continue
                       </Button>
                     </div>
                   </form>
@@ -1065,18 +1065,18 @@ const ResidentInformation: React.FC = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              Tài Khoản Cư Dân Đã Tạo Thành Công
+              Resident Account Created Successfully
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Vui lòng lưu lại thông tin đăng nhập này. Mật khẩu có thể được
-              thay đổi sau khi đăng nhập.
+              Please save this login information. Password can be changed after
+              login.
             </DialogDescription>
           </DialogHeader>
           {generatedAccount && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Tên đăng nhập
+                  Username
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -1092,7 +1092,7 @@ const ResidentInformation: React.FC = () => {
                       navigator.clipboard.writeText(generatedAccount.username);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
-                      toast.success("Đã sao chép username!");
+                      toast.success("Username copied!");
                     }}
                     className="border-gray-200"
                   >
@@ -1106,7 +1106,7 @@ const ResidentInformation: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Mật khẩu Tạm thời
+                  Temporary Password
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -1123,7 +1123,7 @@ const ResidentInformation: React.FC = () => {
                       navigator.clipboard.writeText(generatedAccount.password);
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
-                      toast.success("Đã sao chép mật khẩu!");
+                      toast.success("Password copied!");
                     }}
                     className="border-gray-200"
                   >
@@ -1137,8 +1137,8 @@ const ResidentInformation: React.FC = () => {
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-sm text-amber-800">
-                  <strong>Lưu ý:</strong> Vui lòng lưu lại thông tin này. Bạn sẽ
-                  cần nó để đăng nhập lần đầu.
+                  <strong>Note:</strong> Please save this information. You will
+                  need it for first login.
                 </p>
               </div>
               <div className="flex gap-2 pt-2">
@@ -1148,13 +1148,13 @@ const ResidentInformation: React.FC = () => {
                     navigator.clipboard.writeText(
                       `Username: ${generatedAccount.username}\nPassword: ${generatedAccount.password}`
                     );
-                    toast.success("Đã sao chép toàn bộ thông tin đăng nhập!");
+                    toast.success("Login information copied!");
                   }}
                   variant="outline"
                   className="flex-1 border-gray-200"
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Sao chép tất cả
+                  Copy all
                 </Button>
                 <Button
                   type="button"
@@ -1164,7 +1164,7 @@ const ResidentInformation: React.FC = () => {
                   }}
                   className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
                 >
-                  Hoàn tất
+                  Done
                 </Button>
               </div>
             </div>

@@ -23,7 +23,7 @@ export function QRCodeDisplay({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(qrCodeData);
-    toast.success("Đã sao chép QR Code");
+    toast.success("QR Code copied");
   };
 
   const handleDownloadImage = async () => {
@@ -38,15 +38,15 @@ export function QRCodeDisplay({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("Đã tải xuống QR Code");
+      toast.success("QR Code downloaded");
     } catch (error) {
       console.error("Failed to download QR code:", error);
-      toast.error("Không thể tải xuống QR Code");
+      toast.error("Cannot download QR Code");
     }
   };
 
   const formatExpiryDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("vi-VN");
+    return new Date(dateString).toLocaleString("en-US");
   };
 
   return (
@@ -58,7 +58,7 @@ export function QRCodeDisplay({
             QR Code Check-in
           </h3>
           <p className="text-sm text-gray-600">
-            Sử dụng mã này để check-in khi đến thăm viếng
+            Use this code to check-in when visiting
           </p>
         </div>
 
@@ -71,13 +71,11 @@ export function QRCodeDisplay({
             onLoad={() => setImageLoaded(true)}
             onError={() => {
               setImageLoaded(false);
-              toast.error("Không thể tải QR Code");
+              toast.error("Cannot load QR Code");
             }}
           />
           {!imageLoaded && (
-            <div className="text-xs text-gray-500 mt-2">
-              Đang tải QR Code...
-            </div>
+            <div className="text-xs text-gray-500 mt-2">Loading QR Code...</div>
           )}
         </div>
 
@@ -90,7 +88,7 @@ export function QRCodeDisplay({
 
         <div className="mb-4 text-sm text-gray-600">
           <p>
-            <strong>Hết hạn:</strong> {formatExpiryDate(expiresAt)}
+            <strong>Expires:</strong> {formatExpiryDate(expiresAt)}
           </p>
         </div>
 
@@ -102,7 +100,7 @@ export function QRCodeDisplay({
             className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Copy className="w-4 h-4" />
-            Sao chép
+            Copy
           </Button>
 
           <Button
@@ -112,7 +110,7 @@ export function QRCodeDisplay({
             className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            Tải ảnh
+            Download
           </Button>
         </div>
 
@@ -122,7 +120,7 @@ export function QRCodeDisplay({
             onClick={onClose}
             className="mt-4 w-full border-none shadow-sm cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
           >
-            Đóng
+            Close
           </Button>
         )}
       </div>

@@ -99,7 +99,7 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
           <p className="text-sm text-slate-500 font-medium">
-            Đang tải dữ liệu nhân viên...
+            Loading dữ liệu nhân viên...
           </p>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Quản lý Nhân viên
+              Quản lý Staff
             </h1>
             <p className="mt-1 text-slate-500">
               Tổng quan về tất cả nhân viên viện dưỡng lão và phân công của họ.
@@ -124,7 +124,7 @@ export default function StaffList(): React.JSX.Element {
               variant="outline"
               className="border-slate-200 text-slate-600 hover:bg-slate-50"
             >
-              <MoreHorizontal className="h-4 w-4 mr-2" /> Thêm thao tác
+              <MoreHorizontal className="h-4 w-4 mr-2" /> Add thao tác
             </Button>
             {/* Nếu có nút Add Staff thì đặt ở đây */}
           </div>
@@ -136,19 +136,19 @@ export default function StaffList(): React.JSX.Element {
             <TableHeader className="bg-slate-50/80">
               <TableRow className="hover:bg-transparent border-b border-slate-200">
                 <TableHead className="w-[280px] pl-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Nhân viên
+                  Staff
                 </TableHead>
                 <TableHead className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Vai trò & Ca làm việc
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Đang chờ
+                  Pending
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Hoàn thành hôm nay
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Cư dân
+                  Resident
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Trạng thái
@@ -205,11 +205,11 @@ export default function StaffList(): React.JSX.Element {
                           className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-normal px-2.5"
                         >
                           <Briefcase className="w-3 h-3 mr-1.5 text-slate-500" />
-                          {staff.staff_role || "Nhân viên"}
+                          {staff.staff_role || "Staff"}
                         </Badge>
                         <div className="flex items-center text-xs text-slate-500">
                           <Clock className="w-3 h-3 mr-1.5" />
-                          {staff.shift || "Chưa có ca"}
+                          {staff.shift || "No ca"}
                         </div>
                       </div>
                     </TableCell>
@@ -271,7 +271,7 @@ export default function StaffList(): React.JSX.Element {
                             onClickView(staff);
                           }}
                           className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"
-                          title="Xem chi tiết"
+                          title="View details"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

@@ -1,9 +1,9 @@
 import type { VisitTimeBlock } from "@/apis/visit";
 
 export const TIME_BLOCKS: { value: VisitTimeBlock; label: string }[] = [
-  { value: "morning", label: "Sáng" },
-  { value: "afternoon", label: "Chiều" },
-  { value: "evening", label: "Tối" },
+  { value: "morning", label: "Morning" },
+  { value: "afternoon", label: "Afternoon" },
+  { value: "evening", label: "Evening" },
 ];
 
 // Helper function to format date as YYYY-MM-DD using local time (not UTC)

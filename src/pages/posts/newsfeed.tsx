@@ -199,14 +199,14 @@ const NewsFeed: React.FC = () => {
 
   // Handle delete
   const handleDelete = async (postId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
+    if (!confirm("Are you sure you want to delete this post?")) return;
 
     try {
       await deletePost(postId);
       setPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("Không thể xóa bài viết. Vui lòng thử lại.");
+      alert("Cannot delete post. Please try again.");
     }
   };
 
@@ -214,10 +214,10 @@ const NewsFeed: React.FC = () => {
   const handleReport = async (postId: string) => {
     try {
       await reportPost(postId);
-      alert("Đã báo cáo bài viết thành công.");
+      alert("Post reported successfully.");
     } catch (error) {
       console.error("Error reporting post:", error);
-      alert("Không thể báo cáo bài viết. Vui lòng thử lại.");
+      alert("Cannot report post. Please try again.");
     }
   };
 
@@ -235,12 +235,12 @@ const NewsFeed: React.FC = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -256,13 +256,13 @@ const NewsFeed: React.FC = () => {
         <aside className="flex-shrink-0 w-72 space-y-4">
           <Card className="border-gray-200">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold">Bộ lọc</CardTitle>
+              <CardTitle className="text-lg font-semibold">Filter</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Time Filter */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Thời gian
+                  Time
                 </label>
                 <Select
                   value={filter}
@@ -274,10 +274,10 @@ const NewsFeed: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="border border-gray-200 bg-white">
-                    <SelectItem value="All">Tất cả</SelectItem>
-                    <SelectItem value="Day">Hôm nay</SelectItem>
-                    <SelectItem value="Week">Tuần này</SelectItem>
-                    <SelectItem value="Month">Tháng này</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                    <SelectItem value="Day">Today</SelectItem>
+                    <SelectItem value="Week">This Week</SelectItem>
+                    <SelectItem value="Month">This Month</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -285,10 +285,10 @@ const NewsFeed: React.FC = () => {
               {/* Search */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Tìm kiếm
+                  Search
                 </label>
                 <Input
-                  placeholder="Tìm kiếm bài viết..."
+                  placeholder="Search posts..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="border-gray-200"
@@ -309,7 +309,7 @@ const NewsFeed: React.FC = () => {
                 className="w-full bg-[#5985d8] hover:bg-[#4a75c7] text-white"
                 onClick={() => navigate(path.createPost)}
               >
-                Tạo bài viết mới
+                Create new post
               </Button>
             </CardContent>
           </Card>
@@ -321,7 +321,7 @@ const NewsFeed: React.FC = () => {
             {safePosts.length === 0 && !loading && (
               <Card className="border-gray-200">
                 <CardContent className="py-12 text-center">
-                  <p className="text-gray-500">Chưa có bài viết nào.</p>
+                  <p className="text-gray-500">No posts yet.</p>
                 </CardContent>
               </Card>
             )}
@@ -388,21 +388,21 @@ const NewsFeed: React.FC = () => {
                           className="cursor-pointer"
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
+                          Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(post.id)}
                           className="cursor-pointer text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
+                          Delete
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleReport(post.id)}
                           className="cursor-pointer"
                         >
                           <Flag className="mr-2 h-4 w-4" />
-                          Báo cáo
+                          Report
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -458,13 +458,13 @@ const NewsFeed: React.FC = () => {
                         }`}
                       />
                       <span className="text-sm">
-                        {post.likes > 0 ? post.likes : ""} Thích
+                        {post.likes > 0 ? post.likes : ""} Likes
                       </span>
                     </Button>
 
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <MessageCircle className="h-4 w-4" />
-                      <span>{post.comments.length} Bình luận</span>
+                      <span>{post.comments.length} Comments</span>
                     </div>
                   </div>
 
@@ -503,7 +503,7 @@ const NewsFeed: React.FC = () => {
                   {/* Add Comment */}
                   <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                     <Input
-                      placeholder="Viết bình luận..."
+                      placeholder="Write a comment..."
                       value={commentInputs[post.id] || ""}
                       onChange={(e) =>
                         setCommentInputs((prev) => ({
@@ -552,7 +552,7 @@ const NewsFeed: React.FC = () => {
             {/* End of list */}
             {!hasMore && safePosts.length > 0 && (
               <div className="text-center py-8 text-gray-500 text-sm">
-                Đã hiển thị tất cả bài viết
+                All posts displayed
               </div>
             )}
           </div>

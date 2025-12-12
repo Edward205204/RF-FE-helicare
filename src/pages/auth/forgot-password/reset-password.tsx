@@ -33,7 +33,7 @@ export default function ResetPassword() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      toast.error("Token không hợp lệ");
+      toast.error("Invalid token");
       return;
     }
 
@@ -43,7 +43,7 @@ export default function ResetPassword() {
         ...data,
         forgot_password_token: token,
       });
-      toast.success(result.message || "Đặt lại mật khẩu thành công");
+      toast.success(result.message || "Password reset successfully");
       setEmailToVerify(null);
       navigate(path.signin);
     } catch (error: any) {
@@ -58,7 +58,7 @@ export default function ResetPassword() {
           });
         }
       } else {
-        toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
+        toast.error(error.response?.data?.message || "An error occurred");
       }
     } finally {
       setIsLoading(false);
@@ -73,12 +73,12 @@ export default function ResetPassword() {
             HeLiCare
           </h1>
           <div className="text-center">
-            <p className="text-red-600 mb-4">Token không hợp lệ hoặc thiếu</p>
+            <p className="text-red-600 mb-4">Invalid or missing token</p>
             <Button
               onClick={() => navigate(path.forgotPasswordEmail)}
               className="bg-[#5985d8] text-white"
             >
-              Quay lại Quên mật khẩu
+              Back to Forgot Password
             </Button>
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function ResetPassword() {
           HeLiCare
         </h1>
         <div className="text-center text-base text-gray-700 mb-8">
-          Nhập mật khẩu mới để hoàn tất quá trình đặt lại.
+          Enter a new password to complete the reset process.
         </div>
 
         <div className="w-full mb-4">
@@ -105,7 +105,7 @@ export default function ResetPassword() {
               htmlFor="password"
               className="block flex-1 text-sm font-normal text-left text-gray-700"
             >
-              Mật khẩu mới
+              New Password
             </Label>
             <Button
               type="button"
@@ -114,7 +114,7 @@ export default function ResetPassword() {
               className="text-[#5985d8] p-0 rounded focus:outline-none ml-2 h-auto w-auto"
               onClick={() => setShowPassword((v) => !v)}
               tabIndex={-1}
-              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </Button>
@@ -124,7 +124,7 @@ export default function ResetPassword() {
             className={`w-full rounded-md border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#5985d8] h-auto ${
               errors.password ? "border-red-500" : "border-gray-400"
             }`}
-            placeholder="Nhập mật khẩu mới"
+            placeholder="Enter new password"
             id="password"
             {...register("password")}
             autoComplete="new-password"
@@ -144,7 +144,7 @@ export default function ResetPassword() {
               htmlFor="confirm_password"
               className="block flex-1 text-sm font-normal text-left text-gray-700"
             >
-              Xác nhận Mật khẩu mới
+              Confirm New Password
             </Label>
             <Button
               type="button"
@@ -154,7 +154,7 @@ export default function ResetPassword() {
               onClick={() => setShowConfirmPassword((v) => !v)}
               tabIndex={-1}
               aria-label={
-                showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                showConfirmPassword ? "Hide password" : "Show password"
               }
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -165,7 +165,7 @@ export default function ResetPassword() {
             className={`w-full rounded-md border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#5985d8] h-auto ${
               errors.confirm_password ? "border-red-500" : "border-gray-400"
             }`}
-            placeholder="Xác nhận mật khẩu mới"
+            placeholder="Confirm new password"
             id="confirm_password"
             {...register("confirm_password")}
             autoComplete="new-password"
@@ -184,7 +184,7 @@ export default function ResetPassword() {
           disabled={isLoading}
           className="w-full bg-[#5985d8] text-white rounded-md py-3 font-semibold text-base hover:bg-[#466bb3] transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
+          {isLoading ? "Resetting..." : "Reset Password"}
         </Button>
 
         <Button
@@ -193,7 +193,7 @@ export default function ResetPassword() {
           variant="outline"
           className="w-full border-gray-300 text-gray-700 rounded-md py-3 font-semibold text-base hover:bg-gray-50 transition-colors"
         >
-          Quay lại Đăng nhập
+          Back to Sign In
         </Button>
       </form>
     </div>

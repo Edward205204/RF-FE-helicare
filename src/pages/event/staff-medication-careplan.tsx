@@ -184,7 +184,7 @@ const MedicationCarePlan: React.FC = () => {
   // ========== MEDICATION HANDLERS ==========
   const handleAddMedication = async () => {
     if (!medName.trim() || !medDosage.trim() || !medFrequency.trim()) {
-      toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -200,10 +200,10 @@ const MedicationCarePlan: React.FC = () => {
 
       if (editingMedication) {
         await updateMedication(editingMedication.medication_id, data);
-        toast.success("Cập nhật thuốc thành công");
+        toast.success("Medication updated successfully");
       } else {
         await createMedication(data);
-        toast.success("Tạo thuốc thành công");
+        toast.success("Medication created successfully");
       }
 
       resetMedicationForm();
@@ -211,7 +211,7 @@ const MedicationCarePlan: React.FC = () => {
       fetchAllData();
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Không thể lưu thông tin thuốc"
+        error.response?.data?.message || "Cannot save medication information"
       );
     }
   };
@@ -228,14 +228,14 @@ const MedicationCarePlan: React.FC = () => {
   };
 
   const handleDeleteMedication = async (medication_id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa thuốc này?")) return;
+    if (!confirm("Are you sure you want to delete this medication?")) return;
 
     try {
       await deleteMedication(medication_id);
-      toast.success("Xóa thuốc thành công");
+      toast.success("Medication deleted successfully");
       fetchAllData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể xóa thuốc");
+      toast.error(error.response?.data?.message || "Cannot delete medication");
     }
   };
 
@@ -297,17 +297,17 @@ const MedicationCarePlan: React.FC = () => {
 
   const handleCreateAssignment = async () => {
     if (!selectedMedicationId) {
-      toast.error("Vui lòng chọn thuốc");
+      toast.error("Please select medication");
       return;
     }
 
     if (selectedResidentIds.length === 0 && selectedRoomIds.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một cư dân hoặc phòng");
+      toast.error("Please select at least one resident or room");
       return;
     }
 
     if (!startDate) {
-      toast.error("Vui lòng chọn ngày bắt đầu");
+      toast.error("Please select start date");
       return;
     }
 
@@ -324,25 +324,25 @@ const MedicationCarePlan: React.FC = () => {
       };
 
       await createMedicationCarePlan(data);
-      toast.success("Gán thuốc thành công");
+      toast.success("Medication assigned successfully");
       setIsAssignDialogOpen(false);
       if (activeTab === "assigned") {
         fetchAssignedMedications();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể gán thuốc");
+      toast.error(error.response?.data?.message || "Cannot assign medication");
     }
   };
 
   const handleDeleteAssignment = async (assignment_id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa gán thuốc này?")) return;
+    if (!confirm("Are you sure you want to delete this assignment?")) return;
 
     try {
       await deleteMedicationCarePlan(assignment_id);
-      toast.success("Xóa gán thuốc thành công");
+      toast.success("Assignment deleted successfully");
       fetchAssignedMedications();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể xóa gán thuốc");
+      toast.error(error.response?.data?.message || "Cannot delete assignment");
     }
   };
 
@@ -372,33 +372,33 @@ const MedicationCarePlan: React.FC = () => {
 
   const getFormLabel = (form: string) => {
     const labels: Record<string, string> = {
-      tablet: "Viên nén",
-      syrup: "Sirup",
-      injection: "Tiêm",
-      capsule: "Viên nang",
-      liquid: "Dạng lỏng",
-      cream: "Kem",
-      other: "Khác",
+      tablet: "Tablet",
+      syrup: "Syrup",
+      injection: "Injection",
+      capsule: "Capsule",
+      liquid: "Liquid",
+      cream: "Cream",
+      other: "Other",
     };
     return labels[form] || form;
   };
 
   const getTimingLabel = (timing: string) => {
     const labels: Record<string, string> = {
-      before_meal: "Trước bữa ăn",
-      after_meal: "Sau bữa ăn",
-      with_meal: "Trong bữa ăn",
-      any_time: "Bất kỳ lúc nào",
+      before_meal: "Before meal",
+      after_meal: "After meal",
+      with_meal: "With meal",
+      any_time: "Any time",
     };
     return labels[timing] || timing;
   };
 
   const getTimeSlotLabel = (slot: string) => {
     const labels: Record<string, string> = {
-      morning: "Sáng",
-      noon: "Trưa",
-      afternoon: "Chiều",
-      evening: "Tối",
+      morning: "Morning",
+      noon: "Noon",
+      afternoon: "Afternoon",
+      evening: "Evening",
     };
     return labels[slot] || slot;
   };
@@ -409,7 +409,7 @@ const MedicationCarePlan: React.FC = () => {
       <div className="min-h-screen bg-gray-50/50 p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Đang tải...</p>
+          <p className="mt-4 text-slate-600">Loading...</p>
         </div>
       </div>
     );
@@ -421,10 +421,11 @@ const MedicationCarePlan: React.FC = () => {
         {/* Header */}
         <div className="bg-white shadow-sm border rounded-xl p-6">
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-            Quản lý Thuốc & Kế hoạch Chăm sóc
+            Medication Management & Care Plan
           </h1>
           <p className="text-slate-500 mt-1">
-            Tạo thuốc, gán thuốc và quản lý các gán thuốc đang hoạt động.
+            Create medications, assign medications, and manage active
+            assignments.
           </p>
         </div>
 
@@ -436,21 +437,21 @@ const MedicationCarePlan: React.FC = () => {
               className="flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md cursor-pointer"
             >
               <Pill className="w-4 h-4" />
-              Tạo Thuốc
+              Create Medication
             </TabsTrigger>
             <TabsTrigger
               value="assign"
               className="flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md cursor-pointer"
             >
               <ClipboardList className="w-4 h-4" />
-              Gán Thuốc
+              Assign Medication
             </TabsTrigger>
             <TabsTrigger
               value="assigned"
               className="flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md cursor-pointer"
             >
               <Users className="w-4 h-4" />
-              Danh sách đã Gán
+              Assigned List
             </TabsTrigger>
           </TabsList>
 
@@ -459,7 +460,7 @@ const MedicationCarePlan: React.FC = () => {
             <Card className="bg-white shadow-sm border rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-bold text-slate-800">
-                  Danh sách Thuốc
+                  Medication List
                 </CardTitle>
                 <Dialog
                   open={isMedicationDialogOpen}
@@ -473,21 +474,21 @@ const MedicationCarePlan: React.FC = () => {
                       onClick={resetMedicationForm}
                       className="bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-full px-6 py-2 h-10 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 mr-2" /> Tạo Thuốc Mới
+                      <Plus className="w-4 h-4 mr-2" /> New Medication
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[600px] rounded-2xl p-6 bg-white max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="mb-4">
                       <DialogTitle className="text-2xl font-bold text-slate-800">
                         {editingMedication
-                          ? "Chỉnh sửa Thuốc"
-                          : "Tạo Thuốc Mới"}
+                          ? "Edit Medication"
+                          : "Create New Medication"}
                       </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-5">
                       <div className="space-y-2">
                         <Label className="text-slate-600 font-semibold">
-                          Tên thuốc *
+                          Medication Name *
                         </Label>
                         <Input
                           value={medName}
@@ -499,7 +500,7 @@ const MedicationCarePlan: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label className="text-slate-600 font-semibold">
-                            Liều lượng *
+                            Dosage *
                           </Label>
                           <Input
                             value={medDosage}
@@ -510,7 +511,7 @@ const MedicationCarePlan: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-slate-600 font-semibold">
-                            Dạng thuốc *
+                            Form *
                           </Label>
                           <Select
                             value={medForm}
@@ -520,13 +521,15 @@ const MedicationCarePlan: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-white">
-                              <SelectItem value="tablet">Viên nén</SelectItem>
-                              <SelectItem value="syrup">Sirup</SelectItem>
-                              <SelectItem value="injection">Tiêm</SelectItem>
-                              <SelectItem value="capsule">Viên nang</SelectItem>
-                              <SelectItem value="liquid">Dạng lỏng</SelectItem>
-                              <SelectItem value="cream">Kem</SelectItem>
-                              <SelectItem value="other">Khác</SelectItem>
+                              <SelectItem value="tablet">Tablet</SelectItem>
+                              <SelectItem value="syrup">Syrup</SelectItem>
+                              <SelectItem value="injection">
+                                Injection
+                              </SelectItem>
+                              <SelectItem value="capsule">Capsule</SelectItem>
+                              <SelectItem value="liquid">Liquid</SelectItem>
+                              <SelectItem value="cream">Cream</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -534,35 +537,37 @@ const MedicationCarePlan: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label className="text-slate-600 font-semibold">
-                            Tần suất *
+                            Frequency *
                           </Label>
                           <Select
                             value={medFrequency}
                             onValueChange={setMedFrequency}
                           >
                             <SelectTrigger className="rounded-lg border-slate-200 focus:ring-blue-500">
-                              <SelectValue placeholder="Chọn tần suất" />
+                              <SelectValue placeholder="Select frequency" />
                             </SelectTrigger>
                             <SelectContent className="bg-white">
                               <SelectItem value="Once daily">
-                                1 lần/ngày
+                                Once daily
                               </SelectItem>
                               <SelectItem value="Twice daily">
-                                2 lần/ngày
+                                Twice daily
                               </SelectItem>
                               <SelectItem value="Three times daily">
-                                3 lần/ngày
+                                Three times daily
                               </SelectItem>
                               <SelectItem value="Four times daily">
-                                4 lần/ngày
+                                Four times daily
                               </SelectItem>
-                              <SelectItem value="As needed">Khi cần</SelectItem>
+                              <SelectItem value="As needed">
+                                As needed
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
                           <Label className="text-slate-600 font-semibold">
-                            Thời điểm uống *
+                            Timing *
                           </Label>
                           <Select
                             value={medTiming}
@@ -573,29 +578,27 @@ const MedicationCarePlan: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent className="bg-white">
                               <SelectItem value="before_meal">
-                                Trước bữa ăn
+                                Before meal
                               </SelectItem>
                               <SelectItem value="after_meal">
-                                Sau bữa ăn
+                                After meal
                               </SelectItem>
                               <SelectItem value="with_meal">
-                                Trong bữa ăn
+                                With meal
                               </SelectItem>
-                              <SelectItem value="any_time">
-                                Bất kỳ lúc nào
-                              </SelectItem>
+                              <SelectItem value="any_time">Any time</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-slate-600 font-semibold">
-                          Hướng dẫn
+                          Instructions
                         </Label>
                         <Input
                           value={medInstructions}
                           onChange={(e) => setMedInstructions(e.target.value)}
-                          placeholder="Hướng dẫn sử dụng..."
+                          placeholder="Instructions for use..."
                           className="rounded-lg border-slate-200 focus:ring-blue-500"
                         />
                       </div>
@@ -604,7 +607,9 @@ const MedicationCarePlan: React.FC = () => {
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl mt-4"
                           onClick={handleAddMedication}
                         >
-                          {editingMedication ? "Lưu thay đổi" : "Tạo thuốc"}
+                          {editingMedication
+                            ? "Save Changes"
+                            : "Create Medication"}
                         </Button>
                       </DialogFooter>
                     </div>
@@ -617,19 +622,19 @@ const MedicationCarePlan: React.FC = () => {
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="pl-8 py-4 text-xs font-bold text-slate-500 uppercase">
-                          Tên thuốc
+                          Medication Name
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Liều lượng & Dạng
+                          Dosage & Form
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Tần suất
+                          Frequency
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Thời điểm
+                          Timing
                         </TableHead>
                         <TableHead className="text-right pr-8 text-xs font-bold text-slate-500 uppercase">
-                          Thao tác
+                          Actions
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -640,7 +645,8 @@ const MedicationCarePlan: React.FC = () => {
                             colSpan={5}
                             className="text-center py-8 text-slate-500"
                           >
-                            Chưa có thuốc nào. Tạo thuốc đầu tiên để bắt đầu.
+                            No medications. Create your first medication to
+                            start.
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -716,24 +722,25 @@ const MedicationCarePlan: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Tab 2: Gán Thuốc */}
+          {/* Tab 2: Assign Medication */}
           <TabsContent value="assign" className="mt-6">
             <Card className="bg-white shadow-sm border rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl font-bold text-slate-800">
-                  Gán Thuốc cho Cư dân / Phòng
+                  Assign Medication to Resident / Room
                 </CardTitle>
                 <Button
                   onClick={handleOpenAssignDialog}
                   className="bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-full px-6 py-2 h-10 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4 mr-2" /> Gán Thuốc Mới
+                  <Plus className="w-4 h-4 mr-2" /> New Assignment
                 </Button>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-500">
-                  Chọn thuốc và gán cho cư dân hoặc phòng. Hệ thống sẽ tự động
-                  kiểm tra xung đột với dị ứng, chế độ ăn và lịch trình.
+                  Select medication and assign to resident or room. The system
+                  will automatically check for conflicts with allergies, diets,
+                  and schedules.
                 </p>
               </CardContent>
             </Card>
@@ -746,20 +753,20 @@ const MedicationCarePlan: React.FC = () => {
               <DialogContent className="sm:max-w-[700px] rounded-2xl p-6 bg-white max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="mb-4">
                   <DialogTitle className="text-2xl font-bold text-slate-800">
-                    Gán Thuốc
+                    Assign Medication
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-5">
                   <div className="space-y-2">
                     <Label className="text-slate-600 font-semibold">
-                      Chọn thuốc *
+                      Select Medication *
                     </Label>
                     <Select
                       value={selectedMedicationId}
                       onValueChange={handleMedicationChange}
                     >
                       <SelectTrigger className="rounded-lg border-slate-200 focus:ring-blue-500">
-                        <SelectValue placeholder="Chọn thuốc" />
+                        <SelectValue placeholder="Select medication" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {medications.map((med) => (
@@ -776,7 +783,7 @@ const MedicationCarePlan: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label className="text-slate-600 font-semibold">
-                      Cư dân
+                      Resident
                     </Label>
                     <MultiSelect
                       options={residents.map((r) => ({
@@ -796,7 +803,7 @@ const MedicationCarePlan: React.FC = () => {
                           (selected || []).map((opt) => opt.value)
                         )
                       }
-                      placeholder="Chọn cư dân..."
+                      placeholder="Select resident..."
                       isMulti
                       className="react-select-container"
                       classNamePrefix="react-select"
@@ -813,26 +820,24 @@ const MedicationCarePlan: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-600 font-semibold">
-                      Phòng
-                    </Label>
+                    <Label className="text-slate-600 font-semibold">Room</Label>
                     <MultiSelect
                       options={rooms.map((r) => ({
                         value: r.room_id,
-                        label: `Phòng ${r.room_number} (${r.type})`,
+                        label: `Room ${r.room_number} (${r.type})`,
                       }))}
                       value={rooms
                         .filter((r) => selectedRoomIds.includes(r.room_id))
                         .map((r) => ({
                           value: r.room_id,
-                          label: `Phòng ${r.room_number} (${r.type})`,
+                          label: `Room ${r.room_number} (${r.type})`,
                         }))}
                       onChange={(selected) =>
                         setSelectedRoomIds(
                           (selected || []).map((opt) => opt.value)
                         )
                       }
-                      placeholder="Chọn phòng..."
+                      placeholder="Select room..."
                       isMulti
                       className="react-select-container"
                       classNamePrefix="react-select"
@@ -851,7 +856,7 @@ const MedicationCarePlan: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-slate-600 font-semibold">
-                        Ngày bắt đầu *
+                        Start Date *
                       </Label>
                       <Input
                         type="date"
@@ -862,7 +867,7 @@ const MedicationCarePlan: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-slate-600 font-semibold">
-                        Ngày kết thúc
+                        End Date
                       </Label>
                       <Input
                         type="date"
@@ -875,33 +880,33 @@ const MedicationCarePlan: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label className="text-slate-600 font-semibold">
-                      Khung giờ (tùy chọn)
+                      Time Slot (Optional)
                     </Label>
                     <Select
                       value={timeSlot}
                       onValueChange={(v: any) => setTimeSlot(v)}
                     >
                       <SelectTrigger className="rounded-lg border-slate-200 focus:ring-blue-500">
-                        <SelectValue placeholder="Chọn khung giờ" />
+                        <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="none">Không chọn</SelectItem>
-                        <SelectItem value="morning">Sáng</SelectItem>
-                        <SelectItem value="noon">Trưa</SelectItem>
-                        <SelectItem value="afternoon">Chiều</SelectItem>
-                        <SelectItem value="evening">Tối</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="morning">Morning</SelectItem>
+                        <SelectItem value="noon">Noon</SelectItem>
+                        <SelectItem value="afternoon">Afternoon</SelectItem>
+                        <SelectItem value="evening">Evening</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-slate-600 font-semibold">
-                      Ghi chú
+                      Notes
                     </Label>
                     <Input
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Ghi chú bổ sung..."
+                      placeholder="Additional notes..."
                       className="rounded-lg border-slate-200 focus:ring-blue-500"
                     />
                   </div>
@@ -912,7 +917,7 @@ const MedicationCarePlan: React.FC = () => {
                       <div className="flex items-center gap-2 mb-3">
                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                         <p className="text-sm font-medium text-amber-800">
-                          Cảnh báo xung đột:
+                          Conflict Warning:
                         </p>
                       </div>
                       <div className="space-y-2">
@@ -945,16 +950,16 @@ const MedicationCarePlan: React.FC = () => {
                     selectedRoomIds.length > 0) && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <p className="text-sm font-medium text-blue-800 mb-2">
-                        Tóm tắt:
+                        Summary:
                       </p>
                       <div className="grid grid-cols-2 gap-2 text-sm text-blue-700">
                         <div>
                           <Users className="w-4 h-4 inline mr-1" />
-                          {selectedResidentIds.length} cư dân
+                          {selectedResidentIds.length} residents
                         </div>
                         <div>
                           <Building2 className="w-4 h-4 inline mr-1" />
-                          {selectedRoomIds.length} phòng
+                          {selectedRoomIds.length} rooms
                         </div>
                       </div>
                     </div>
@@ -965,7 +970,7 @@ const MedicationCarePlan: React.FC = () => {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl mt-4"
                       onClick={handleCreateAssignment}
                     >
-                      Gán Thuốc
+                      Assign Medication
                     </Button>
                   </DialogFooter>
                 </div>
@@ -973,28 +978,28 @@ const MedicationCarePlan: React.FC = () => {
             </Dialog>
           </TabsContent>
 
-          {/* Tab 3: Danh sách đã Gán */}
+          {/* Tab 3: Assigned List */}
           <TabsContent value="assigned" className="mt-6">
             <Card className="bg-white shadow-sm border rounded-xl">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-slate-800">
-                  Danh sách Thuốc đã Gán
+                  Assigned Medications List
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
                   <div className="space-y-2">
-                    <Label className="text-xs text-slate-600">Thuốc</Label>
+                    <Label className="text-xs text-slate-600">Medication</Label>
                     <Select
                       value={filterMedicationId}
                       onValueChange={setFilterMedicationId}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Tất cả" />
+                        <SelectValue placeholder="All" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
                         {medications.map((med) => (
                           <SelectItem
                             key={med.medication_id}
@@ -1008,39 +1013,39 @@ const MedicationCarePlan: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-slate-600">Phòng</Label>
+                    <Label className="text-xs text-slate-600">Room</Label>
                     <Select
                       value={filterRoomId}
                       onValueChange={setFilterRoomId}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Tất cả" />
+                        <SelectValue placeholder="All" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
                         {rooms.map((r) => (
                           <SelectItem key={r.room_id} value={r.room_id}>
-                            Phòng {r.room_number}
+                            Room {r.room_number}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-slate-600">Khung giờ</Label>
+                    <Label className="text-xs text-slate-600">Time Slot</Label>
                     <Select
                       value={filterTimeSlot}
                       onValueChange={setFilterTimeSlot}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Tất cả" />
+                        <SelectValue placeholder="All" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="morning">Sáng</SelectItem>
-                        <SelectItem value="noon">Trưa</SelectItem>
-                        <SelectItem value="afternoon">Chiều</SelectItem>
-                        <SelectItem value="evening">Tối</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="morning">Morning</SelectItem>
+                        <SelectItem value="noon">Noon</SelectItem>
+                        <SelectItem value="afternoon">Afternoon</SelectItem>
+                        <SelectItem value="evening">Evening</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1052,19 +1057,19 @@ const MedicationCarePlan: React.FC = () => {
                     <TableHeader className="bg-slate-50">
                       <TableRow>
                         <TableHead className="pl-8 py-4 text-xs font-bold text-slate-500 uppercase">
-                          Thuốc
+                          Medication
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Cư dân / Phòng
+                          Resident / Room
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Lịch trình
+                          Schedule
                         </TableHead>
                         <TableHead className="text-xs font-bold text-slate-500 uppercase">
-                          Xung đột
+                          Conflicts
                         </TableHead>
                         <TableHead className="text-right pr-8 text-xs font-bold text-slate-500 uppercase">
-                          Thao tác
+                          Actions
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1075,7 +1080,7 @@ const MedicationCarePlan: React.FC = () => {
                             colSpan={5}
                             className="text-center py-8 text-slate-500"
                           >
-                            Chưa có gán thuốc nào.
+                            No assigned medications.
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -1108,7 +1113,7 @@ const MedicationCarePlan: React.FC = () => {
                                     {assignment.residents.length > 0 && (
                                       <div>
                                         <p className="text-xs text-slate-500 mb-1">
-                                          Cư dân:
+                                          Resident:
                                         </p>
                                         <div className="flex flex-wrap gap-1">
                                           {assignment.residents
@@ -1138,7 +1143,7 @@ const MedicationCarePlan: React.FC = () => {
                                     {assignment.rooms.length > 0 && (
                                       <div>
                                         <p className="text-xs text-slate-500 mb-1">
-                                          Phòng:
+                                          Room:
                                         </p>
                                         <div className="flex flex-wrap gap-1">
                                           {assignment.rooms.map((r) => (
@@ -1175,14 +1180,14 @@ const MedicationCarePlan: React.FC = () => {
                                       )}
                                     </div>
                                     <p className="text-xs text-slate-500">
-                                      Từ:{" "}
+                                      From:{" "}
                                       {new Date(
                                         assignment.start_date
-                                      ).toLocaleDateString("vi-VN")}
+                                      ).toLocaleDateString("en-US")}
                                       {assignment.end_date &&
                                         ` - ${new Date(
                                           assignment.end_date
-                                        ).toLocaleDateString("vi-VN")}`}
+                                        ).toLocaleDateString("en-US")}`}
                                     </p>
                                   </div>
                                 </TableCell>
@@ -1205,13 +1210,13 @@ const MedicationCarePlan: React.FC = () => {
                                       {assignment.conflicts!.length > 2 && (
                                         <p className="text-xs text-slate-500">
                                           +{assignment.conflicts!.length - 2}{" "}
-                                          nữa
+                                          more
                                         </p>
                                       )}
                                     </div>
                                   ) : (
                                     <span className="text-sm text-green-600">
-                                      Không có xung đột
+                                      No conflicts
                                     </span>
                                   )}
                                 </TableCell>
@@ -1262,7 +1267,7 @@ const MedicationCarePlan: React.FC = () => {
                                       {assignment.residents.length > 0 && (
                                         <div>
                                           <p className="text-sm font-medium text-slate-800 mb-2">
-                                            Chi tiết Cư dân:
+                                            Resident Details:
                                           </p>
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {assignment.residents.map((r) => (
@@ -1275,14 +1280,14 @@ const MedicationCarePlan: React.FC = () => {
                                                 </p>
                                                 {r.room && (
                                                   <p className="text-xs text-slate-500">
-                                                    Phòng: {r.room.room_number}
+                                                    Room: {r.room.room_number}
                                                   </p>
                                                 )}
                                                 {r.allergies &&
                                                   r.allergies.length > 0 && (
                                                     <div className="mt-2">
                                                       <p className="text-xs text-slate-500 mb-1">
-                                                        Dị ứng:
+                                                        Allergies:
                                                       </p>
                                                       <div className="flex flex-wrap gap-1">
                                                         {r.allergies.map(
@@ -1303,7 +1308,7 @@ const MedicationCarePlan: React.FC = () => {
                                                   r.dietTags.length > 0 && (
                                                     <div className="mt-2">
                                                       <p className="text-xs text-slate-500 mb-1">
-                                                        Chế độ ăn:
+                                                        Diet:
                                                       </p>
                                                       <div className="flex flex-wrap gap-1">
                                                         {r.dietTags.map(
@@ -1331,7 +1336,7 @@ const MedicationCarePlan: React.FC = () => {
                                         <div>
                                           <p className="text-sm font-medium text-amber-800 mb-2 flex items-center gap-2">
                                             <AlertTriangle className="w-4 h-4" />
-                                            Chi tiết Xung đột:
+                                            Conflict Details:
                                           </p>
                                           <div className="space-y-2">
                                             {assignment.conflicts!.map(
@@ -1360,7 +1365,7 @@ const MedicationCarePlan: React.FC = () => {
                                       {assignment.notes && (
                                         <div>
                                           <p className="text-sm font-medium text-slate-800 mb-1">
-                                            Ghi chú:
+                                            Notes:
                                           </p>
                                           <p className="text-sm text-slate-600">
                                             {assignment.notes}

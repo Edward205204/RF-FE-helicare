@@ -50,7 +50,7 @@ export default function RoomManagement(): React.JSX.Element {
       setRooms(response.data || []);
     } catch (error: any) {
       console.error("Error fetching rooms:", error);
-      toast.error(error.response?.data?.message || "Không thể tải danh sách phòng");
+      toast.error(error.response?.data?.message || "Failed to load rooms");
     } finally {
       setLoading(false);
     }
@@ -123,28 +123,28 @@ export default function RoomManagement(): React.JSX.Element {
     try {
       if (isEditing && currentRoom) {
         await updateRoom(currentRoom.room_id, roomData);
-        toast.success("Cập nhật phòng thành công!");
+        toast.success("Room updated successfully!");
       } else {
         await createRoom(roomData);
-        toast.success("Tạo phòng thành công!");
+        toast.success("Room created successfully!");
       }
       fetchRooms();
       handleCloseDialog();
     } catch (error: any) {
       console.error("Error saving room:", error);
-      toast.error(error.response?.data?.message || "Không thể lưu phòng");
+      toast.error(error.response?.data?.message || "Cannot save room");
     }
   };
 
   const handleDelete = async (room: RoomResponse) => {
     if (room.current_occupancy > 0) {
-      toast.error("Không thể xóa phòng có cư dân");
+      toast.error("Cannot delete room with residents");
       return;
     }
 
     if (
       !window.confirm(
-        `Bạn có chắc chắn muốn xóa Phòng ${room.room_number}?`
+        `Are you sure you want to delete Room ${room.room_number}?`
       )
     ) {
       return;
@@ -152,15 +152,15 @@ export default function RoomManagement(): React.JSX.Element {
 
     try {
       await deleteRoom(room.room_id);
-      toast.success("Xóa phòng thành công!");
+      toast.success("Room deleted successfully!");
       fetchRooms();
     } catch (error: any) {
       console.error("Error deleting room:", error);
-      toast.error(error.response?.data?.message || "Không thể xóa phòng");
+      toast.error(error.response?.data?.message || "Failed to delete room");
     }
   };
 
-  const today = new Date().toLocaleDateString();
+  const today = new Date().toLocaleDateString("en-US");
 
   return (
     <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
@@ -170,7 +170,7 @@ export default function RoomManagement(): React.JSX.Element {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold" style={{ color: "#5985d8" }}>
-                  Quản lý Phòng
+                  Room Management
                 </h1>
                 <p className="text-sm text-gray-500">{today}</p>
               </div>
@@ -180,7 +180,7 @@ export default function RoomManagement(): React.JSX.Element {
                 aria-label="Add Room"
               >
                 <Plus className="h-5 w-5" />
-                Thêm Phòng Mới
+                Add New Room
               </button>
             </div>
           </header>
@@ -193,25 +193,25 @@ export default function RoomManagement(): React.JSX.Element {
                     <thead className="bg-gray-50 sticky top-0 z-10">
                       <tr>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Số Phòng
+                          Room Number
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Loại
+                          Type
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Sức chứa
+                          Capacity
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Đã sử dụng
+                          Occupancy
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Trạng thái
+                          Status
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[15%]">
-                          Ghi chú
+                          Notes
                         </th>
                         <th className="text-left px-4 py-4 text-sm font-semibold text-gray-700 w-[10%]">
-                          Thao tác
+                          Actions
                         </th>
                       </tr>
                     </thead>
@@ -222,7 +222,7 @@ export default function RoomManagement(): React.JSX.Element {
                             colSpan={7}
                             className="px-6 py-12 text-center text-gray-500"
                           >
-                            Đang tải phòng...
+                            Loading rooms...
                           </td>
                         </tr>
                       ) : rooms.length === 0 ? (
@@ -231,7 +231,7 @@ export default function RoomManagement(): React.JSX.Element {
                             colSpan={7}
                             className="px-6 py-12 text-center text-gray-500"
                           >
-                            Không tìm thấy phòng nào. Nhấn "Thêm Phòng Mới" để tạo.
+                            No rooms found. Click "Add New Room" to create one.
                           </td>
                         </tr>
                       ) : (
@@ -259,11 +259,11 @@ export default function RoomManagement(): React.JSX.Element {
                               {room.is_available &&
                               room.current_occupancy < room.capacity ? (
                                 <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                                  Còn trống
+                                  Available
                                 </span>
                               ) : (
                                 <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-                                  Đầy
+                                  Full
                                 </span>
                               )}
                             </td>
@@ -275,14 +275,14 @@ export default function RoomManagement(): React.JSX.Element {
                                 <button
                                   onClick={() => handleOpenDialog(room)}
                                   className="p-1 hover:bg-blue-100 rounded transition-colors"
-                                  title="Sửa"
+                                  title="Edit"
                                 >
                                   <Pencil className="h-4 w-4 text-blue-600" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(room)}
                                   className="p-1 hover:bg-red-100 rounded transition-colors"
-                                  title="Xóa"
+                                  title="Delete"
                                   disabled={room.current_occupancy > 0}
                                 >
                                   <Trash2
@@ -312,24 +312,24 @@ export default function RoomManagement(): React.JSX.Element {
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Chỉnh sửa Phòng" : "Tạo Phòng Mới"}
+              {isEditing ? "Edit Room" : "Create New Room"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <Label>Số Phòng *</Label>
+                <Label>Room Number *</Label>
                 <Input
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
-                  placeholder="VD: 101, A-201"
+                  placeholder="Ex: 101, A-201"
                   className="border border-gray-200 shadow-none bg-white"
                   required
                 />
               </div>
 
               <div>
-                <Label>Loại Phòng *</Label>
+                <Label>Room Type *</Label>
                 <Select
                   value={roomType}
                   onValueChange={(v) =>
@@ -340,15 +340,15 @@ export default function RoomManagement(): React.JSX.Element {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="border border-gray-200 bg-white">
-                    <SelectItem value="single">Đơn</SelectItem>
-                    <SelectItem value="double">Đôi</SelectItem>
-                    <SelectItem value="multi">Nhiều giường</SelectItem>
+                    <SelectItem value="single">Single</SelectItem>
+                    <SelectItem value="double">Double</SelectItem>
+                    <SelectItem value="multi">Multi-bed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Sức chứa *</Label>
+                <Label>Capacity *</Label>
                 <Input
                   type="number"
                   min={1}
@@ -367,18 +367,19 @@ export default function RoomManagement(): React.JSX.Element {
                 {!isEditing &&
                   (roomType === "single" || roomType === "double") && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Sức chứa được tự động đặt thành{" "}
-                      {roomType === "single" ? "1" : "2"} cho phòng {roomType === "single" ? "đơn" : "đôi"}
+                      Capacity is automatically set to{" "}
+                      {roomType === "single" ? "1" : "2"} for{" "}
+                      {roomType === "single" ? "single" : "double"} room
                     </p>
                   )}
               </div>
 
               <div>
-                <Label>Ghi chú (Tùy chọn)</Label>
+                <Label>Notes (Optional)</Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Thông tin bổ sung..."
+                  placeholder="Additional information..."
                   rows={3}
                   className="border border-gray-200 shadow-none bg-white"
                 />
@@ -391,10 +392,10 @@ export default function RoomManagement(): React.JSX.Element {
                 variant="outline"
                 onClick={handleCloseDialog}
               >
-                Hủy
+                Cancel
               </Button>
               <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
-                {isEditing ? "Cập nhật" : "Tạo"} Phòng
+                {isEditing ? "Update" : "Create"} Room
               </Button>
             </DialogFooter>
           </form>

@@ -36,7 +36,7 @@ export default function ResidentDetail(): React.JSX.Element {
 
   useEffect(() => {
     if (!resident_id) {
-      toast.error("Resident ID không hợp lệ");
+      toast.error("Invalid resident ID");
       navigate(path.residentList);
       return;
     }
@@ -59,7 +59,7 @@ export default function ResidentDetail(): React.JSX.Element {
       } catch (error: any) {
         console.error("Error fetching resident detail:", error);
         toast.error(
-          error.response?.data?.message || "Không thể tải thông tin resident"
+          error.response?.data?.message || "Cannot load resident information"
         );
         navigate(path.residentList);
       } finally {
@@ -75,7 +75,7 @@ export default function ResidentDetail(): React.JSX.Element {
       <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
         <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
           <div className="flex items-center justify-center h-96">
-            <p className="text-gray-500">Đang tải thông tin...</p>
+            <p className="text-gray-500">Loading information...</p>
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function ResidentDetail(): React.JSX.Element {
       <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
         <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
           <div className="flex items-center justify-center h-96">
-            <p className="text-gray-500">Không tìm thấy thông tin resident</p>
+            <p className="text-gray-500">Resident information not found</p>
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function ResidentDetail(): React.JSX.Element {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -117,7 +117,7 @@ export default function ResidentDetail(): React.JSX.Element {
   };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("vi-VN", {
+    return new Date(dateString).toLocaleString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -137,15 +137,15 @@ export default function ResidentDetail(): React.JSX.Element {
                 className="flex items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span>Quay lại</span>
+                <span>Back</span>
               </button>
             </div>
             <div className="flex flex-col gap-2">
               <h1 className="text-3xl font-bold" style={{ color: "#5985d8" }}>
-                Chi tiết Resident
+                Resident Details
               </h1>
               <p className="text-sm text-gray-500">
-                {new Date().toLocaleDateString("vi-VN")}
+                {new Date().toLocaleDateString("en-US")}
               </p>
             </div>
           </header>
@@ -158,13 +158,13 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Thông tin cá nhân
+                      Personal Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Họ và tên
+                        Full Name
                       </p>
                       <p className="text-lg font-semibold text-gray-900">
                         {resident.full_name}
@@ -172,35 +172,35 @@ export default function ResidentDetail(): React.JSX.Element {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Ngày sinh
+                        Date of Birth
                       </p>
                       <p className="text-base text-gray-800">
                         {formatDate(resident.date_of_birth)} (
-                        {calculateAge(resident.date_of_birth)} tuổi)
+                        {calculateAge(resident.date_of_birth)} years old)
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Giới tính
+                        Gender
                       </p>
                       <p className="text-base text-gray-800 capitalize">
-                        {resident.gender === "male" ? "Nam" : "Nữ"}
+                        {resident.gender === "male" ? "Male" : "Female"}
                       </p>
                     </div>
                     {resident.room && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">
-                          Phòng
+                          Room
                         </p>
                         <p className="text-base text-gray-800">
-                          Phòng {resident.room.room_number}
+                          Room {resident.room.room_number}
                         </p>
                       </div>
                     )}
                     {resident.notes && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">
-                          Ghi chú
+                          Notes
                         </p>
                         <p className="text-base text-gray-800">
                           {resident.notes}
@@ -211,7 +211,7 @@ export default function ResidentDetail(): React.JSX.Element {
                       resident.chronicDiseases.length > 0 && (
                         <div>
                           <p className="text-sm font-medium text-gray-500 mb-2">
-                            Bệnh mãn tính
+                            Chronic Diseases
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {resident.chronicDiseases.map((disease) => (
@@ -225,7 +225,7 @@ export default function ResidentDetail(): React.JSX.Element {
                     {resident.allergies && resident.allergies.length > 0 && (
                       <div>
                         <p className="text-sm font-medium text-gray-500 mb-2">
-                          Dị ứng
+                          Allergies
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {resident.allergies.map((allergy) => (
@@ -247,26 +247,26 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
-                      Danh sách Assessment
+                      Assessment List
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {assessments.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">
-                        Chưa có assessment nào
+                        No assessments
                       </p>
                     ) : (
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Ngày giờ</TableHead>
-                              <TableHead>Nhiệt độ (°C)</TableHead>
-                              <TableHead>Huyết áp</TableHead>
-                              <TableHead>Nhịp tim</TableHead>
-                              <TableHead>Nhịp thở</TableHead>
+                              <TableHead>Date Time</TableHead>
+                              <TableHead>Temperature (°C)</TableHead>
+                              <TableHead>Blood Pressure</TableHead>
+                              <TableHead>Heart Rate</TableHead>
+                              <TableHead>Respiratory Rate</TableHead>
                               <TableHead>SpO₂ (%)</TableHead>
-                              <TableHead>Ghi chú</TableHead>
+                              <TableHead>Notes</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -293,7 +293,7 @@ export default function ResidentDetail(): React.JSX.Element {
                                 </TableCell>
                                 <TableCell>
                                   {assessment.respiratory_rate
-                                    ? `${assessment.respiratory_rate} /phút`
+                                    ? `${assessment.respiratory_rate} /min`
                                     : "-"}
                                 </TableCell>
                                 <TableCell>
@@ -318,13 +318,13 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Người thân liên kết
+                      Linked Family Members
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {familyMembers.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">
-                        Chưa có người thân nào được liên kết
+                        No linked family members
                       </p>
                     ) : (
                       <div className="space-y-4">
@@ -345,7 +345,7 @@ export default function ResidentDetail(): React.JSX.Element {
                                 }
                               >
                                 {member.status === "active"
-                                  ? "Đang hoạt động"
+                                  ? "Active"
                                   : member.status}
                               </Badge>
                             </div>
@@ -367,7 +367,7 @@ export default function ResidentDetail(): React.JSX.Element {
                                 </div>
                               )}
                               <div className="text-xs text-gray-400 mt-2">
-                                Liên kết từ: {formatDate(member.created_at)}
+                                Linked since: {formatDate(member.created_at)}
                               </div>
                             </div>
                           </div>

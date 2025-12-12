@@ -11,20 +11,19 @@ import {
 } from "lucide-react";
 
 export const residentMenu: ResidentMenuItem[] = [
-  { path: path.residentHome, label: "Trang chủ", icon: Home },
-  { path: path.residentSchedule, label: "Lịch trình của tôi", icon: Calendar },
+  { path: path.residentHome, label: "Home", icon: Home },
+  { path: path.residentSchedule, label: "My Schedule", icon: Calendar },
   {
     path: path.residentMealNutrition,
-    label: "Bữa ăn & Dinh dưỡng",
+    label: "Meals & Nutrition",
     icon: Utensils,
   },
-  { path: path.residentPosts, label: "Bài viết", icon: MessageSquare },
+  { path: path.residentPosts, label: "Posts", icon: MessageSquare },
   {
     path: path.residentVitalSigns,
-    label: "Lịch sử Dấu hiệu Sinh tồn",
+    label: "Vital Signs History",
     icon: Heart,
   },
-  { path: path.residentRoom, label: "Phòng của tôi", icon: Building },
-  { path: path.residentNotification, label: "Thông báo", icon: Bell },
+  { path: path.residentRoom, label: "My Room", icon: Building },
+  { path: path.residentNotification, label: "Notifications", icon: Bell },
 ];
-

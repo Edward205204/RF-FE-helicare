@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui";
 const initialRequests = [
   {
     id: 1,
-    residentName: "Nguyen Van A",
+    residentName: "John Doe",
     serviceType: "Home Care",
     notes: "Weekly visits needed",
     price: 500000,
@@ -36,7 +36,7 @@ const initialRequests = [
   },
   {
     id: 2,
-    residentName: "Tran Thi B",
+    residentName: "Jane Doe",
     serviceType: "Medical Checkup",
     notes: "Monthly health check",
     price: 300000,
@@ -204,7 +204,7 @@ const PaymentModuleStaff: React.FC = () => {
             <div className="w-full text-center">
               <Button
                 onClick={handleSubmit}
-                className="text-lg bg-[#689bdf] hover:bg-[#5183c9] shadow-sm cursor-pointer text-white text-base"
+                className="text-lg bg-[#689bdf] hover:bg-[#5183c9] shadow-sm cursor-pointer text-white"
               >
                 Submit Service Request
               </Button>

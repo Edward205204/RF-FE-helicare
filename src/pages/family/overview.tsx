@@ -79,7 +79,7 @@ const FamilyOverview: React.FC = () => {
           setDashboardData(response.data);
         } else {
           toast.error(
-            "Không tìm thấy thông tin cư dân. Vui lòng liên kết với cư dân trước."
+            "Resident information not found. Please link with a resident first."
           );
         }
       } catch (error: any) {
@@ -87,7 +87,7 @@ const FamilyOverview: React.FC = () => {
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
           toast.error(
             error.response?.data?.message ||
-              "Không thể tải dữ liệu dashboard. Vui lòng thử lại sau."
+              "Cannot load dashboard data. Please try again later."
           );
         }
       } finally {
@@ -112,13 +112,12 @@ const FamilyOverview: React.FC = () => {
   };
 
   const getStatusText = (status: string) => {
-    if (status === "completed" || status === "Completed")
-      return "Đã hoàn thành";
-    if (status === "pending" || status === "Pending") return "Đang chờ";
-    if (status === "Ongoing") return "Đang diễn ra";
-    if (status === "Upcoming") return "Sắp tới";
-    if (status === "Ended") return "Đã kết thúc";
-    if (status === "Cancelled") return "Đã hủy";
+    if (status === "completed" || status === "Completed") return "Completed";
+    if (status === "pending" || status === "Pending") return "Pending";
+    if (status === "Ongoing") return "Ongoing";
+    if (status === "Upcoming") return "Upcoming";
+    if (status === "Ended") return "Ended";
+    if (status === "Cancelled") return "Cancelled";
     return status;
   };
 
@@ -135,7 +134,7 @@ const FamilyOverview: React.FC = () => {
 
   const formatTime = (timeString: string) => {
     const date = new Date(timeString);
-    return date.toLocaleTimeString("vi-VN", {
+    return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -143,7 +142,7 @@ const FamilyOverview: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -155,7 +154,7 @@ const FamilyOverview: React.FC = () => {
       return `${formatDate(dateString)} ${timeString}`;
     }
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -169,7 +168,7 @@ const FamilyOverview: React.FC = () => {
       <div className="min-h-screen bg-[radial-gradient(120%_120%_at_0%_100%,#dfe9ff_0%,#ffffff_45%,#efd8d3_100%)] p-4 md:p-8 font-sans flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-[#5985D8]" />
-          <p className="text-slate-500 font-medium">Đang tải dữ liệu...</p>
+          <p className="text-slate-500 font-medium">Loading data...</p>
         </div>
       </div>
     );
@@ -182,8 +181,7 @@ const FamilyOverview: React.FC = () => {
           <Card className="border-none shadow-sm bg-white/80 backdrop-blur-sm">
             <CardContent className="pt-6 text-center">
               <p className="text-slate-600">
-                Không tìm thấy thông tin cư dân. Vui lòng liên kết với cư dân
-                trước.
+                Resident not found. Please link with a resident first.
               </p>
             </CardContent>
           </Card>
@@ -202,24 +200,24 @@ const FamilyOverview: React.FC = () => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <h1 className="text-3xl font-bold text-[#5985D8] tracking-tight">
-              Bảng Điều Khiển Gia Đình
+              Family Dashboard
             </h1>
             <p className="text-slate-500 mt-1">
-              Chào mừng trở lại, đây là thông tin cập nhật mới nhất cho{" "}
-              {resident.full_name}.
+              Welcome back, here are the latest updates for {resident.full_name}
+              .
             </p>
           </div>
           {residents.length > 1 && (
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-700 whitespace-nowrap">
-                Chọn cư dân:
+                Select Resident:
               </label>
               <Select
                 value={selectedResidentId}
                 onValueChange={setSelectedResidentId}
               >
                 <SelectTrigger className="w-[200px] bg-white border-slate-200">
-                  <SelectValue placeholder="Chọn cư dân" />
+                  <SelectValue placeholder="Select Resident" />
                 </SelectTrigger>
                 <SelectContent>
                   {residents.map((r) => (
@@ -237,7 +235,7 @@ const FamilyOverview: React.FC = () => {
         <Card className="border-none shadow-sm bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-2 border-b border-slate-100/50">
             <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-              <User className="w-5 h-5 text-[#5985D8]" /> Thông Tin Cư Dân
+              <User className="w-5 h-5 text-[#5985D8]" /> Resident Information
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -254,26 +252,26 @@ const FamilyOverview: React.FC = () => {
                     </h2>
                     <p className="text-sm text-slate-500 font-medium">
                       {resident.room
-                        ? `Phòng ${resident.room.room_number}`
-                        : "Chưa có phòng"}
+                        ? `Room ${resident.room.room_number}`
+                        : "No room"}
                     </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <span className="block text-slate-400 text-xs uppercase font-bold mb-1">
-                      Tuổi
+                      Age
                     </span>
                     <span className="font-semibold text-slate-700">
-                      {resident.age} tuổi
+                      {resident.age} years old
                     </span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <span className="block text-slate-400 text-xs uppercase font-bold mb-1">
-                      Giới tính
+                      Gender
                     </span>
                     <span className="font-semibold text-slate-700">
-                      {resident.gender === "male" ? "Nam" : "Nữ"}
+                      {resident.gender === "male" ? "Male" : "Female"}
                     </span>
                   </div>
                 </div>
@@ -283,7 +281,7 @@ const FamilyOverview: React.FC = () => {
                     {resident.chronicDiseases.length > 0 && (
                       <div>
                         <span className="text-xs text-slate-400 font-bold uppercase mb-1 block">
-                          Bệnh mãn tính
+                          Chronic Diseases
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {resident.chronicDiseases.map((disease: any) => (
@@ -300,7 +298,7 @@ const FamilyOverview: React.FC = () => {
                     {resident.allergies.length > 0 && (
                       <div>
                         <span className="text-xs text-slate-400 font-bold uppercase mb-1 block">
-                          Dị ứng
+                          Allergies
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {resident.allergies.map((allergy: any) => (
@@ -327,7 +325,7 @@ const FamilyOverview: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center mb-4 relative z-10">
                       <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
-                        Dấu Hiệu Sinh Tồn Mới Nhất
+                        Latest Vital Signs
                       </span>
                       <span className="text-[10px] bg-white px-2 py-1 rounded-full text-blue-400 shadow-sm">
                         {formatDateTime(latestVitals.measured_at)}
@@ -338,7 +336,7 @@ const FamilyOverview: React.FC = () => {
                         latestVitals.blood_pressure_diastolic && (
                           <div className="text-center bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                             <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                              Huyết áp
+                              Blood Pressure
                             </span>
                             <span className="font-bold text-slate-700 text-base">
                               {latestVitals.blood_pressure_systolic}/
@@ -349,7 +347,7 @@ const FamilyOverview: React.FC = () => {
                       {latestVitals.heart_rate && (
                         <div className="text-center bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                            Nhịp tim
+                            Heart Rate
                           </span>
                           <span className="font-bold text-slate-700 text-base">
                             {latestVitals.heart_rate} bpm
@@ -359,7 +357,7 @@ const FamilyOverview: React.FC = () => {
                       {latestVitals.temperature_c && (
                         <div className="text-center bg-white/60 rounded-lg p-2 backdrop-blur-sm">
                           <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                            Nhiệt độ
+                            Temperature
                           </span>
                           <span className="font-bold text-slate-700 text-base">
                             {latestVitals.temperature_c.toFixed(1)}°C
@@ -382,7 +380,7 @@ const FamilyOverview: React.FC = () => {
                 {!latestVitals && (
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
                     <p className="text-sm text-slate-500">
-                      Chưa có dữ liệu dấu hiệu sinh tồn
+                      No vital signs data
                     </p>
                   </div>
                 )}
@@ -399,8 +397,7 @@ const FamilyOverview: React.FC = () => {
             <Card className="border-none shadow-sm bg-white">
               <CardHeader className="border-b border-slate-50">
                 <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-slate-400" /> Lịch Hoạt Động
-                  Hôm Nay
+                  <Clock className="w-5 h-5 text-slate-400" /> Today's Schedule
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
@@ -481,11 +478,11 @@ const FamilyOverview: React.FC = () => {
                       </div>
                       <div className="space-y-2">
                         <p className="text-base font-semibold text-slate-600">
-                          Không có lịch hoạt động nào cho hôm nay
+                          No activities for today
                         </p>
                         <p className="text-sm text-slate-400 max-w-md">
-                          Hôm nay là một ngày nghỉ ngơi. Bạn có thể xem lịch
-                          hoạt động tuần này hoặc đặt lịch thăm viếng.
+                          Today is a rest day. You can view the weekly schedule
+                          or book a visit.
                         </p>
                       </div>
                       <Button
@@ -494,7 +491,7 @@ const FamilyOverview: React.FC = () => {
                         className="mt-2 border-[#5985D8] text-[#5985D8] hover:bg-[#5985D8] hover:text-white"
                       >
                         <CalendarIcon className="w-4 h-4 mr-2" />
-                        Xem lịch hoạt động
+                        View schedule
                       </Button>
                     </div>
                   </div>
@@ -510,7 +507,7 @@ const FamilyOverview: React.FC = () => {
               {/* Custom Header with Rounded Top */}
               <div className="bg-blue-50/50 p-5 rounded-t-xl border-b border-blue-100/50">
                 <h3 className="text-lg font-bold text-[#5985D8] flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5" /> Quản Lý Thăm Viếng
+                  <CalendarIcon className="w-5 h-5" /> Visit Management
                 </h3>
               </div>
 
@@ -519,7 +516,7 @@ const FamilyOverview: React.FC = () => {
                 {/* Next Visit Box - Explicit Styling */}
                 <div className="bg-slate-50 rounded-xl p-5 text-center border border-slate-100 shadow-sm">
                   <p className="text-[11px] text-slate-400 uppercase font-extrabold tracking-widest mb-2">
-                    Lịch Thăm Viếng Gần Nhất
+                    Nearest Visit
                   </p>
                   {latestVisit ? (
                     <div className="flex items-center justify-center gap-2 bg-white p-2 rounded-lg border border-slate-100/50 shadow-sm px-4">
@@ -534,7 +531,7 @@ const FamilyOverview: React.FC = () => {
                   ) : (
                     <div className="bg-white p-2 rounded-lg border border-slate-100/50 shadow-sm">
                       <p className="text-sm text-slate-500">
-                        Chưa có lịch thăm viếng
+                        No upcoming visits
                       </p>
                     </div>
                   )}
@@ -544,7 +541,7 @@ const FamilyOverview: React.FC = () => {
                   onClick={() => navigate(path.familySchedule)}
                   className="w-full bg-[#5985D8] hover:bg-[#4a70b8] text-white cursor-pointer shadow-md transition-all hover:shadow-lg h-12 text-base font-medium rounded-lg"
                 >
-                  Đặt Lịch Thăm Viếng Mới
+                  Book New Visit
                 </Button>
               </div>
             </div>
@@ -553,7 +550,8 @@ const FamilyOverview: React.FC = () => {
             <Card className="border-none shadow-sm bg-white">
               <CardHeader className="border-b border-slate-50 pb-3">
                 <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" /> Cảnh Báo
+                  <AlertTriangle className="w-5 h-5 text-amber-500" /> Health
+                  Alerts
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-3">
@@ -569,17 +567,17 @@ const FamilyOverview: React.FC = () => {
                       <div>
                         <p className="font-bold text-sm">
                           {alert.severity === "critical"
-                            ? "Cảnh báo nghiêm trọng"
+                            ? "Critical Alert"
                             : alert.severity === "warning"
-                            ? "Cảnh báo"
-                            : "Thông báo"}
+                            ? "Warning"
+                            : "Notification"}
                         </p>
                         <p className="text-xs opacity-90 leading-tight mt-1">
                           {alert.message}
                         </p>
                         {alert.recommendation && (
                           <p className="text-xs opacity-75 leading-tight mt-1 italic">
-                            Khuyến nghị: {alert.recommendation}
+                            Recommendation: {alert.recommendation}
                           </p>
                         )}
                       </div>
@@ -587,7 +585,7 @@ const FamilyOverview: React.FC = () => {
                   ))
                 ) : (
                   <div className="text-center py-4 text-slate-400 text-sm">
-                    <p>Không có cảnh báo nào</p>
+                    <p>No alerts</p>
                   </div>
                 )}
               </CardContent>

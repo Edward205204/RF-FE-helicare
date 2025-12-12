@@ -37,9 +37,9 @@ import path from "@/constants/path";
 
 const mapStatusToFrontend = (status: FeedbackStatus): string => {
   const mapping: Record<FeedbackStatus, string> = {
-    pending: "Đang chờ",
-    in_progress: "Đang xử lý",
-    resolved: "Đã giải quyết",
+    pending: "Pending",
+    in_progress: "In Progress",
+    resolved: "Resolved",
   };
   return mapping[status] || status;
 };
@@ -120,7 +120,7 @@ const FamilyFeedbackSupport: React.FC = () => {
         error.code !== "ERR_NETWORK" &&
         error.code !== "ECONNREFUSED"
       ) {
-        toast.error("Không thể tải danh mục. Vui lòng thử lại sau.");
+        toast.error("Cannot load categories. Please try again later.");
       }
     } finally {
       setLoadingCategories(false);
@@ -144,7 +144,7 @@ const FamilyFeedbackSupport: React.FC = () => {
     } catch (error: any) {
       console.error("Failed to fetch feedbacks:", error);
       if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
-        toast.error("Không thể tải lịch sử feedback. Vui lòng thử lại sau.");
+        toast.error("Cannot load feedback history. Please try again later.");
       }
     } finally {
       setLoading(false);
@@ -157,7 +157,7 @@ const FamilyFeedbackSupport: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!selectedCategory || !message) {
-      toast.error("Vui lòng điền đầy đủ các trường bắt buộc.");
+      toast.error("Please fill in all required fields.");
       return;
     }
 
@@ -168,11 +168,11 @@ const FamilyFeedbackSupport: React.FC = () => {
         requiredFields.includes("resident_id") &&
         (!selectedResidentId || selectedResidentId === "none")
       ) {
-        toast.error("Vui lòng chọn cư dân.");
+        toast.error("Please select a resident.");
         return;
       }
       if (requiredFields.includes("type") && !selectedType) {
-        toast.error("Vui lòng chọn loại feedback.");
+        toast.error("Please select a feedback type.");
         return;
       }
     }
@@ -182,7 +182,7 @@ const FamilyFeedbackSupport: React.FC = () => {
       selectedCategoryData?.metadata?.attachmentsRequired &&
       attachments.length === 0
     ) {
-      toast.error("Vui lòng đính kèm file.");
+      toast.error("Please attach a file.");
       return;
     }
 
@@ -197,7 +197,7 @@ const FamilyFeedbackSupport: React.FC = () => {
         // const uploadPromises = attachments.map(file => uploadFile(file));
         // const uploadResults = await Promise.all(uploadPromises);
         // attachmentUrls = uploadResults.map(r => r.data.url);
-        toast.info("Tính năng upload file đang được phát triển.");
+        toast.info("File upload feature is under development.");
       }
 
       const feedbackData = {
@@ -224,12 +224,12 @@ const FamilyFeedbackSupport: React.FC = () => {
       setMessage("");
       setAttachments([]);
 
-      toast.success("Gửi feedback thành công!");
+      toast.success("Feedback sent successfully!");
     } catch (error: any) {
       console.error("Failed to submit feedback:", error);
       toast.error(
         error.response?.data?.message ||
-          "Không thể gửi feedback. Vui lòng thử lại sau."
+          "Cannot send feedback. Please try again later."
       );
     } finally {
       setSubmitting(false);
@@ -257,17 +257,17 @@ const FamilyFeedbackSupport: React.FC = () => {
         <Card className="bg-white shadow-sm border rounded-xl p-8">
           <div className="text-center space-y-4">
             <h2 className="text-xl font-semibold text-gray-800">
-              Chưa liên kết với viện dưỡng lão
+              Not linked to nursing home
             </h2>
             <p className="text-gray-600">
-              Vui lòng liên kết tài khoản của bạn với một resident tại viện
-              dưỡng lão trước khi sử dụng tính năng này.
+              Please link your account with a resident at the nursing home
+              before using this feature.
             </p>
             <Button
               onClick={() => (window.location.href = path.familyResidents)}
               className="mt-4"
             >
-              Đi đến trang "My Residents"
+              Go to "My Residents" page
             </Button>
           </div>
         </Card>
@@ -281,13 +281,13 @@ const FamilyFeedbackSupport: React.FC = () => {
         className="text-2xl font-bold mb-6 text-center"
         style={{ color: "#5985D8" }}
       >
-        Phản hồi & Hỗ trợ
+        Feedback & Support
       </h1>
 
       {/* Submit Feedback Section */}
       <Card className="mb-8 bg-white shadow-sm border rounded-xl">
         <CardHeader>
-          <CardTitle>Gửi Feedback hoặc Yêu cầu Hỗ trợ</CardTitle>
+          <CardTitle>Send Feedback or Support Request</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {loadingCategories ? (
@@ -298,29 +298,29 @@ const FamilyFeedbackSupport: React.FC = () => {
             <>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Danh mục *
+                  Category *
                 </label>
                 <Select
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
                 >
                   <SelectTrigger className="cursor-pointer">
-                    <SelectValue placeholder="Chọn danh mục" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories && categories.length > 0 ? (
                       categories.map((cat) => (
-                      <SelectItem
-                        key={cat.category_id}
+                        <SelectItem
+                          key={cat.category_id}
                           value={cat.category_id || ""}
-                        className="cursor-pointer"
-                      >
-                          {cat.name || "Danh mục chưa đặt tên"}
+                          className="cursor-pointer"
+                        >
+                          {cat.name || "Unnamed category"}
                         </SelectItem>
                       ))
                     ) : (
                       <SelectItem value="no-categories" disabled>
-                        Không có danh mục
+                        No categories
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -336,7 +336,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                 selectedCategoryData.metadata.types.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Loại{" "}
+                      Type{" "}
                       {selectedCategoryData.metadata.requiredFields?.includes(
                         "type"
                       ) && "*"}
@@ -346,23 +346,23 @@ const FamilyFeedbackSupport: React.FC = () => {
                       onValueChange={setSelectedType}
                     >
                       <SelectTrigger className="cursor-pointer">
-                        <SelectValue placeholder="Chọn loại" />
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
                         {selectedCategoryData.metadata.types &&
                         selectedCategoryData.metadata.types.length > 0 ? (
                           selectedCategoryData.metadata.types.map((type) => (
-                          <SelectItem
+                            <SelectItem
                               key={type || "unknown"}
                               value={type || ""}
-                            className="cursor-pointer"
-                          >
-                              {type || "Không xác định"}
+                              className="cursor-pointer"
+                            >
+                              {type || "Unknown"}
                             </SelectItem>
                           ))
                         ) : (
                           <SelectItem value="no-types" disabled>
-                            Không có loại
+                            No types
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -373,7 +373,7 @@ const FamilyFeedbackSupport: React.FC = () => {
               {residents.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Cư dân{" "}
+                    Resident{" "}
                     {selectedCategoryData?.metadata?.requiredFields?.includes(
                       "resident_id"
                     ) && "*"}
@@ -383,23 +383,23 @@ const FamilyFeedbackSupport: React.FC = () => {
                     onValueChange={setSelectedResidentId}
                   >
                     <SelectTrigger className="cursor-pointer">
-                      <SelectValue placeholder="Chọn cư dân (tùy chọn)" />
+                      <SelectValue placeholder="Select resident (optional)" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none" className="cursor-pointer">
-                        Không chọn
+                        None
                       </SelectItem>
-                      {residents && residents.length > 0 ? (
-                        residents.map((resident) => (
-                        <SelectItem
-                          key={resident.resident_id}
-                            value={resident.resident_id || ""}
-                          className="cursor-pointer"
-                        >
-                            {resident.full_name || "Cư dân không xác định"}
-                        </SelectItem>
-                        ))
-                      ) : null}
+                      {residents && residents.length > 0
+                        ? residents.map((resident) => (
+                            <SelectItem
+                              key={resident.resident_id}
+                              value={resident.resident_id || ""}
+                              className="cursor-pointer"
+                            >
+                              {resident.full_name || "Unknown resident"}
+                            </SelectItem>
+                          ))
+                        : null}
                     </SelectContent>
                   </Select>
                 </div>
@@ -407,23 +407,23 @@ const FamilyFeedbackSupport: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Nội dung *
+                  Content *
                 </label>
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Mô tả feedback hoặc vấn đề của bạn"
+                  placeholder="Describe your feedback or issue"
                   rows={6}
                   className="resize-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {message.length}/5000 ký tự
+                  {message.length}/5000 characters
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  File đính kèm{" "}
+                  Attached files{" "}
                   {selectedCategoryData?.metadata?.attachmentsRequired && "*"}
                 </label>
                 <Input
@@ -436,7 +436,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                 />
                 {attachments.length > 0 && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Đã chọn {attachments.length} file
+                    Selected {attachments.length} file(s)
                   </p>
                 )}
               </div>
@@ -450,10 +450,10 @@ const FamilyFeedbackSupport: React.FC = () => {
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang gửi...
+                    Sending...
                   </>
                 ) : (
-                  "Gửi Feedback"
+                  "Send Feedback"
                 )}
               </Button>
             </>
@@ -464,7 +464,7 @@ const FamilyFeedbackSupport: React.FC = () => {
       {/* Feedback History Section */}
       <Card className="bg-white shadow-sm border rounded-xl">
         <CardHeader>
-          <CardTitle>Lịch sử Feedback</CardTitle>
+          <CardTitle>Feedback History</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-96 overflow-auto">
@@ -473,9 +473,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : submissions.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                Chưa có feedback nào.
-              </p>
+              <p className="text-center text-gray-500 py-8">No feedback.</p>
             ) : (
               submissions.map((submission, index) => (
                 <div key={submission.feedback_id}>
@@ -486,7 +484,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                           {mapStatusToFrontend(submission.status)}
                         </Badge>
                         <span className="text-sm text-gray-600">
-                          {submission.category?.name || "Không có"}
+                          {submission.category?.name || "None"}
                         </span>
                         {submission.type && (
                           <span className="text-xs text-gray-500">
@@ -496,11 +494,11 @@ const FamilyFeedbackSupport: React.FC = () => {
                       </div>
                       {submission.resident && (
                         <p className="text-sm font-medium text-gray-700">
-                          Cư dân: {submission.resident.full_name}
+                          Resident: {submission.resident.full_name}
                           {submission.resident.room && (
                             <span className="text-gray-500">
                               {" "}
-                              - Phòng {submission.resident.room.room_number}
+                              - Room {submission.resident.room.room_number}
                             </span>
                           )}
                         </p>
@@ -510,9 +508,9 @@ const FamilyFeedbackSupport: React.FC = () => {
                         {submission.message.length > 150 ? "..." : ""}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        Gửi:{" "}
+                        Sent:{" "}
                         {new Date(submission.created_at).toLocaleDateString(
-                          "vi-VN",
+                          "en-US",
                           {
                             day: "2-digit",
                             month: "2-digit",
@@ -528,7 +526,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                       onClick={() => handleViewDetails(submission)}
                       className="ml-4 cursor-pointer"
                     >
-                      Xem chi tiết
+                      View details
                     </Button>
                   </div>
                   {index < submissions.length - 1 && (
@@ -545,46 +543,46 @@ const FamilyFeedbackSupport: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chi tiết Feedback</DialogTitle>
+            <DialogTitle>Feedback Details</DialogTitle>
           </DialogHeader>
           {selectedSubmission && (
             <div className="space-y-4">
               <div>
-                <strong>Danh mục:</strong>{" "}
-                {selectedSubmission.category?.name || "Không có"}
+                <strong>Category:</strong>{" "}
+                {selectedSubmission.category?.name || "None"}
               </div>
               {selectedSubmission.type && (
                 <div>
-                  <strong>Loại:</strong> {selectedSubmission.type}
+                  <strong>Type:</strong> {selectedSubmission.type}
                 </div>
               )}
               {selectedSubmission.resident && (
                 <div>
-                  <strong>Cư dân:</strong>{" "}
+                  <strong>Resident:</strong>{" "}
                   {selectedSubmission.resident.full_name}
                   {selectedSubmission.resident.room && (
                     <span className="text-gray-600">
                       {" "}
-                      - Phòng {selectedSubmission.resident.room.room_number}
+                      - Room {selectedSubmission.resident.room.room_number}
                     </span>
                   )}
                 </div>
               )}
               <div>
-                <strong>Nội dung:</strong>
+                <strong>Content:</strong>
                 <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
                   {selectedSubmission.message}
                 </p>
               </div>
               <div>
-                <strong>Trạng thái:</strong>{" "}
+                <strong>Status:</strong>{" "}
                 <Badge className={getStatusColor(selectedSubmission.status)}>
                   {mapStatusToFrontend(selectedSubmission.status)}
                 </Badge>
               </div>
               {selectedSubmission.staff_notes && (
                 <div>
-                  <strong>Ghi chú từ nhân viên:</strong>
+                  <strong>Staff notes:</strong>
                   <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
                     {selectedSubmission.staff_notes}
                   </p>
@@ -592,29 +590,29 @@ const FamilyFeedbackSupport: React.FC = () => {
               )}
               {selectedSubmission.assigned_staff && (
                 <div>
-                  <strong>Nhân viên phụ trách:</strong>{" "}
+                  <strong>Assigned Staff:</strong>{" "}
                   {selectedSubmission.assigned_staff.staffProfile?.full_name ||
-                    "Không có"}
+                    "None"}
                 </div>
               )}
               <div>
-                <strong>Ngày gửi:</strong>{" "}
+                <strong>Sent Date:</strong>{" "}
                 {new Date(selectedSubmission.created_at).toLocaleString(
-                  "vi-VN"
+                  "en-US"
                 )}
               </div>
               {selectedSubmission.resolved_at && (
                 <div>
-                  <strong>Ngày giải quyết:</strong>{" "}
+                  <strong>Resolved Date:</strong>{" "}
                   {new Date(selectedSubmission.resolved_at).toLocaleString(
-                    "vi-VN"
+                    "en-US"
                   )}
                 </div>
               )}
               {selectedSubmission.attachments &&
                 selectedSubmission.attachments.length > 0 && (
                   <div>
-                    <strong>Tệp đính kèm:</strong>
+                    <strong>Attachments:</strong>
                     <div className="mt-2 space-y-2">
                       {selectedSubmission.attachments.map((url, idx) => (
                         <a
@@ -624,7 +622,7 @@ const FamilyFeedbackSupport: React.FC = () => {
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline block"
                         >
-                          Tệp {idx + 1}
+                          File {idx + 1}
                         </a>
                       ))}
                     </div>

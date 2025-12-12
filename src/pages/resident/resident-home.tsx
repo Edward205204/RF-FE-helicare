@@ -30,14 +30,14 @@ const ResidentHome: React.FC = () => {
         if (response.data) {
           setDashboardData(response.data);
         } else {
-          toast.error("Không tìm thấy thông tin.");
+          toast.error("Information not found.");
         }
       } catch (error: any) {
         console.error("Error fetching dashboard data:", error);
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
           toast.error(
             error.response?.data?.message ||
-              "Không thể tải dữ liệu. Vui lòng thử lại sau."
+              "Cannot load data. Please try again later."
           );
         }
       } finally {
@@ -62,11 +62,10 @@ const ResidentHome: React.FC = () => {
   };
 
   const getStatusText = (status: string) => {
-    if (status === "completed" || status === "Completed")
-      return "Đã hoàn thành";
-    if (status === "pending" || status === "Pending") return "Đang chờ";
-    if (status === "Ongoing") return "Đang diễn ra";
-    if (status === "Upcoming") return "Sắp tới";
+    if (status === "completed" || status === "Completed") return "Completed";
+    if (status === "pending" || status === "Pending") return "Pending";
+    if (status === "Ongoing") return "Ongoing";
+    if (status === "Upcoming") return "Upcoming";
     return status;
   };
 
@@ -83,7 +82,7 @@ const ResidentHome: React.FC = () => {
 
   const formatTime = (timeString: string) => {
     const date = new Date(timeString);
-    return date.toLocaleTimeString("vi-VN", {
+    return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -91,7 +90,7 @@ const ResidentHome: React.FC = () => {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
+    return date.toLocaleString("en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -105,7 +104,7 @@ const ResidentHome: React.FC = () => {
       <div className="min-h-screen bg-white p-4 md:p-8 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-[#5985D8]" />
-          <p className="text-slate-500 font-medium">Đang tải dữ liệu...</p>
+          <p className="text-slate-500 font-medium">Loading data...</p>
         </div>
       </div>
     );
@@ -117,7 +116,7 @@ const ResidentHome: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <Card className="border-gray-200 shadow-sm">
             <CardContent className="pt-6 text-center">
-              <p className="text-slate-600">Không tìm thấy thông tin.</p>
+              <p className="text-slate-600">Information not found.</p>
             </CardContent>
           </Card>
         </div>
@@ -134,10 +133,10 @@ const ResidentHome: React.FC = () => {
         {/* HEADER */}
         <div>
           <h1 className="text-3xl font-bold text-[#5985D8] tracking-tight">
-            Trang Chủ
+            Home
           </h1>
           <p className="text-slate-500 mt-1">
-            Chào mừng trở lại, {resident?.full_name || "Cư dân"}.
+            Welcome back, {resident?.full_name || "Resident"}.
           </p>
         </div>
 
@@ -145,7 +144,7 @@ const ResidentHome: React.FC = () => {
         <Card className="border-gray-200 shadow-sm">
           <CardHeader className="pb-2 border-b border-gray-100">
             <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-              <User className="w-5 h-5 text-[#5985D8]" /> Thông Tin Cá Nhân
+              <User className="w-5 h-5 text-[#5985D8]" /> Personal Information
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -157,12 +156,12 @@ const ResidentHome: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-slate-800">
-                      {resident?.full_name || "Cư dân"}
+                      {resident?.full_name || "Resident"}
                     </h2>
                     <p className="text-sm text-slate-500 font-medium">
                       {resident?.room
-                        ? `Phòng ${resident.room.room_number}`
-                        : "Chưa có phòng"}
+                        ? `Room ${resident.room.room_number}`
+                        : "No room"}
                     </p>
                   </div>
                 </div>
@@ -172,14 +171,14 @@ const ResidentHome: React.FC = () => {
                 {latestVitals && (
                   <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
                     <span className="text-xs font-bold text-blue-600 uppercase mb-2 block">
-                      Dấu Hiệu Sinh Tồn Mới Nhất
+                      Latest Vital Signs
                     </span>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       {latestVitals.blood_pressure_systolic &&
                         latestVitals.blood_pressure_diastolic && (
                           <div className="text-center bg-white rounded-lg p-2">
                             <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                              Huyết áp
+                              Blood Pressure
                             </span>
                             <span className="font-bold text-slate-700 text-base">
                               {latestVitals.blood_pressure_systolic}/
@@ -190,7 +189,7 @@ const ResidentHome: React.FC = () => {
                       {latestVitals.heart_rate && (
                         <div className="text-center bg-white rounded-lg p-2">
                           <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                            Nhịp tim
+                            Heart Rate
                           </span>
                           <span className="font-bold text-slate-700 text-base">
                             {latestVitals.heart_rate} bpm
@@ -200,7 +199,7 @@ const ResidentHome: React.FC = () => {
                       {latestVitals.temperature_c && (
                         <div className="text-center bg-white rounded-lg p-2">
                           <span className="block text-slate-400 text-[10px] font-bold uppercase mb-1">
-                            Nhiệt độ
+                            Temperature
                           </span>
                           <span className="font-bold text-slate-700 text-base">
                             {latestVitals.temperature_c.toFixed(1)}°C
@@ -222,8 +221,7 @@ const ResidentHome: React.FC = () => {
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-slate-400" /> Lịch Hoạt Động
-                  Hôm Nay
+                  <Clock className="w-5 h-5 text-slate-400" /> Today's Schedule
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
@@ -285,7 +283,7 @@ const ResidentHome: React.FC = () => {
                         <CalendarIcon className="w-8 h-8 text-slate-400" />
                       </div>
                       <p className="text-base font-semibold text-slate-600">
-                        Không có lịch hoạt động nào cho hôm nay
+                        No activities scheduled for today
                       </p>
                     </div>
                   </div>
@@ -299,7 +297,7 @@ const ResidentHome: React.FC = () => {
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="border-b border-gray-100 pb-3">
                 <CardTitle className="text-lg text-slate-700 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" /> Cảnh Báo
+                  <AlertTriangle className="w-5 h-5 text-amber-500" /> Alerts
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-3">
@@ -315,10 +313,10 @@ const ResidentHome: React.FC = () => {
                       <div>
                         <p className="font-bold text-sm">
                           {alert.severity === "critical"
-                            ? "Cảnh báo nghiêm trọng"
+                            ? "Critical Alert"
                             : alert.severity === "warning"
-                            ? "Cảnh báo"
-                            : "Thông báo"}
+                            ? "Warning"
+                            : "Notice"}
                         </p>
                         <p className="text-xs opacity-90 leading-tight mt-1">
                           {alert.message}
@@ -328,7 +326,7 @@ const ResidentHome: React.FC = () => {
                   ))
                 ) : (
                   <div className="text-center py-4 text-slate-400 text-sm">
-                    <p>Không có cảnh báo nào</p>
+                    <p>No alerts</p>
                   </div>
                 )}
               </CardContent>
@@ -341,4 +339,3 @@ const ResidentHome: React.FC = () => {
 };
 
 export default ResidentHome;
-

@@ -37,7 +37,7 @@ const DEFAULT_INPUT_STYLE =
 const decodeToken = (token: string) => {
   const parts = token.split(".");
   if (parts.length !== 3) {
-    throw new Error("Token không hợp lệ");
+    throw new Error("Invalid token");
   }
   const payloadSegment = parts[1].replace(/-/g, "+").replace(/_/g, "/");
   const padded =
@@ -84,14 +84,14 @@ const VerifyStaffInvite: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setDecodeError("Không tìm thấy token trong đường dẫn.");
+      setDecodeError("Token not found in URL.");
       setIsTokenValid(false);
       return;
     }
     try {
       const decoded = decodeToken(token);
       if (!decoded.email) {
-        throw new Error("Token không chứa email hợp lệ.");
+        throw new Error("Token does not contain a valid email.");
       }
       setValue("email", decoded.email);
       setValue("staff_invite_token", token);
@@ -111,7 +111,7 @@ const VerifyStaffInvite: React.FC = () => {
     ) {
       setError("confirm_password", {
         type: "validate",
-        message: "Mật khẩu xác nhận không khớp",
+        message: "Confirm password does not match",
       });
     } else {
       clearErrors("confirm_password");
@@ -125,7 +125,7 @@ const VerifyStaffInvite: React.FC = () => {
         avatar: values.avatar ?? undefined,
       };
       const response = await verifyStaffInviteAndResetPassword(payload);
-      toast.success(response.message || "Kích hoạt tài khoản thành công");
+      toast.success(response.message || "Account activated successfully");
       reset({
         email: values.email,
         password: "",
@@ -143,7 +143,7 @@ const VerifyStaffInvite: React.FC = () => {
             const message =
               typeof value?.msg === "string"
                 ? value.msg
-                : value?.msg?.message || "Thông tin không hợp lệ";
+                : value?.msg?.message || "Invalid information";
             setError(key as keyof FormValues, {
               type: "server",
               message,
@@ -154,7 +154,7 @@ const VerifyStaffInvite: React.FC = () => {
         const message =
           err.response?.data?.message ||
           err.message ||
-          "Không thể xác thực lời mời";
+          "Cannot verify invitation";
         toast.error(message);
       }
     }
@@ -165,10 +165,10 @@ const VerifyStaffInvite: React.FC = () => {
       <Card className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white shadow-lg">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-2xl font-semibold text-gray-900">
-            Kích hoạt tài khoản Staff
+            Activate Staff Account
           </CardTitle>
           <CardDescription className="text-sm text-gray-500">
-            Đặt mật khẩu truy cập và hoàn tất hồ sơ cá nhân của bạn.
+            Set your access password and complete your profile.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -181,7 +181,7 @@ const VerifyStaffInvite: React.FC = () => {
             <input
               type="hidden"
               {...register("staff_invite_token", {
-                required: "Token là bắt buộc",
+                required: "Token is required",
               })}
             />
             <div className="space-y-2">
@@ -203,18 +203,18 @@ const VerifyStaffInvite: React.FC = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm text-gray-700">
-                  Mật khẩu mới
+                  New password
                 </Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Nhập mật khẩu"
+                  placeholder="Enter password"
                   className={DEFAULT_INPUT_STYLE}
                   {...register("password", {
-                    required: "Mật khẩu là bắt buộc",
+                    required: "Password is required",
                     minLength: {
                       value: 8,
-                      message: "Mật khẩu tối thiểu 8 ký tự",
+                      message: "Password must be at least 8 characters",
                     },
                   })}
                 />
@@ -228,18 +228,18 @@ const VerifyStaffInvite: React.FC = () => {
                   htmlFor="confirm_password"
                   className="text-sm text-gray-700"
                 >
-                  Xác nhận mật khẩu
+                  Confirm password
                 </Label>
                 <Input
                   id="confirm_password"
                   type="password"
-                  placeholder="Nhập lại mật khẩu"
+                  placeholder="Re-enter password"
                   className={DEFAULT_INPUT_STYLE}
                   {...register("confirm_password", {
-                    required: "Vui lòng xác nhận mật khẩu",
+                    required: "Please confirm your password",
                     validate: (value) =>
                       value === watch("password") ||
-                      "Mật khẩu xác nhận không khớp",
+                      "Confirm password does not match",
                   })}
                 />
                 <p className="min-h-[1rem] text-sm text-red-500">
@@ -257,10 +257,10 @@ const VerifyStaffInvite: React.FC = () => {
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Đang kích hoạt...
+                    Activating...
                   </span>
                 ) : (
-                  "Hoàn tất kích hoạt"
+                  "Complete Activation"
                 )}
               </Button>
             </CardFooter>

@@ -97,7 +97,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
         setRooms(roomsResponse.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Không thể tải dữ liệu phòng");
+        toast.error("Cannot load room data");
       }
     };
     fetchData();
@@ -142,7 +142,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
       console.log("✅ [createEvent] Event created successfully!");
       console.log("📦 [createEvent] Response:", response);
       console.log("📦 [createEvent] Response.data:", response.data);
-      
+
       toast.success("Event created successfully!");
 
       console.log("🧭 [createEvent] Navigating to manage-event with state:", {
@@ -153,7 +153,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
       console.error("Error creating event:", error);
       toast.error(
         error.response?.data?.message ||
-          "Không thể tạo sự kiện. Vui lòng thử lại."
+          "Cannot create event. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -197,47 +197,47 @@ export default function StaffCreateEvent(): React.JSX.Element {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
-                  <CardTitle className="text-lg">Thông tin Chung</CardTitle>
+                  <CardTitle className="text-lg">General Information</CardTitle>
                 </div>
                 <CardDescription>
-                  Chọn loại sự kiện và thông tin cơ bản.
+                  Select event type and basic information.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6 md:grid-cols-2">
                 {/* Event Type */}
                 <div className="space-y-2">
-                  <Label>Loại Sự kiện *</Label>
+                  <Label>Event Type *</Label>
                   <Select
                     value={eventType}
                     onValueChange={(v) => setEventType(v as EventKind)}
                   >
                     <SelectTrigger className="bg-white border-b border-slate-200">
-                      <SelectValue placeholder="Chọn loại sự kiện" />
+                      <SelectValue placeholder="Select event type" />
                     </SelectTrigger>
                     <SelectContent className="border-b border-slate-200 bg-white">
-                      <SelectItem value="Care">Sự kiện Chăm sóc</SelectItem>
+                      <SelectItem value="Care">Care Event</SelectItem>
                       <SelectItem value="Entertainment">
-                        Giải trí
+                        Entertainment
                       </SelectItem>
-                      <SelectItem value="Other">Khác</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Event Name */}
                 <div className="space-y-2">
-                  <Label>Tên Sự kiện *</Label>
+                  <Label>Event Name *</Label>
                   <Input
                     value={eventName}
                     onChange={(e) => setEventName(e.target.value)}
-                    placeholder="VD: Yoga buổi sáng, Kiểm tra định kỳ"
+                    placeholder="e.g., Morning Yoga, Routine Checkup"
                     className="bg-white border-b border-slate-200"
                   />
                 </div>
 
                 {/* Date & Time (Improved UX with useRef) */}
                 <div className="space-y-2">
-                  <Label>Ngày & Giờ Bắt đầu *</Label>
+                  <Label>Start Date & Time *</Label>
                   <div
                     className="relative group cursor-pointer"
                     onClick={() => scheduledAtRef.current?.showPicker()}
@@ -254,7 +254,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Ngày & Giờ Kết thúc *</Label>
+                  <Label>End Date & Time *</Label>
                   <div
                     className="relative group cursor-pointer"
                     onClick={() => endAtRef.current?.showPicker()}
@@ -293,16 +293,16 @@ export default function StaffCreateEvent(): React.JSX.Element {
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-1 bg-purple-500 rounded-full"></div>
                     <CardTitle className="text-lg">
-                      Cấu hình Chăm sóc
+                      Care Configuration
                     </CardTitle>
                   </div>
                   <CardDescription>
-                    Phân công nhân viên và thiết lập chi tiết danh mục.
+                    Assign staff and set category details.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Loại phụ *</Label>
+                    <Label>Sub-Type *</Label>
                     <Select
                       value={careSubType}
                       onValueChange={(v) =>
@@ -310,59 +310,61 @@ export default function StaffCreateEvent(): React.JSX.Element {
                       }
                     >
                       <SelectTrigger className="bg-white border-b border-slate-200">
-                        <SelectValue placeholder="Chọn loại phụ" />
+                        <SelectValue placeholder="Select sub-type" />
                       </SelectTrigger>
                       <SelectContent className="border-b border-slate-200 bg-white">
-                        <SelectItem value="VitalCheck">Kiểm tra Dấu hiệu Sinh tồn</SelectItem>
-                        <SelectItem value="Therapy">Trị liệu</SelectItem>
-                        <SelectItem value="MedicationAdmin">
-                          Quản lý Thuốc
+                        <SelectItem value="VitalCheck">
+                          Vital Signs Check
                         </SelectItem>
-                        <SelectItem value="Hygiene">Vệ sinh</SelectItem>
-                        <SelectItem value="Meal">Bữa ăn / Dinh dưỡng</SelectItem>
-                        <SelectItem value="Other">Khác</SelectItem>
+                        <SelectItem value="Therapy">Therapy</SelectItem>
+                        <SelectItem value="MedicationAdmin">
+                          Medication Management
+                        </SelectItem>
+                        <SelectItem value="Hygiene">Hygiene</SelectItem>
+                        <SelectItem value="Meal">Meal / Nutrition</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Tần suất</Label>
+                    <Label>Frequency</Label>
                     <Select
                       value={freq}
                       onValueChange={(v) => setFreq(v as Frequency)}
                     >
                       <SelectTrigger className="bg-white border-b border-slate-200">
-                        <SelectValue placeholder="Chọn tần suất" />
+                        <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
                       <SelectContent className="border-b border-slate-200 bg-white">
-                        <SelectItem value="OneTime">Một lần</SelectItem>
-                        <SelectItem value="Daily">Hàng ngày</SelectItem>
-                        <SelectItem value="Weekly">Hàng tuần</SelectItem>
-                        <SelectItem value="Monthly">Hàng tháng</SelectItem>
+                        <SelectItem value="OneTime">One Time</SelectItem>
+                        <SelectItem value="Daily">Daily</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Multi-room selection for special care events */}
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Phòng (Tùy chọn - cho sự kiện chăm sóc đặc biệt)</Label>
+                    <Label>Room (Optional - for special care events)</Label>
                     <MultiSelect
                       options={rooms.map((room) => ({
                         value: room.room_id,
-                        label: `Phòng ${room.room_number} (${room.type})`,
+                        label: `Room ${room.room_number} (${room.type})`,
                       }))}
                       value={rooms
                         .filter((r) => roomIds.includes(r.room_id))
                         .map((r) => ({
                           value: r.room_id,
-                          label: `Phòng ${r.room_number} (${r.type})`,
+                          label: `Room ${r.room_number} (${r.type})`,
                         }))}
                       onChange={(selected) =>
                         setRoomIds(
                           (selected || []).map((option) => option.value)
                         )
                       }
-                      placeholder="Chọn phòng (tùy chọn)..."
+                      placeholder="Select room (optional)..."
                       isMulti
                       className="react-select-container"
                       classNamePrefix="react-select"
@@ -387,7 +389,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
             <Card className="rounded-xl border-gray-200 shadow-md bg-white sticky top-24">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
                 <CardTitle className="text-base font-semibold text-center text-slate-800">
-                  Tóm tắt Sự kiện
+                  Event Summary
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-5">
@@ -397,15 +399,16 @@ export default function StaffCreateEvent(): React.JSX.Element {
                     <Clock className="h-4 w-4 text-blue-600" />
                   </div>
                   <div className="text-sm">
-                    <p className="font-medium text-slate-900">Lịch trình</p>
+                    <p className="font-medium text-slate-900">Schedule</p>
                     <p className="text-slate-500">
-                      Bắt đầu:{" "}
+                      Start:{" "}
                       {scheduledAt
-                        ? new Date(scheduledAt).toLocaleString("vi-VN")
+                        ? new Date(scheduledAt).toLocaleString("en-US")
                         : "—"}
                     </p>
                     <p className="text-slate-500">
-                      Kết thúc: {endAt ? new Date(endAt).toLocaleString("vi-VN") : "—"}
+                      End:{" "}
+                      {endAt ? new Date(endAt).toLocaleString("en-US") : "—"}
                     </p>
                   </div>
                 </div>
@@ -415,7 +418,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
                 {/* Details List */}
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Loại</span>
+                    <span className="text-slate-500">Type</span>
                     <Badge variant="outline" className="capitalize">
                       {eventType}
                     </Badge>
@@ -424,18 +427,18 @@ export default function StaffCreateEvent(): React.JSX.Element {
                   {eventType === "Care" && (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Loại phụ</span>
+                        <span className="text-slate-500">Sub-Type</span>
                         <span className="font-medium">{careSubType}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Tần suất</span>
+                        <span className="text-slate-500">Frequency</span>
                         <span className="font-medium">{freq}</span>
                       </div>
                       {roomIds.length > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Phòng</span>
+                          <span className="text-slate-500">Room</span>
                           <span className="font-medium">
-                            Đã chọn {roomIds.length}
+                            Selected {roomIds.length}
                           </span>
                         </div>
                       )}
@@ -444,7 +447,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
 
                   {location && (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Địa điểm</span>
+                      <span className="text-slate-500">Location</span>
                       <span className="font-medium truncate max-w-[120px]">
                         {location}
                       </span>
@@ -457,8 +460,9 @@ export default function StaffCreateEvent(): React.JSX.Element {
                   <div className="flex gap-2 p-3 bg-amber-50 text-amber-700 rounded-lg text-xs items-start">
                     <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>
-                      Vui lòng hoàn thành tất cả các trường bắt buộc (Loại Sự kiện, Tên Sự kiện, Thời gian Bắt đầu, Thời gian Kết thúc
-                      {eventType === "Care" ? ", Loại phụ" : ""}).
+                      Please complete all required fields (Event Type, Event
+                      Name, Start Date, End Date
+                      {eventType === "Care" ? ", Sub-Type" : ""}).
                     </span>
                   </div>
                 )}
@@ -472,11 +476,11 @@ export default function StaffCreateEvent(): React.JSX.Element {
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
-                        Đang tạo...
+                        Creating...
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" /> Xác nhận & Tạo
+                        <CheckCircle2 className="h-4 w-4" /> Confirm & Create
                       </span>
                     )}
                   </Button>
@@ -486,7 +490,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
                     className="w-full text-slate-500 hover:text-slate-700"
                     onClick={() => navigate(path.staffManageEvent)}
                   >
-                    Hủy
+                    Cancel
                   </Button>
                 </div>
               </CardContent>

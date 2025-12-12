@@ -64,18 +64,18 @@ export default function Signup() {
       ></div>
       <div className="flex fixed inset-0 z-10 justify-center items-center">
         <div className="absolute top-6 right-10 text-sm text-gray-700">
-          Đã có tài khoản?{" "}
+          Already have an account?{" "}
           <button
             type="button"
             className="underline"
             onClick={() => navigate(path.signin)}
           >
-            Đăng nhập
+            Sign In
           </button>
         </div>
         <div className="bg-white rounded-[2rem] shadow-xl w-full max-w-md mx-auto p-10 flex flex-col items-center justify-center">
           <h2 className="text-3xl font-semibold mb-8 text-center text-[#5985d8]">
-            Tạo tài khoản
+            Create Account
           </h2>
           <form
             className="flex flex-col gap-4 w-full"
@@ -85,14 +85,14 @@ export default function Signup() {
               htmlFor="full_name"
               className="block text-sm font-normal text-left text-gray-700"
             >
-              Họ và tên
+              Full Name
             </Label>
             <Input
               type="text"
               className={`w-full rounded-md border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#5985d8] h-auto ${
                 errors.full_name ? "border-red-500" : "border-gray-400"
               }`}
-              placeholder="Nguyễn Văn A"
+              placeholder="John Doe"
               aria-label="Full Name"
               id="full_name"
               {...register("full_name")}
@@ -110,7 +110,7 @@ export default function Signup() {
               htmlFor="email"
               className="block text-sm font-normal text-left text-gray-700"
             >
-              Địa chỉ Email
+              Email Address
             </Label>
             <Input
               type="email"
@@ -137,7 +137,7 @@ export default function Signup() {
                 htmlFor="password"
                 className="block flex-1 text-sm font-normal text-left text-gray-700"
               >
-                Mật khẩu
+                Password
               </Label>
               <Button
                 type="button"
@@ -146,7 +146,7 @@ export default function Signup() {
                 className="text-[#5985d8] p-0 rounded focus:outline-none ml-2 h-auto w-auto"
                 onClick={() => setShowPassword((v) => !v)}
                 tabIndex={-1}
-                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </Button>
@@ -156,7 +156,7 @@ export default function Signup() {
               className={`w-full rounded-md border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#5985d8] h-auto ${
                 errors.password ? "border-red-500" : "border-gray-400"
               }`}
-              placeholder="Nhập mật khẩu"
+              placeholder="Enter password"
               id="password"
               {...register("password")}
               autoComplete="new-password"
@@ -174,7 +174,7 @@ export default function Signup() {
                 htmlFor="confirm_password"
                 className="block flex-1 text-sm font-normal text-left text-gray-700"
               >
-                Xác nhận Mật khẩu
+                Confirm Password
               </Label>
               <Button
                 type="button"
@@ -184,7 +184,7 @@ export default function Signup() {
                 onClick={() => setShowConfirmPassword((v) => !v)}
                 tabIndex={-1}
                 aria-label={
-                  showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                  showConfirmPassword ? "Hide password" : "Show password"
                 }
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -195,7 +195,7 @@ export default function Signup() {
               className={`w-full rounded-md border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#5985d8] h-auto ${
                 errors.confirm_password ? "border-red-500" : "border-gray-400"
               }`}
-              placeholder="Xác nhận mật khẩu"
+              placeholder="Confirm password"
               id="confirm_password"
               {...register("confirm_password")}
               autoComplete="new-password"
@@ -213,18 +213,18 @@ export default function Signup() {
               className="w-full bg-[#5985d8] text-white rounded-full  font-semibold text-lg hover:bg-[#466bb3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-7 "
             >
               <button type="submit" className="inherit">
-                {isLoading ? "Đang xử lý..." : "Đăng ký"}
+                {isLoading ? "Processing..." : "Sign Up"}
               </button>
             </Button>
 
             <div className="mt-2 text-xs text-center text-gray-500">
-              Bằng cách tạo tài khoản, bạn đồng ý với{" "}
+              By creating an account, you agree to our{" "}
               <a href="#" className="underline">
-                Điều khoản sử dụng
+                Terms of Service
               </a>{" "}
-              và{" "}
+              and{" "}
               <a href="#" className="underline">
-                Chính sách Bảo mật
+                Privacy Policy
               </a>
               .
             </div>

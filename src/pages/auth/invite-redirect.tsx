@@ -34,13 +34,13 @@ const InviteRedirect: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setError("Không tìm thấy token trong đường dẫn.");
+      setError("Token not found in URL.");
       return;
     }
 
     const decoded = decodeTokenSafely(token);
     if (!decoded?.token_type) {
-      setError("Token không hợp lệ hoặc đã hết hạn.");
+      setError("Token is invalid or expired.");
       return;
     }
 
@@ -52,12 +52,12 @@ const InviteRedirect: React.FC = () => {
     }
 
     if (decoded.token_type === "AdminInviteToken") {
-      toast.info("Lời mời dành cho Admin chưa được hỗ trợ trên giao diện này.");
-      setError("Lời mời dành cho Admin chưa được hỗ trợ.");
+      toast.info("Admin invitation is not supported on this interface.");
+      setError("Admin invitation is not supported.");
       return;
     }
 
-    setError("Loại token không được hỗ trợ.");
+    setError("Unsupported token type.");
   }, [token, navigate]);
 
   if (error) {
@@ -66,8 +66,7 @@ const InviteRedirect: React.FC = () => {
         <div className="rounded-xl border border-red-100 bg-white px-6 py-4 text-center shadow-md">
           <p className="text-base font-semibold text-red-600">{error}</p>
           <p className="mt-2 text-sm text-gray-500">
-            Vui lòng kiểm tra lại đường dẫn trong email hoặc liên hệ quản trị
-            viên.
+            Please check the link in your email or contact the administrator.
           </p>
         </div>
       </div>
@@ -78,9 +77,7 @@ const InviteRedirect: React.FC = () => {
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
       <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-6 py-4 shadow-md">
         <Loader2 className="h-5 w-5 animate-spin text-[#5985d8]" />
-        <p className="text-sm text-gray-600">
-          Đang chuyển hướng, vui lòng chờ...
-        </p>
+        <p className="text-sm text-gray-600">Redirecting, please wait...</p>
       </div>
     </div>
   );
