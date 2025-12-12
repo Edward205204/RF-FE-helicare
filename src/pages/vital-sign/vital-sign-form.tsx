@@ -96,23 +96,23 @@ function fmtHeader(d: Date) {
 
 /* -------------------- zod schema -------------------- */
 const vitalSchema = z.object({
-  residentName: z.string().min(1, "Resident name is required"),
+  residentName: z.string().min(1, "Tên cư dân là bắt buộc"),
   measuredAt: z
     .string()
     .refine((s) => {
       const d = new Date(s);
       return !Number.isNaN(d.getTime());
-    }, "Invalid time")
+    }, "Thời gian không hợp lệ")
     .refine(
       (s) => new Date(s) <= new Date(),
-      "Measurement time cannot be in the future"
+      "Thời gian đo không thể ở tương lai"
     ),
-  systolic: z.coerce.number().int().min(0, "Enter a valid value"),
-  diastolic: z.coerce.number().int().min(0, "Enter a valid value"),
-  heartRate: z.coerce.number().int().min(0, "Enter a valid value"),
-  temperature: z.coerce.number().min(0, "Enter a valid value"),
-  respiration: z.coerce.number().int().min(0, "Enter a valid value"),
-  spo2: z.coerce.number().int().min(0, "Enter a valid value"),
+  systolic: z.coerce.number().int().min(0, "Nhập giá trị hợp lệ"),
+  diastolic: z.coerce.number().int().min(0, "Nhập giá trị hợp lệ"),
+  heartRate: z.coerce.number().int().min(0, "Nhập giá trị hợp lệ"),
+  temperature: z.coerce.number().min(0, "Nhập giá trị hợp lệ"),
+  respiration: z.coerce.number().int().min(0, "Nhập giá trị hợp lệ"),
+  spo2: z.coerce.number().int().min(0, "Nhập giá trị hợp lệ"),
   note: z.string().max(1000).optional(),
 });
 type VitalValues = z.infer<typeof vitalSchema>;
@@ -312,7 +312,7 @@ export default function VitalSignForm() {
   // submit handler
   const onSubmit: SubmitHandler<VitalValues> = async (data) => {
     if (!selectedResidentId) {
-      toast.error("Please select a resident");
+      toast.error("Vui lòng chọn cư dân");
       return;
     }
 
@@ -333,32 +333,31 @@ export default function VitalSignForm() {
     try {
       if (editingAssessmentId) {
         if (!correctionReason.trim()) {
-          toast.error("Please provide a reason for correction for audit log.");
+          toast.error("Vui lòng cung cấp lý do sửa đổi cho nhật ký kiểm toán.");
           return;
         }
         await updateAssessment(editingAssessmentId, {
           ...payload,
           correction_reason: correctionReason.trim(),
         });
-        toast.success("Assessment corrected successfully.", {
+        toast.success("Đã sửa đổi đánh giá thành công.", {
           autoClose: 2500,
         });
       } else {
         await createAssessment(selectedResidentId, payload);
         if (anyDanger) {
           toast.warning(
-            "Saved successfully but DANGEROUS values detected — notify doctor.",
+            "Lưu thành công nhưng phát hiện giá trị NGUY HIỂM — hãy thông báo bác sĩ.",
             { autoClose: 3000 }
           );
         } else if (anyWarn) {
-          toast.warning(
-            "Saved successfully. Some values are at warning level.",
-            {
-              autoClose: 3000,
-            }
-          );
+          toast.warning("Lưu thành công. Một số giá trị ở mức cảnh báo.", {
+            autoClose: 3000,
+          });
         } else {
-          toast.success("Vital signs saved successfully.", { autoClose: 2500 });
+          toast.success("Lưu dấu hiệu sinh tồn thành công.", {
+            autoClose: 2500,
+          });
         }
       }
 
@@ -373,7 +372,7 @@ export default function VitalSignForm() {
     } catch (e: any) {
       console.error(e);
       toast.error(
-        e.response?.data?.message || "Error saving, please try again.",
+        e.response?.data?.message || "Lỗi khi lưu, vui lòng thử lại.",
         { autoClose: 3000 }
       );
     }
@@ -387,34 +386,34 @@ export default function VitalSignForm() {
     if (level === "warn") {
       switch (field) {
         case "systolic":
-          return "Systolic pressure slightly abnormal — monitor.";
+          return "Huyết áp tâm thu hơi bất thường — cần theo dõi.";
         case "diastolic":
-          return "Diastolic pressure slightly abnormal — monitor.";
+          return "Huyết áp tâm trương hơi bất thường — cần theo dõi.";
         case "heartRate":
-          return "Heart rate out of normal range — monitor.";
+          return "Nhịp tim ngoài phạm vi bình thường — cần theo dõi.";
         case "temperature":
-          return "Temperature slightly abnormal — monitor.";
+          return "Nhiệt độ hơi bất thường — cần theo dõi.";
         case "respiration":
-          return "Respiration rate slightly abnormal — monitor.";
+          return "Nhịp thở hơi bất thường — cần theo dõi.";
         case "spo2":
-          return "SpO₂ slightly low — monitor.";
+          return "SpO₂ hơi thấp — cần theo dõi.";
         default:
           return null;
       }
     } else {
       switch (field) {
         case "systolic":
-          return "Systolic pressure critically abnormal — immediate attention needed!";
+          return "Huyết áp tâm thu bất thường nghiêm trọng — cần chú ý ngay!";
         case "diastolic":
-          return "Diastolic pressure critically abnormal — immediate attention needed!";
+          return "Huyết áp tâm trương bất thường nghiêm trọng — cần chú ý ngay!";
         case "heartRate":
-          return "Dangerous heart rate — immediate attention needed!";
+          return "Nhịp tim nguy hiểm — cần chú ý ngay!";
         case "temperature":
-          return "Dangerous body temperature — immediate attention needed!";
+          return "Nhiệt độ cơ thể nguy hiểm — cần chú ý ngay!";
         case "respiration":
-          return "Dangerous respiration rate — immediate attention needed!";
+          return "Nhịp thở nguy hiểm — cần chú ý ngay!";
         case "spo2":
-          return "SpO₂ critically low — immediate attention needed!";
+          return "SpO₂ thấp nghiêm trọng — cần chú ý ngay!";
         default:
           return null;
       }
@@ -455,7 +454,7 @@ export default function VitalSignForm() {
     event.preventDefault();
     if (!careLogCorrection) return;
     if (!careLogReason.trim()) {
-      toast.error("Please provide a reason for correction for care log.");
+      toast.error("Vui lòng cung cấp lý do sửa đổi cho nhật ký chăm sóc.");
       return;
     }
     try {
@@ -464,13 +463,16 @@ export default function VitalSignForm() {
         notes: careLogCorrection.notes || undefined,
         correction_reason: careLogReason.trim(),
       });
-      toast.success("Care log updated successfully.", { autoClose: 2500 });
+      toast.success("Cập nhật nhật ký chăm sóc thành công.", {
+        autoClose: 2500,
+      });
       setCareLogCorrection(null);
       setCareLogReason("");
       summaryQuery.refetch();
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Cannot edit care log at this time."
+        error.response?.data?.message ||
+          "Không thể chỉnh sửa nhật ký chăm sóc lúc này."
       );
     }
   };
@@ -487,30 +489,30 @@ export default function VitalSignForm() {
                 className="text-lg font-semibold mb-3"
                 style={{ color: PRIMARY }}
               >
-                Select Resident
+                Chọn cư dân
               </h3>
               {/* Room filter */}
               <div className="mb-3">
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
                   <Filter className="inline h-4 w-4 mr-1" />
-                  Filter by Room
+                  Lọc theo phòng
                 </label>
                 <select
                   value={selectedRoomFilter}
                   onChange={(e) => setSelectedRoomFilter(e.target.value)}
                   className="w-full rounded-lg px-3 py-2 border border-gray-200 bg-white text-sm"
                 >
-                  <option value="all">All Rooms</option>
-                  <option value="no-room">Unassigned</option>
+                  <option value="all">Tất cả phòng</option>
+                  <option value="no-room">Chưa phân phòng</option>
                   {rooms.map((room) => (
                     <option key={room.room_id} value={room.room_id}>
-                      Room {room.room_number}
+                      Phòng {room.room_number}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="text-xs text-gray-500">
-                {filteredResidents.length} residents
+                {filteredResidents.length} cư dân
               </div>
             </div>
             {/* Resident list */}
@@ -537,11 +539,11 @@ export default function VitalSignForm() {
                       {resident.gender} •{" "}
                       {new Date().getFullYear() -
                         new Date(resident.date_of_birth).getFullYear()}{" "}
-                      year(s) old
+                      tuổi
                     </div>
                     {resident.room_id && (
                       <div className="text-xs text-blue-600 mt-1">
-                        Room:{" "}
+                        Phòng:{" "}
                         {rooms.find((r) => r.room_id === resident.room_id)
                           ?.room_number || resident.room_id}
                       </div>
@@ -551,7 +553,7 @@ export default function VitalSignForm() {
               ))}
               {filteredResidents.length === 0 && (
                 <div className="text-center text-gray-500 text-sm mt-8">
-                  No residents found
+                  Không tìm thấy cư dân
                 </div>
               )}
             </div>
@@ -565,7 +567,7 @@ export default function VitalSignForm() {
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-2xl font-bold" style={{ color: PRIMARY }}>
-                    Enter Vital Signs
+                    Nhập dấu hiệu sinh tồn
                   </h1>
                 </div>
                 <div className="text-right">
@@ -574,7 +576,7 @@ export default function VitalSignForm() {
                     onClick={() => setShowResidentList(!showResidentList)}
                     className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 mb-2"
                   >
-                    {showResidentList ? "Hide" : "Show"} List
+                    {showResidentList ? "Ẩn" : "Hiện"} danh sách
                   </button>
                   <div className="text-xs text-gray-500 mt-1">
                     {fmtHeader(now)}
@@ -592,8 +594,8 @@ export default function VitalSignForm() {
                   <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-amber-900">
                     <div className="flex items-center justify-between gap-2">
                       <p>
-                        Editing assessment #{editingAssessmentId.slice(0, 8)} —
-                        please provide correction reason for audit log.
+                        Đang sửa đánh giá #{editingAssessmentId.slice(0, 8)} —
+                        vui lòng cung cấp lý do sửa đổi cho nhật ký kiểm toán.
                       </p>
                       <button
                         type="button"
@@ -604,7 +606,7 @@ export default function VitalSignForm() {
                         }}
                         className="text-xs text-amber-700 underline"
                       >
-                        Cancel
+                        Hủy
                       </button>
                     </div>
                     <textarea
@@ -613,24 +615,20 @@ export default function VitalSignForm() {
                         setCorrectionReason(event.target.value)
                       }
                       rows={2}
-                      placeholder="Why are you correcting this measurement?"
+                      placeholder="Tại sao bạn sửa đổi phép đo này?"
                       className="mt-3 w-full rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-sm"
                     />
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
                   <div>
-                    <label className="text-sm font-medium">
-                      Resident Name *
-                    </label>
+                    <label className="text-sm font-medium">Tên cư dân *</label>
                     <input
                       {...register("residentName")}
                       type="text"
                       disabled
                       placeholder={
-                        showResidentList
-                          ? "← Select from list"
-                          : "Select resident"
+                        showResidentList ? "← Chọn từ danh sách" : "Chọn cư dân"
                       }
                       className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700"
                     />
@@ -644,8 +642,8 @@ export default function VitalSignForm() {
                         !formState.errors.residentName && (
                           <span className="text-blue-600">
                             {showResidentList
-                              ? "Select resident from list"
-                              : "Click 'Show List' to select resident"}
+                              ? "Chọn cư dân từ danh sách"
+                              : "Nhấn 'Hiện danh sách' để chọn cư dân"}
                           </span>
                         )}
                     </div>
@@ -653,19 +651,21 @@ export default function VitalSignForm() {
 
                   {selectedResidentId && (
                     <div>
-                      <label className="text-sm font-medium">Room Info</label>
+                      <label className="text-sm font-medium">
+                        Thông tin phòng
+                      </label>
                       <div className="mt-2 w-full rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 text-gray-700">
                         {(() => {
                           const resident = residents.find(
                             (r) => r.resident_id === selectedResidentId
                           );
-                          if (!resident?.room_id) return "Unassigned";
+                          if (!resident?.room_id) return "Chưa phân phòng";
                           const room = rooms.find(
                             (r) => r.room_id === resident.room_id
                           );
                           return room
-                            ? `Room ${room.room_number}`
-                            : "Unknown Room";
+                            ? `Phòng ${room.room_number}`
+                            : "Phòng không xác định";
                         })()}
                       </div>
                     </div>
@@ -674,9 +674,7 @@ export default function VitalSignForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-left">
                   <div>
-                    <label className="text-sm font-medium">
-                      Measurement Time
-                    </label>
+                    <label className="text-sm font-medium">Thời gian đo</label>
                     <input
                       {...register("measuredAt")}
                       type="datetime-local"
@@ -690,8 +688,7 @@ export default function VitalSignForm() {
                         </span>
                       ) : measuredOlderThan24h ? (
                         <span className="text-amber-700">
-                          Measurement time is older than 24h — please verify
-                          carefully.
+                          Thời gian đo cũ hơn 24h — vui lòng kiểm tra kỹ.
                         </span>
                       ) : null}
                     </div>
@@ -703,14 +700,14 @@ export default function VitalSignForm() {
                       onClick={() => {
                         setValue("measuredAt", toLocalInputValue(new Date()));
                         setToastMsg({
-                          text: "Measurement time set to current.",
+                          text: "Đã đặt thời gian đo về hiện tại.",
                           color: PRIMARY,
                         });
                         setTimeout(() => setToastMsg(null), 1800);
                       }}
                       className="px-3 py-2 rounded-lg border"
                     >
-                      Set Current Time
+                      Đặt thời gian hiện tại
                     </button>
                   </div>
                 </div>
@@ -719,7 +716,7 @@ export default function VitalSignForm() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
                   <div>
                     <label className="text-sm font-medium">
-                      Systolic Pressure
+                      Huyết áp tâm thu
                     </label>
                     <input
                       {...register("systolic")}
@@ -746,7 +743,7 @@ export default function VitalSignForm() {
 
                   <div>
                     <label className="text-sm font-medium">
-                      Diastolic Pressure
+                      Huyết áp tâm trương
                     </label>
                     <input
                       {...register("diastolic")}
@@ -773,7 +770,7 @@ export default function VitalSignForm() {
 
                   <div>
                     <label className="text-sm font-medium">
-                      Heart Rate (bpm)
+                      Nhịp tim (bpm)
                     </label>
                     <input
                       {...register("heartRate")}
@@ -799,9 +796,7 @@ export default function VitalSignForm() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">
-                      Temperature (°C)
-                    </label>
+                    <label className="text-sm font-medium">Nhiệt độ (°C)</label>
                     <input
                       {...register("temperature")}
                       type="text"
@@ -828,7 +823,7 @@ export default function VitalSignForm() {
 
                   <div>
                     <label className="text-sm font-medium">
-                      Respiration (breaths/min)
+                      Nhịp thở (lần/phút)
                     </label>
                     <input
                       {...register("respiration")}
@@ -879,7 +874,7 @@ export default function VitalSignForm() {
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="text-sm font-medium">Notes</label>
+                    <label className="text-sm font-medium">Ghi chú</label>
                     <textarea
                       {...register("note")}
                       rows={3}
@@ -905,10 +900,10 @@ export default function VitalSignForm() {
                     style={{ background: PRIMARY }}
                   >
                     {formState.isSubmitting
-                      ? "Saving..."
+                      ? "Đang lưu..."
                       : editingAssessmentId
-                      ? "Update Assessment"
-                      : "💾 Save"}
+                      ? "Cập nhật đánh giá"
+                      : "💾 Lưu"}
                   </button>
 
                   <button
@@ -923,15 +918,15 @@ export default function VitalSignForm() {
                     className="px-4 py-2 rounded-lg border border-[#5985D8] text-[#5985D8]"
                   >
                     <RefreshCw size={16} className="inline-block mr-2" />
-                    Reset Form
+                    Đặt lại biểu mẫu
                   </button>
 
                   <div className="ml-auto text-xs text-gray-500">
                     {anyDanger
-                      ? "Dangerous values detected"
+                      ? "Phát hiện giá trị nguy hiểm"
                       : anyWarn
-                      ? "Some values need monitoring"
-                      : "All values within normal range"}
+                      ? "Một số giá trị cần theo dõi"
+                      : "Tất cả giá trị trong phạm vi bình thường"}
                   </div>
                 </div>
               </form>
@@ -941,14 +936,14 @@ export default function VitalSignForm() {
           <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-4">
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Calculation Module</CardTitle>
+                <CardTitle className="text-base">Mô đun tính toán</CardTitle>
                 <p className="text-xs text-gray-500">
-                  Version {summaryQuery.data?.meta.engine_version ?? "—"}
+                  Phiên bản {summaryQuery.data?.meta.engine_version ?? "—"}
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
                 {summaryQuery.isLoading && (
-                  <p className="text-sm text-gray-500">Loading signals...</p>
+                  <p className="text-sm text-gray-500">Đang tải tín hiệu...</p>
                 )}
                 {!summaryQuery.isLoading &&
                   summaryQuery.data?.indicators.map((indicator) => (
@@ -987,7 +982,7 @@ export default function VitalSignForm() {
                 {!summaryQuery.isLoading &&
                   !summaryQuery.data?.indicators.length && (
                     <p className="text-sm text-gray-500">
-                      Select resident to view automated info.
+                      Chọn cư dân để xem thông tin tự động.
                     </p>
                   )}
               </CardContent>
@@ -995,9 +990,9 @@ export default function VitalSignForm() {
 
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Recent Measurements</CardTitle>
+                <CardTitle className="text-base">Các phép đo gần đây</CardTitle>
                 <p className="text-xs text-gray-500">
-                  Load data to edit if needed
+                  Tải dữ liệu để chỉnh sửa nếu cần
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1022,7 +1017,7 @@ export default function VitalSignForm() {
                             }
                             className="text-xs text-blue-600 underline"
                           >
-                            Load
+                            Tải
                           </button>
                         </div>
                         <p className="mt-2 text-xs text-gray-600">
@@ -1035,7 +1030,7 @@ export default function VitalSignForm() {
                     ))
                 ) : (
                   <p className="text-sm text-gray-500">
-                    No historical measurements.
+                    Không có phép đo lịch sử.
                   </p>
                 )}
               </CardContent>
@@ -1043,9 +1038,11 @@ export default function VitalSignForm() {
 
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Edit Care Log</CardTitle>
+                <CardTitle className="text-base">
+                  Sửa nhật ký chăm sóc
+                </CardTitle>
                 <p className="text-xs text-gray-500">
-                  Ensure accurate data provision for the system
+                  Đảm bảo cung cấp dữ liệu chính xác cho hệ thống
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1071,7 +1068,7 @@ export default function VitalSignForm() {
                           }
                           className="text-xs text-blue-600 underline"
                         >
-                          Edit
+                          Sửa
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
@@ -1086,7 +1083,7 @@ export default function VitalSignForm() {
                   ))
                 ) : (
                   <p className="text-sm text-gray-500">
-                    No care logs found for this resident.
+                    Không tìm thấy nhật ký chăm sóc cho cư dân này.
                   </p>
                 )}
 
@@ -1097,7 +1094,7 @@ export default function VitalSignForm() {
                   >
                     <div>
                       <label className="text-xs font-medium text-gray-600">
-                        Status
+                        Trạng thái
                       </label>
                       <select
                         value={careLogCorrection.status}
@@ -1114,14 +1111,14 @@ export default function VitalSignForm() {
                         }
                         className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
                       >
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="in_progress">Đang xử lý</option>
+                        <option value="completed">Hoàn thành</option>
                       </select>
                     </div>
                     <div>
                       <label className="text-xs font-medium text-gray-600">
-                        Notes
+                        Ghi chú
                       </label>
                       <textarea
                         value={careLogCorrection.notes ?? ""}
@@ -1136,7 +1133,7 @@ export default function VitalSignForm() {
                     </div>
                     <div>
                       <label className="text-xs font-medium text-gray-600">
-                        Correction Reason
+                        Lý do sửa đổi
                       </label>
                       <textarea
                         value={careLogReason}
@@ -1145,7 +1142,7 @@ export default function VitalSignForm() {
                         }
                         rows={2}
                         className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-                        placeholder="Explain why this care log needs correction"
+                        placeholder="Giải thích tại sao nhật ký chăm sóc này cần sửa đổi"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -1153,7 +1150,7 @@ export default function VitalSignForm() {
                         type="submit"
                         className="flex-1 rounded-lg bg-[#5985D8] px-3 py-2 text-sm font-medium text-white"
                       >
-                        Save Correction
+                        Lưu sửa đổi
                       </button>
                       <button
                         type="button"
@@ -1163,7 +1160,7 @@ export default function VitalSignForm() {
                         }}
                         className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700"
                       >
-                        Cancel
+                        Hủy
                       </button>
                     </div>
                   </form>

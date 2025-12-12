@@ -507,7 +507,7 @@ const NutritionAllergyPage: React.FC = () => {
           {alert && (
             <Alert className="bg-red-100 border-red-300 rounded-lg">
               <AlertDescription className="text-lg text-red-800">
-                ⚠️ Contains allergens that resident is allergic to
+                ⚠️ Món ăn có chứa chất gây dị ứng cho cư dân
               </AlertDescription>
             </Alert>
           )}
@@ -521,42 +521,43 @@ const NutritionAllergyPage: React.FC = () => {
               </p>
               <div className="mb-2">
                 <strong className="text-lg">
-                  Nutrients (per {menuItem.servings} serving
-                  {menuItem.servings > 1 ? "s" : ""}):
+                  Dinh dưỡng (trên {menuItem.servings} khẩu phần):
                 </strong>
                 <ul className="list-disc list-inside text-sm mt-1">
+                  <li>Đạm: {formatMetric(nutrition.protein, { unit: "g" })}</li>
                   <li>
-                    Protein: {formatMetric(nutrition.protein, { unit: "g" })}
+                    Chất béo: {formatMetric(nutrition.fat, { unit: "g" })}
                   </li>
-                  <li>Fat: {formatMetric(nutrition.fat, { unit: "g" })}</li>
-                  <li>Carbs: {formatMetric(nutrition.carbs, { unit: "g" })}</li>
+                  <li>
+                    Tinh bột: {formatMetric(nutrition.carbs, { unit: "g" })}
+                  </li>
                   {nutrition.fiber !== undefined && (
                     <li>
-                      Fiber: {formatMetric(nutrition.fiber, { unit: "g" })}
+                      Chất xơ: {formatMetric(nutrition.fiber, { unit: "g" })}
                     </li>
                   )}
                   {nutrition.sodium !== undefined && (
                     <li>
-                      Sodium: {formatMetric(nutrition.sodium, { unit: "mg" })}
+                      Natri: {formatMetric(nutrition.sodium, { unit: "mg" })}
                     </li>
                   )}
                 </ul>
               </div>
             </>
           ) : nutritionData?.loading ? (
-            <p className="text-sm text-gray-500">Loading nutrition data...</p>
-          ) : (
             <p className="text-sm text-gray-500">
-              Nutrition data not available
+              Đang tải dữ liệu dinh dưỡng...
             </p>
+          ) : (
+            <p className="text-sm text-gray-500">Chưa có dữ liệu dinh dưỡng</p>
           )}
           <div className="mb-4">
             <Badge variant="outline" className="text-sm mr-2">
-              Texture: {dish.texture || menuItem.texture_variant || "Regular"}
+              Độ thô: {dish.texture || menuItem.texture_variant || "Thường"}
             </Badge>
             {menuItem.texture_variant && (
               <Badge variant="secondary" className="text-sm mr-2">
-                Variant: {menuItem.texture_variant}
+                Biến thể: {menuItem.texture_variant}
               </Badge>
             )}
             {dietaryFlags.map((flag) => (
@@ -593,9 +594,18 @@ const NutritionAllergyPage: React.FC = () => {
           const slotItems = dayItems.filter((item) => item.meal_slot === slot);
           if (slotItems.length === 0) return null;
 
+          const slotNameMap: Record<string, string> = {
+            Breakfast: "Bữa sáng",
+            Lunch: "Bữa trưa",
+            Afternoon: "Bữa xế",
+            Dinner: "Bữa tối",
+          };
+
           return (
             <div key={slot} className="space-y-2">
-              <h4 className="font-semibold text-lg mb-2">{slot}</h4>
+              <h4 className="font-semibold text-lg mb-2">
+                {slotNameMap[slot] || slot}
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {slotItems.map((item) => (
                   <DishCard
@@ -617,9 +627,11 @@ const NutritionAllergyPage: React.FC = () => {
       return (
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-blue-700 mb-4">
-            Weekly Overview
+            Tổng quan tuần
           </h2>
-          <p className="text-gray-500">No menu data available for this week.</p>
+          <p className="text-gray-500">
+            Chưa có dữ liệu thực đơn cho tuần này.
+          </p>
         </div>
       );
     }
@@ -638,7 +650,7 @@ const NutritionAllergyPage: React.FC = () => {
     return (
       <div className="mt-8 space-y-6">
         <h2 className="text-2xl font-bold text-blue-700 mb-4">
-          Weekly Overview
+          Tổng quan tuần
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {dayNames.map((dayName, dayIndex) => {
@@ -655,17 +667,29 @@ const NutritionAllergyPage: React.FC = () => {
                 className="rounded-lg border border-blue-500 shadow-sm bg-white"
               >
                 <CardHeader>
-                  <CardTitle className="text-lg">{dayName}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {
+                      {
+                        Monday: "Thứ 2",
+                        Tuesday: "Thứ 3",
+                        Wednesday: "Thứ 4",
+                        Thursday: "Thứ 5",
+                        Friday: "Thứ 6",
+                        Saturday: "Thứ 7",
+                        Sunday: "Chủ nhật",
+                      }[dayName]
+                    }
+                  </CardTitle>
                   {dayNutrition && (
                     <div className="text-xs text-gray-600 mt-1">
                       <p>
-                        Calories:{" "}
+                        Calo:{" "}
                         {formatMetric(dayNutrition.total_calories, {
                           unit: "kcal",
                         })}
                       </p>
                       <p>
-                        Protein:{" "}
+                        Đạm:{" "}
                         {formatMetric(dayNutrition.total_protein, {
                           unit: "g",
                         })}
@@ -675,7 +699,7 @@ const NutritionAllergyPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   {dayItems.length === 0 ? (
-                    <p className="text-sm text-gray-500">No meals scheduled</p>
+                    <p className="text-sm text-gray-500">Chưa có bữa ăn nào</p>
                   ) : (
                     mealSlots.map((slot) => {
                       const slotItems = dayItems.filter(
@@ -690,7 +714,14 @@ const NutritionAllergyPage: React.FC = () => {
                       return (
                         <div key={slot} className="mb-2">
                           <p className="text-xs font-semibold text-gray-600 mb-1">
-                            {slot}
+                            {
+                              {
+                                Breakfast: "Bữa sáng",
+                                Lunch: "Bữa trưa",
+                                Afternoon: "Bữa xế",
+                                Dinner: "Bữa tối",
+                              }[slot]
+                            }
                             {slotNutrition && (
                               <span className="text-gray-500 ml-1">
                                 (
@@ -730,46 +761,46 @@ const NutritionAllergyPage: React.FC = () => {
           <Card className="mt-6 bg-blue-50 border-blue-200">
             <CardHeader>
               <CardTitle className="text-xl text-blue-800">
-                Weekly Nutrition Summary
+                Tổng hợp dinh dưỡng tuần
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Average Calories</p>
+                  <p className="text-sm text-gray-600">Calo trung bình</p>
                   <p className="text-2xl font-bold text-blue-700">
                     {formatMetric(nutritionReport.weekly_average.calories, {
                       unit: "kcal",
                     })}
                   </p>
-                  <p className="text-xs text-gray-500">kcal/day</p>
+                  <p className="text-xs text-gray-500">kcal/ngày</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Average Protein</p>
+                  <p className="text-sm text-gray-600">Đạm trung bình</p>
                   <p className="text-2xl font-bold text-blue-700">
                     {formatMetric(nutritionReport.weekly_average.protein, {
                       unit: "g",
                     })}
                   </p>
-                  <p className="text-xs text-gray-500">per day</p>
+                  <p className="text-xs text-gray-500">mỗi ngày</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Average Fat</p>
+                  <p className="text-sm text-gray-600">Chất béo trung bình</p>
                   <p className="text-2xl font-bold text-blue-700">
                     {formatMetric(nutritionReport.weekly_average.fat, {
                       unit: "g",
                     })}
                   </p>
-                  <p className="text-xs text-gray-500">per day</p>
+                  <p className="text-xs text-gray-500">mỗi ngày</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Average Carbs</p>
+                  <p className="text-sm text-gray-600">Tinh bột trung bình</p>
                   <p className="text-2xl font-bold text-blue-700">
                     {formatMetric(nutritionReport.weekly_average.carbs, {
                       unit: "g",
                     })}
                   </p>
-                  <p className="text-xs text-gray-500">per day</p>
+                  <p className="text-xs text-gray-500">mỗi ngày</p>
                 </div>
               </div>
               {nutritionReport.warnings &&
@@ -777,7 +808,7 @@ const NutritionAllergyPage: React.FC = () => {
                   <div className="mt-4">
                     <Alert className="bg-yellow-100 border-yellow-300">
                       <AlertDescription>
-                        <strong>Warnings:</strong>{" "}
+                        <strong>Cảnh báo:</strong>{" "}
                         {nutritionReport.warnings.join(", ")}
                       </AlertDescription>
                     </Alert>
@@ -786,9 +817,7 @@ const NutritionAllergyPage: React.FC = () => {
               {nutritionReport.recommendations &&
                 nutritionReport.recommendations.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-sm font-semibold mb-1">
-                      Recommendations:
-                    </p>
+                    <p className="text-sm font-semibold mb-1">Khuyến nghị:</p>
                     <ul className="list-disc list-inside text-sm text-gray-700">
                       {nutritionReport.recommendations.map((rec, idx) => (
                         <li key={idx}>{rec}</li>
@@ -808,25 +837,25 @@ const NutritionAllergyPage: React.FC = () => {
       <div className="fixed inset-0 -z-10 pointer-events-none bg-[radial-gradient(120%_120%_at_0%_100%,#dfe9ff_0%,#ffffff_45%,#efd8d3_100%)]"></div>
       <div className="relative z-10 max-w-6xl mx-auto p-2 space-y-6">
         <h1 className="text-3xl font-bold text-blue-800 mb-6">
-          Nutrition & Allergy
+          Dinh dưỡng & Dị ứng
         </h1>
         {selectedResident && (
           <>
             <div className="mb-6">
               <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                Resident Summary
+                Thông tin cư dân
               </h2>
               <p className="text-lg">
-                <strong>Name:</strong> {selectedResident.full_name}
+                <strong>Họ tên:</strong> {selectedResident.full_name}
               </p>
               {residentDiseases.length > 0 && (
                 <p className="text-lg">
-                  <strong>Conditions:</strong> {residentDiseases.join(", ")}
+                  <strong>Bệnh lý:</strong> {residentDiseases.join(", ")}
                 </p>
               )}
               {residentAllergies.length > 0 && (
                 <div className="mt-2">
-                  <strong className="text-lg">Allergies:</strong>
+                  <strong className="text-lg">Dị ứng:</strong>
                   {residentAllergies.map((allergy) => (
                     <Badge
                       key={allergy}
@@ -842,8 +871,8 @@ const NutritionAllergyPage: React.FC = () => {
             {residentAllergies.length > 0 && (
               <Alert className="mb-6 bg-red-100 border-red-300 rounded-lg">
                 <AlertDescription className="text-lg text-red-800">
-                  ⚠️ Alert: Meals containing {residentAllergies.join(", ")} are
-                  highlighted.
+                  ⚠️ Cảnh báo: Các bữa ăn chứa {residentAllergies.join(", ")}{" "}
+                  được làm nổi bật.
                 </AlertDescription>
               </Alert>
             )}
@@ -851,7 +880,7 @@ const NutritionAllergyPage: React.FC = () => {
         )}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-blue-700 mb-2">
-            Weekly Progress
+            Tiến độ tuần
           </h2>
           <Progress value={progressPercent} className="w-full" />
           <p className="text-lg mt-2">
@@ -871,7 +900,7 @@ const NutritionAllergyPage: React.FC = () => {
         {/* Week Selector */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">
-            Select Week (Monday)
+            Chọn tuần (Thứ 2)
           </label>
           <input
             type="date"
@@ -885,7 +914,7 @@ const NutritionAllergyPage: React.FC = () => {
         {residents.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">
-              Select Resident
+              Chọn cư dân
             </label>
             <select
               value={selectedResident?.resident_id || ""}
@@ -928,7 +957,17 @@ const NutritionAllergyPage: React.FC = () => {
                     value={day}
                     className="text-lg text-black h-10 px-4 flex items-center justify-center rounded-lg data-[state=active]:bg-[#5895d8] data-[state=active]:text-white transition-all cursor-pointer"
                   >
-                    {day}
+                    {
+                      {
+                        Monday: "Thứ 2",
+                        Tuesday: "Thứ 3",
+                        Wednesday: "Thứ 4",
+                        Thursday: "Thứ 5",
+                        Friday: "Thứ 6",
+                        Saturday: "Thứ 7",
+                        Sunday: "Chủ nhật",
+                      }[day]
+                    }
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -950,7 +989,18 @@ const NutritionAllergyPage: React.FC = () => {
                     (item) => normalizeDayIndex(item.day_of_week) === index
                   ) && (
                     <div className="text-center py-8 text-gray-400 italic border-2 border-dashed border-gray-200 rounded-lg bg-white">
-                      No meals scheduled for {day}
+                      Chưa có bữa ăn nào vào{" "}
+                      {
+                        {
+                          Monday: "Thứ 2",
+                          Tuesday: "Thứ 3",
+                          Wednesday: "Thứ 4",
+                          Thursday: "Thứ 5",
+                          Friday: "Thứ 6",
+                          Saturday: "Thứ 7",
+                          Sunday: "Chủ nhật",
+                        }[day]
+                      }
                     </div>
                   )}
                 </div>
@@ -959,8 +1009,8 @@ const NutritionAllergyPage: React.FC = () => {
           </Tabs>
         ) : (
           <div className="text-center py-8 text-gray-400 italic border-2 border-dashed border-gray-200 rounded-lg bg-white">
-            No weekly menu found for this week. Please contact staff to create a
-            menu.
+            Không tìm thấy thực đơn cho tuần này. Vui lòng liên hệ nhân viên để
+            tạo thực đơn.
           </div>
         )}
         <WeeklyOverview />

@@ -97,7 +97,7 @@ const AdminStaffManagement: React.FC = () => {
       });
       setStaff(response.staff || []);
     } catch (error: any) {
-      toast.error("Unable to load data");
+      toast.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -109,7 +109,7 @@ const AdminStaffManagement: React.FC = () => {
 
   const handleCreate = () => {
     if (!isRootAdmin) {
-      toast.error("Only RootAdmin can create an Admin");
+      toast.error("Chỉ RootAdmin mới có thể tạo Admin");
       return;
     }
     setFormData({ email: "" });
@@ -130,17 +130,17 @@ const AdminStaffManagement: React.FC = () => {
 
   const handleSubmitCreate = async () => {
     if (!formData.email) {
-      toast.error("Please enter an email");
+      toast.error("Vui lòng nhập email");
       return;
     }
 
     try {
       await createAdmin({ email: formData.email, institution_id: "" });
-      toast.success("Admin invitation sent");
+      toast.success("Đã gửi lời mời Admin");
       setIsDialogOpen(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to create Admin");
+      toast.error(error.response?.data?.message || "Không thể tạo Admin");
     }
   };
 
@@ -149,72 +149,72 @@ const AdminStaffManagement: React.FC = () => {
 
     try {
       await updateAdminStaff(editingStaff.user_id, editFormData);
-      toast.success("Updated successfully");
+      toast.success("Cập nhật thành công");
       setIsEditDialogOpen(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to update");
+      toast.error(error.response?.data?.message || "Không thể cập nhật");
     }
   };
 
   const handleQuickUpdate = async (id: string, data: any) => {
     try {
       await updateAdminStaff(id, data);
-      toast.success("Updated");
+      toast.success("Đã cập nhật");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Update failed");
+      toast.error(error.response?.data?.message || "Cập nhật thất bại");
     }
   };
 
   const handleApprove = async (id: string) => {
     try {
       await approveAdminStaff(id);
-      toast.success("Approved");
+      toast.success("Đã phê duyệt");
       loadData();
     } catch (error: any) {
-      toast.error("Approve failed");
+      toast.error("Phê duyệt thất bại");
     }
   };
 
   const handleReject = async (id: string) => {
     try {
       await rejectAdminStaff(id, { approve: false });
-      toast.success("Rejected");
+      toast.success("Đã từ chối");
       loadData();
     } catch (error: any) {
-      toast.error("Reject failed");
+      toast.error("Từ chối thất bại");
     }
   };
 
   const handleResetPassword = async (id: string) => {
     try {
       await resetAdminStaffPassword(id);
-      toast.success("Reset email sent");
+      toast.success("Đã gửi email đặt lại mật khẩu");
     } catch (error: any) {
-      toast.error("Reset failed");
+      toast.error("Đặt lại thất bại");
     }
   };
 
   const handleAssign = async (id: string) => {
-    const resident_id = window.prompt("Enter resident ID to assign");
+    const resident_id = window.prompt("Nhập ID cư dân để gán");
     if (!resident_id) return;
     try {
       await assignAdminStaffResident(id, { resident_id });
-      toast.success("Assigned");
+      toast.success("Đã gán");
     } catch (error: any) {
-      toast.error("Assign failed");
+      toast.error("Gán thất bại");
     }
   };
 
   const handleUnassign = async (id: string) => {
-    const resident_id = window.prompt("Enter resident ID to unassign");
+    const resident_id = window.prompt("Nhập ID cư dân để hủy gán");
     if (!resident_id) return;
     try {
       await unassignAdminStaffResident(id, resident_id);
-      toast.success("Unassigned");
+      toast.success("Đã hủy gán");
     } catch (error: any) {
-      toast.error("Unassign failed");
+      toast.error("Hủy gán thất bại");
     }
   };
 
@@ -224,7 +224,7 @@ const AdminStaffManagement: React.FC = () => {
       setAuditLogs(res.data || []);
       setShowAudit(true);
     } catch (error: any) {
-      toast.error("Load audit failed");
+      toast.error("Tải nhật ký kiểm toán thất bại");
     }
   };
 
@@ -253,24 +253,25 @@ const AdminStaffManagement: React.FC = () => {
       link.click();
       link.parentNode?.removeChild(link);
     } catch (error: any) {
-      toast.error("Export failed");
+      toast.error("Xuất dữ liệu thất bại");
     }
   };
 
   const handleDelete = async (userId: string) => {
     if (!isRootAdmin) {
-      toast.error("Only RootAdmin can delete staff");
+      toast.error("Chỉ RootAdmin mới có thể xóa nhân viên");
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this staff?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa nhân viên này không?"))
+      return;
 
     try {
       await deleteAdminStaff(userId);
-      toast.success("Staff deleted");
+      toast.success("Đã xóa nhân viên");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to delete staff");
+      toast.error(error.response?.data?.message || "Không thể xóa nhân viên");
     }
   };
 
@@ -289,16 +290,16 @@ const AdminStaffManagement: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     return status === "active" ? (
-      <Badge className="bg-green-500 text-white">Active</Badge>
+      <Badge className="bg-green-500 text-white">Hoạt động</Badge>
     ) : (
-      <Badge className="bg-gray-500 text-white">Inactive</Badge>
+      <Badge className="bg-gray-500 text-white">Ngừng hoạt động</Badge>
     );
   };
 
   if (loading && staff.length === 0) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-center">Loading...</p>
+        <p className="text-center">Đang tải...</p>
       </div>
     );
   }
@@ -309,7 +310,7 @@ const AdminStaffManagement: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-white rounded-t-md">
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold text-slate-800">
-              Staff Admin
+              Quản trị viên & Nhân viên
             </CardTitle>
             {isRootAdmin && (
               <Button
@@ -317,7 +318,7 @@ const AdminStaffManagement: React.FC = () => {
                 className="bg-[#4f7df5] hover:bg-[#3c6be6] text-white shadow-sm"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Create Admin
+                Tạo Admin
               </Button>
             )}
           </div>
@@ -327,11 +328,11 @@ const AdminStaffManagement: React.FC = () => {
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div>
-                <Label>Search</Label>
+                <Label>Tìm kiếm</Label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by email or name..."
+                    placeholder="Tìm theo email hoặc tên..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-8 bg-white border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
@@ -339,30 +340,30 @@ const AdminStaffManagement: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label>Role</Label>
+                <Label>Vai trò</Label>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="bg-white border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
-                    <SelectValue placeholder="All" />
+                    <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="Staff">Staff</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="Staff">Nhân viên</SelectItem>
                     <SelectItem value="Admin">Admin</SelectItem>
                     <SelectItem value="RootAdmin">Root Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Status</Label>
+                <Label>Trạng thái</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="bg-white border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100">
-                    <SelectValue placeholder="All" />
+                    <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="pending">Đang chờ</SelectItem>
+                    <SelectItem value="active">Hoạt động</SelectItem>
+                    <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -376,7 +377,7 @@ const AdminStaffManagement: React.FC = () => {
                   variant="outline"
                   className="w-full border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
                 >
-                  Clear filters
+                  Xóa bộ lọc
                 </Button>
               </div>
               <div className="flex items-end justify-start md:justify-end gap-2">
@@ -385,14 +386,14 @@ const AdminStaffManagement: React.FC = () => {
                   className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
                   onClick={() => handleExport("csv")}
                 >
-                  Export CSV
+                  Xuất CSV
                 </Button>
                 <Button
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                   onClick={() => handleExport("xlsx")}
                 >
-                  Export XLSX
+                  Xuất XLSX
                 </Button>
               </div>
             </div>
@@ -402,17 +403,17 @@ const AdminStaffManagement: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Vai trò</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {staff.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
-                      No data
+                      Không có dữ liệu
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -438,7 +439,7 @@ const AdminStaffManagement: React.FC = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Staff">Staff</SelectItem>
+                            <SelectItem value="Staff">Nhân viên</SelectItem>
                             <SelectItem value="Admin">Admin</SelectItem>
                             <SelectItem value="RootAdmin" disabled>
                               RootAdmin
@@ -459,9 +460,11 @@ const AdminStaffManagement: React.FC = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="pending">Đang chờ</SelectItem>
+                            <SelectItem value="active">Hoạt động</SelectItem>
+                            <SelectItem value="inactive">
+                              Ngừng hoạt động
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -475,7 +478,7 @@ const AdminStaffManagement: React.FC = () => {
                               handleResetPassword(staffMember.user_id)
                             }
                           >
-                            Reset PW
+                            Đổi mật khẩu
                           </Button>
                           <Button
                             variant="outline"
@@ -483,7 +486,7 @@ const AdminStaffManagement: React.FC = () => {
                             className="border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
                             onClick={() => handleAudit(staffMember.user_id)}
                           >
-                            Audit
+                            Kiểm toán
                           </Button>
                           {staffMember.status === "pending" && (
                             <>
@@ -495,7 +498,7 @@ const AdminStaffManagement: React.FC = () => {
                                   handleApprove(staffMember.user_id)
                                 }
                               >
-                                Approve
+                                Phê duyệt
                               </Button>
                               <Button
                                 variant="destructive"
@@ -504,7 +507,7 @@ const AdminStaffManagement: React.FC = () => {
                                   handleReject(staffMember.user_id)
                                 }
                               >
-                                Reject
+                                Từ chối
                               </Button>
                             </>
                           )}
@@ -522,7 +525,7 @@ const AdminStaffManagement: React.FC = () => {
                             className="border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
                             onClick={() => handleAssign(staffMember.user_id)}
                           >
-                            Assign
+                            Gán
                           </Button>
                           <Button
                             variant="outline"
@@ -530,7 +533,7 @@ const AdminStaffManagement: React.FC = () => {
                             className="border-orange-200 text-orange-700 bg-orange-50 hover:bg-orange-100"
                             onClick={() => handleUnassign(staffMember.user_id)}
                           >
-                            Unassign
+                            Hủy gán
                           </Button>
                           {isRootAdmin && staffMember.role !== "RootAdmin" && (
                             <Button
@@ -556,7 +559,7 @@ const AdminStaffManagement: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="bg-white border-gray-300">
           <DialogHeader>
-            <DialogTitle>Create New Admin</DialogTitle>
+            <DialogTitle>Tạo Admin mới</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -581,13 +584,13 @@ const AdminStaffManagement: React.FC = () => {
                 onClick={() => setIsDialogOpen(false)}
                 className="border-gray-300 hover:bg-gray-100"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmitCreate}
                 className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
               >
-                Create
+                Tạo
               </Button>
             </div>
           </div>
@@ -598,16 +601,16 @@ const AdminStaffManagement: React.FC = () => {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-white border-gray-300">
           <DialogHeader>
-            <DialogTitle>Edit Staff</DialogTitle>
+            <DialogTitle>Chỉnh sửa nhân viên</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {editingStaff && editingStaff.role === "RootAdmin" && (
               <p className="text-sm text-gray-600">
-                Cannot change the role of RootAdmin
+                Không thể thay đổi vai trò của RootAdmin
               </p>
             )}
             <div>
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">Vai trò</Label>
               <Select
                 value={editFormData.role}
                 onValueChange={(value: "Staff" | "Admin") =>
@@ -619,13 +622,13 @@ const AdminStaffManagement: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="Staff">Nhân viên</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">Trạng thái</Label>
               <Select
                 value={editFormData.status}
                 onValueChange={(value: "active" | "inactive") =>
@@ -636,8 +639,8 @@ const AdminStaffManagement: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="active">Hoạt động</SelectItem>
+                  <SelectItem value="inactive">Ngừng hoạt động</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -647,13 +650,13 @@ const AdminStaffManagement: React.FC = () => {
                 onClick={() => setIsEditDialogOpen(false)}
                 className="border-gray-300 hover:bg-gray-100"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmitEdit}
                 className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
               >
-                Update
+                Cập nhật
               </Button>
             </div>
           </div>

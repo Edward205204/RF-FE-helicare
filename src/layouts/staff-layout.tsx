@@ -109,7 +109,7 @@ const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const role = "staff";
 
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
       removeLocalStorage();
       navigate(path.signin);
     }
@@ -162,7 +162,7 @@ const StaffLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             className="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <LogOut className="mr-3 h-5 w-5" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">Đăng xuất</span>
           </button>
         </div>
       </aside>

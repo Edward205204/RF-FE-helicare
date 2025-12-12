@@ -95,13 +95,13 @@ const FamilyNotifications: React.FC = () => {
         (fb) => ({
           id: `fb:${fb.feedback_id}`,
           source: "feedback",
-          title: `Feedback update: ${fb.category?.name || "Other"}`,
+          title: `Cập nhật phản hồi: ${fb.category?.name || "Khác"}`,
           message:
             fb.status === "resolved"
-              ? "Your feedback has been resolved."
+              ? "Phản hồi của bạn đã được giải quyết."
               : fb.status === "in_progress"
-              ? "Your feedback is being processed by the team."
-              : "New feedback has been recorded.",
+              ? "Phản hồi của bạn đang được đội ngũ xử lý."
+              : "Phản hồi mới đã được ghi nhận.",
           createdAt: fb.updated_at || fb.created_at,
           residentName: fb.resident?.full_name,
           relatedResidentId: fb.resident?.resident_id || undefined,
@@ -122,7 +122,7 @@ const FamilyNotifications: React.FC = () => {
       const postNotifications: FamilyNotification[] = posts.map((post) => ({
         id: `post:${post.id}`,
         source: "post",
-        title: post.title || "New notification from institution",
+        title: post.title || "Thông báo mới từ cơ sở",
         message: post.content.slice(0, 200),
         createdAt: post.createdAt,
         severity: "info",
@@ -139,7 +139,7 @@ const FamilyNotifications: React.FC = () => {
             healthNotifications.push({
               id: `health:${r.resident_id}:${alert.id}`,
               source: "health",
-              title: `Health alert for ${r.full_name}`,
+              title: `Cảnh báo sức khỏe cho ${r.full_name}`,
               message: alert.message,
               createdAt: hs.meta.generated_at,
               residentName: r.full_name,
@@ -188,7 +188,7 @@ const FamilyNotifications: React.FC = () => {
       console.error("Failed to load notifications:", err);
       setError(
         err.response?.data?.message ||
-          "Cannot load notifications. Please try again later."
+          "Không thể tải thông báo. Vui lòng thử lại sau."
       );
     } finally {
       setLoading(false);
@@ -274,11 +274,11 @@ const FamilyNotifications: React.FC = () => {
   const getSourceLabel = (source: NotificationSource) => {
     switch (source) {
       case "health":
-        return "Health";
+        return "Sức khỏe";
       case "feedback":
-        return "Feedback";
+        return "Phản hồi";
       case "post":
-        return "Post";
+        return "Bài viết";
       default:
         return "";
     }
@@ -287,7 +287,7 @@ const FamilyNotifications: React.FC = () => {
   const formatDateTime = (value: string) => {
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleString("en-US", {
+    return d.toLocaleString("vi-VN", {
       hour12: false,
       day: "2-digit",
       month: "2-digit",
@@ -303,7 +303,7 @@ const FamilyNotifications: React.FC = () => {
         className="text-3xl font-bold mb-6 text-center"
         style={{ color: "#5985D8" }}
       >
-        Notification Center
+        Trung tâm thông báo
       </h1>
 
       {/* Unread Notifications Section */}
@@ -311,14 +311,14 @@ const FamilyNotifications: React.FC = () => {
         <Card className="mb-6 shadow-lg rounded-lg">
           <CardHeader className="bg-gradient-to-r from-blue-100 to-white rounded-t-lg">
             <CardTitle className="flex justify-between items-center">
-              Unread Notifications ({unreadNotifications.length})
+              Thông báo chưa đọc ({unreadNotifications.length})
               <Button
                 onClick={markAllAsRead}
                 variant="outline"
                 size="sm"
                 style={{ borderColor: "#5985D8", color: "#5985D8" }}
               >
-                Mark All as Read
+                Đánh dấu tất cả đã đọc
               </Button>
             </CardTitle>
           </CardHeader>
@@ -360,7 +360,7 @@ const FamilyNotifications: React.FC = () => {
                         onClick={() => handleViewDetails(notification)}
                         style={{ borderColor: "#5985D8", color: "#5985D8" }}
                       >
-                        View Details
+                        Xem chi tiết
                       </Button>
                     </div>
                   </Card>
@@ -382,16 +382,16 @@ const FamilyNotifications: React.FC = () => {
       >
         <TabsList className="grid w-full grid-cols-4 mb-6 rounded-lg bg-white shadow-sm">
           <TabsTrigger value="all" className="rounded-md">
-            All
+            Tất cả
           </TabsTrigger>
           <TabsTrigger value="health" className="rounded-md">
-            Health
+            Sức khỏe
           </TabsTrigger>
           <TabsTrigger value="feedback" className="rounded-md">
-            Feedback
+            Phản hồi
           </TabsTrigger>
           <TabsTrigger value="post" className="rounded-md">
-            Post
+            Bài viết
           </TabsTrigger>
         </TabsList>
 
@@ -400,25 +400,25 @@ const FamilyNotifications: React.FC = () => {
             <CardHeader className="bg-gradient-to-r from-blue-100 to-white rounded-t-lg">
               <CardTitle>
                 {activeTab === "all"
-                  ? "All Notifications"
+                  ? "Tất cả thông báo"
                   : activeTab === "health"
-                  ? "Health Notifications"
+                  ? "Thông báo sức khỏe"
                   : activeTab === "feedback"
-                  ? "Feedback Notifications"
-                  : "Post Notifications"}
+                  ? "Thông báo phản hồi"
+                  : "Thông báo bài viết"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4 custom-scroll overflow-x-hidden">
                 {loading ? (
                   <p className="text-center text-gray-500">
-                    Loading notifications...
+                    Đang tải thông báo...
                   </p>
                 ) : error ? (
                   <p className="text-center text-red-500">{error}</p>
                 ) : filteredNotifications.length === 0 ? (
                   <p className="text-center text-gray-500">
-                    No notifications in this category.
+                    Không có thông báo nào trong mục này.
                   </p>
                 ) : (
                   filteredNotifications.map((notification, index) => (
@@ -448,7 +448,7 @@ const FamilyNotifications: React.FC = () => {
                                   variant="secondary"
                                   className="bg-blue-100 text-blue-800"
                                 >
-                                  Unread
+                                  Chưa đọc
                                 </Badge>
                               )}
                             </div>
@@ -473,7 +473,7 @@ const FamilyNotifications: React.FC = () => {
                             onClick={() => handleViewDetails(notification)}
                             style={{ borderColor: "#5985D8", color: "#5985D8" }}
                           >
-                            View Details
+                            Xem chi tiết
                           </Button>
                         </div>
                       </Card>
@@ -493,20 +493,20 @@ const FamilyNotifications: React.FC = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-md rounded-lg shadow-lg">
           <DialogHeader>
-            <DialogTitle>Notification Details</DialogTitle>
+            <DialogTitle>Chi tiết thông báo</DialogTitle>
           </DialogHeader>
           {selectedNotification && (
             <div className="space-y-4">
               <div>
-                <strong>Resident:</strong>{" "}
+                <strong>Người thân:</strong>{" "}
                 {selectedNotification.residentName || "—"}
               </div>
               <div>
-                <strong>Type:</strong>{" "}
+                <strong>Loại:</strong>{" "}
                 {getSourceLabel(selectedNotification.source)}
               </div>
               <div>
-                <strong>Severity:</strong>
+                <strong>Mức độ:</strong>
                 <Badge
                   className={`ml-2 ${getSeverityColor(
                     selectedNotification.severity
@@ -516,11 +516,11 @@ const FamilyNotifications: React.FC = () => {
                 </Badge>
               </div>
               <div>
-                <strong>Time:</strong>{" "}
+                <strong>Thời gian:</strong>{" "}
                 {formatDateTime(selectedNotification.createdAt)}
               </div>
               <div>
-                <strong>Content:</strong> {selectedNotification.message}
+                <strong>Nội dung:</strong> {selectedNotification.message}
               </div>
             </div>
           )}

@@ -30,7 +30,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
 
   // Handle logout
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
       removeLocalStorage();
     }
   };
@@ -39,7 +39,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
   const familyMemberName =
     (profile as any)?.familyProfile?.full_name ||
     (profile as any)?.email?.split("@")[0] ||
-    "Family Member";
+    "Thành viên gia đình";
 
   // Lấy initials từ tên
   const getInitials = (name: string) => {
@@ -110,7 +110,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
             <p className="text-sm font-medium text-gray-900">
               {familyMemberName}
             </p>
-            <p className="text-xs text-gray-500">Family Member</p>
+            <p className="text-xs text-gray-500">Thành viên gia đình</p>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ const FamilyLayout: React.FC<{ children: React.ReactNode }> = ({
             className="w-full flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors "
           >
             <LogOut className="h-5 w-5" />
-            <span>Logout</span>
+            <span>Đăng xuất</span>
           </Button>
         </div>
       </aside>

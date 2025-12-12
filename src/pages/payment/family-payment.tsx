@@ -69,7 +69,7 @@ const PaymentModuleFamily: React.FC = () => {
       setContracts(contractsRes.data || []);
       setPayments(paymentsRes.data || []);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to load data");
+      toast.error(error.response?.data?.message || "Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ const PaymentModuleFamily: React.FC = () => {
         setNotes("");
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create payment");
+      toast.error(error.response?.data?.message || "Không thể tạo thanh toán");
     }
   };
 
@@ -157,7 +157,7 @@ const PaymentModuleFamily: React.FC = () => {
 
   const handleUploadProof = async () => {
     if (!selectedPayment || !proofFile) {
-      toast.error("Please select a proof image");
+      toast.error("Vui lòng chọn ảnh minh chứng");
       return;
     }
 
@@ -176,7 +176,7 @@ const PaymentModuleFamily: React.FC = () => {
         notes: notes || undefined,
       });
 
-      toast.success("Proof image uploaded successfully");
+      toast.success("Tải lên ảnh minh chứng thành công");
       setIsUploadModalOpen(false);
       setSelectedPayment(null);
       setProofFile(null);
@@ -185,7 +185,7 @@ const PaymentModuleFamily: React.FC = () => {
       loadData();
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to upload proof image"
+        error.response?.data?.message || "Không thể tải lên ảnh minh chứng"
       );
     } finally {
       setUploading(false);
@@ -193,14 +193,15 @@ const PaymentModuleFamily: React.FC = () => {
   };
 
   const handleCancelPayment = async (paymentId: string) => {
-    if (!window.confirm("Are you sure you want to cancel this payment?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn hủy thanh toán này không?"))
+      return;
 
     try {
       await cancelPayment(paymentId);
-      toast.success("Payment cancelled");
+      toast.success("Đã hủy thanh toán");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to cancel payment");
+      toast.error(error.response?.data?.message || "Không thể hủy thanh toán");
     }
   };
 
@@ -225,29 +226,29 @@ const PaymentModuleFamily: React.FC = () => {
       case "SUCCESS":
         return (
           <Badge variant="default" className="text-lg bg-green-500">
-            Success
+            Thành công
           </Badge>
         );
       case "PENDING":
         return (
           <Badge variant="secondary" className="text-lg bg-yellow-500">
-            Pending
+            Đang chờ
           </Badge>
         );
       case "FAILED":
         return (
           <Badge variant="destructive" className="text-lg">
-            Failed
+            Thất bại
           </Badge>
         );
       case "REFUNDED":
         return (
           <Badge variant="outline" className="text-lg">
-            Refunded
+            Đã hoàn tiền
           </Badge>
         );
       default:
-        return <Badge className="text-lg">Unknown</Badge>;
+        return <Badge className="text-lg">Không rõ</Badge>;
     }
   };
 
@@ -256,9 +257,9 @@ const PaymentModuleFamily: React.FC = () => {
       case "VNPAY":
         return <Badge className="text-sm bg-blue-500">VNPay</Badge>;
       case "CASH":
-        return <Badge className="text-sm bg-gray-500">Bank Transfer</Badge>;
+        return <Badge className="text-sm bg-gray-500">Chuyển khoản</Badge>;
       default:
-        return <Badge className="text-sm">Unknown</Badge>;
+        return <Badge className="text-sm">Không rõ</Badge>;
     }
   };
 
@@ -267,7 +268,7 @@ const PaymentModuleFamily: React.FC = () => {
       <div className="container mx-auto p-6">
         <Card>
           <CardContent className="p-6">
-            <p className="text-center text-lg">Loading data...</p>
+            <p className="text-center text-lg">Đang tải dữ liệu...</p>
           </CardContent>
         </Card>
       </div>
@@ -279,33 +280,33 @@ const PaymentModuleFamily: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
-            Service Payment
+            Thanh toán dịch vụ
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="contracts" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="contracts">Service Contracts</TabsTrigger>
-              <TabsTrigger value="payments">Payment History</TabsTrigger>
+              <TabsTrigger value="contracts">Hợp đồng dịch vụ</TabsTrigger>
+              <TabsTrigger value="payments">Lịch sử thanh toán</TabsTrigger>
             </TabsList>
 
             <TabsContent value="contracts" className="space-y-4">
               {contracts.length === 0 ? (
                 <p className="text-center text-lg text-gray-500 py-8">
-                  No service contracts yet
+                  Chưa có hợp đồng dịch vụ nào
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-lg">Resident</TableHead>
-                      <TableHead className="text-lg">Billing Cycle</TableHead>
-                      <TableHead className="text-lg">Amount</TableHead>
+                      <TableHead className="text-lg">Cư dân</TableHead>
+                      <TableHead className="text-lg">Chu kỳ</TableHead>
+                      <TableHead className="text-lg">Số tiền</TableHead>
                       <TableHead className="text-lg">
-                        Next Payment Date
+                        Ngày thanh toán tiếp theo
                       </TableHead>
-                      <TableHead className="text-lg">Status</TableHead>
-                      <TableHead className="text-lg">Actions</TableHead>
+                      <TableHead className="text-lg">Trạng thái</TableHead>
+                      <TableHead className="text-lg">Hành động</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -316,8 +317,8 @@ const PaymentModuleFamily: React.FC = () => {
                         </TableCell>
                         <TableCell className="text-lg">
                           {contract.billing_cycle === "MONTHLY"
-                            ? "Monthly"
-                            : "Yearly"}
+                            ? "Hàng tháng"
+                            : "Hàng năm"}
                         </TableCell>
                         <TableCell className="text-lg font-bold">
                           {formatCurrency(contract.amount)}
@@ -328,14 +329,14 @@ const PaymentModuleFamily: React.FC = () => {
                         <TableCell>
                           {needsPayment(contract) ? (
                             <Badge variant="destructive" className="text-lg">
-                              Payment Required
+                              Cần thanh toán
                             </Badge>
                           ) : (
                             <Badge
                               variant="default"
                               className="text-lg bg-green-500"
                             >
-                              Paid
+                              Đã thanh toán
                             </Badge>
                           )}
                         </TableCell>
@@ -345,7 +346,7 @@ const PaymentModuleFamily: React.FC = () => {
                               onClick={() => handlePayNow(contract)}
                               className="text-lg"
                             >
-                              Pay Now
+                              Thanh toán ngay
                             </Button>
                           )}
                         </TableCell>
@@ -365,12 +366,12 @@ const PaymentModuleFamily: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-lg">Resident</TableHead>
-                      <TableHead className="text-lg">Amount</TableHead>
-                      <TableHead className="text-lg">Payment Method</TableHead>
-                      <TableHead className="text-lg">Payment Period</TableHead>
-                      <TableHead className="text-lg">Status</TableHead>
-                      <TableHead className="text-lg">Actions</TableHead>
+                      <TableHead className="text-lg">Cư dân</TableHead>
+                      <TableHead className="text-lg">Số tiền</TableHead>
+                      <TableHead className="text-lg">Phương thức</TableHead>
+                      <TableHead className="text-lg">Kỳ thanh toán</TableHead>
+                      <TableHead className="text-lg">Trạng thái</TableHead>
+                      <TableHead className="text-lg">Hành động</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -402,7 +403,7 @@ const PaymentModuleFamily: React.FC = () => {
                                 }}
                                 className="text-sm"
                               >
-                                Upload Proof
+                                Tải minh chứng
                               </Button>
                             )}
                           {payment.status === "PENDING" && (
@@ -413,7 +414,7 @@ const PaymentModuleFamily: React.FC = () => {
                               }
                               className="text-sm ml-2"
                             >
-                              Cancel
+                              Hủy
                             </Button>
                           )}
                         </TableCell>
@@ -432,26 +433,26 @@ const PaymentModuleFamily: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              Select Payment Method
+              Chọn phương thức thanh toán
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {selectedContract && (
               <>
                 <div>
-                  <p className="text-sm text-gray-600">Resident:</p>
+                  <p className="text-sm text-gray-600">Cư dân:</p>
                   <p className="text-lg font-semibold">
                     {selectedContract.resident?.full_name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Amount:</p>
+                  <p className="text-sm text-gray-600">Số tiền:</p>
                   <p className="text-lg font-bold text-blue-600">
                     {formatCurrency(selectedContract.amount)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Payment Period:</p>
+                  <p className="text-sm text-gray-600">Kỳ thanh toán:</p>
                   <p className="text-lg">
                     {formatDate(calculatePeriodDates(selectedContract).start)} -{" "}
                     {formatDate(calculatePeriodDates(selectedContract).end)}
@@ -468,24 +469,24 @@ const PaymentModuleFamily: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="VNPAY" id="vnpay" />
                 <Label htmlFor="vnpay" className="text-lg cursor-pointer">
-                  VNPay (Online Payment)
+                  VNPay (Thanh toán trực tuyến)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="CASH" id="cash" />
                 <Label htmlFor="cash" className="text-lg cursor-pointer">
-                  Bank Transfer (Upload Proof)
+                  Chuyển khoản (Tải minh chứng)
                 </Label>
               </div>
             </RadioGroup>
             {paymentMethod === "CASH" && (
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optional)</Label>
+                <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
                 <Textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes if any"
+                  placeholder="Nhập ghi chú nếu có"
                 />
               </div>
             )}
@@ -494,7 +495,7 @@ const PaymentModuleFamily: React.FC = () => {
               disabled={!paymentMethod}
               className="w-full text-lg"
             >
-              Confirm Payment
+              Xác nhận thanh toán
             </Button>
           </div>
         </DialogContent>
@@ -504,19 +505,19 @@ const PaymentModuleFamily: React.FC = () => {
       <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">Upload Proof Image</DialogTitle>
+            <DialogTitle className="text-xl">Tải ảnh minh chứng</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {selectedPayment && (
               <div>
-                <p className="text-sm text-gray-600">Amount:</p>
+                <p className="text-sm text-gray-600">Số tiền:</p>
                 <p className="text-lg font-bold">
                   {formatCurrency(selectedPayment.amount)}
                 </p>
               </div>
             )}
             <div>
-              <Label htmlFor="proof-file">Select Bank Transfer Proof Image</Label>
+              <Label htmlFor="proof-file">Chọn hình ảnh minh chứng</Label>
               <Input
                 id="proof-file"
                 type="file"
@@ -526,29 +527,27 @@ const PaymentModuleFamily: React.FC = () => {
               />
               {proofFile && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Selected: {proofFile.name}
+                  Đã chọn: {proofFile.name}
                 </p>
               )}
             </div>
             <div>
-              <Label htmlFor="transaction-ref">
-                Transaction Reference (optional)
-              </Label>
+              <Label htmlFor="transaction-ref">Mã giao dịch (tùy chọn)</Label>
               <Input
                 id="transaction-ref"
                 value={transactionRef}
                 onChange={(e) => setTransactionRef(e.target.value)}
-                placeholder="Enter transaction reference if any"
+                placeholder="Nhập mã giao dịch nếu có"
                 className="mt-2"
               />
             </div>
             <div>
-              <Label htmlFor="upload-notes">Notes (optional)</Label>
+              <Label htmlFor="upload-notes">Ghi chú (tùy chọn)</Label>
               <Textarea
                 id="upload-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Enter notes if any"
+                placeholder="Nhập ghi chú nếu có"
               />
             </div>
             <Button
@@ -556,7 +555,7 @@ const PaymentModuleFamily: React.FC = () => {
               disabled={!proofFile || uploading}
               className="w-full text-lg"
             >
-              {uploading ? "Uploading..." : "Upload Proof"}
+              {uploading ? "Đang tải lên..." : "Tải minh chứng"}
             </Button>
           </div>
         </DialogContent>

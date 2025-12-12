@@ -138,7 +138,9 @@ const ResidentPasswordManagement: React.FC = () => {
       setPagination(result.pagination || pagination);
     } catch (error: any) {
       console.error("Error fetching resident accounts:", error);
-      toast.error(error.response?.data?.message || "Cannot load account list");
+      toast.error(
+        error.response?.data?.message || "Không tải được danh sách tài khoản"
+      );
     } finally {
       setLoading(false);
     }
@@ -185,11 +187,11 @@ const ResidentPasswordManagement: React.FC = () => {
 
   const validatePassword = () => {
     if (!newPassword || newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự");
       return false;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Password confirmation does not match");
+      toast.error("Xác nhận mật khẩu không khớp");
       return false;
     }
     return true;
@@ -203,17 +205,19 @@ const ResidentPasswordManagement: React.FC = () => {
       if (dialogType === "reset") {
         await resetResidentPassword(selectedResident.resident_id, newPassword);
         toast.success(
-          "Password reset successfully! Resident needs to change password on first login."
+          "Đặt lại mật khẩu thành công! Cư dân cần thay đổi mật khẩu trong lần đăng nhập đầu tiên."
         );
       } else {
         await changeResidentPassword(selectedResident.resident_id, newPassword);
-        toast.success("Password changed successfully!");
+        toast.success("Đổi mật khẩu thành công!");
       }
       closeDialog();
       fetchAccounts();
     } catch (error: any) {
       console.error("Error updating password:", error);
-      toast.error(error.response?.data?.message || "Cannot update password");
+      toast.error(
+        error.response?.data?.message || "Không thể cập nhật mật khẩu"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -223,13 +227,13 @@ const ResidentPasswordManagement: React.FC = () => {
     if (status === "not_changed") {
       return (
         <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200">
-          Not Changed
+          Chưa đổi
         </Badge>
       );
     }
     return (
       <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">
-        Changed
+        Đã đổi
       </Badge>
     );
   };
@@ -245,10 +249,10 @@ const ResidentPasswordManagement: React.FC = () => {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Resident Password Management
+            Quản lý mật khẩu cư dân
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage and help reset passwords for resident accounts
+            Quản lý và hỗ trợ đặt lại mật khẩu cho tài khoản cư dân
           </p>
         </div>
 
@@ -260,7 +264,7 @@ const ResidentPasswordManagement: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by resident name..."
+                    placeholder="Tìm kiếm theo tên cư dân..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -276,7 +280,7 @@ const ResidentPasswordManagement: React.FC = () => {
                 onClick={handleSearch}
                 className="bg-blue-500 text-white hover:bg-blue-600"
               >
-                Search
+                Tìm kiếm
               </Button>
             </div>
           </CardContent>
@@ -296,21 +300,21 @@ const ResidentPasswordManagement: React.FC = () => {
               value="all"
               className="data-[state=active]:bg-blue-100"
             >
-              All
+              Tất cả
               {activeTab === "all" && ` (${pagination.total})`}
             </TabsTrigger>
             <TabsTrigger
               value="not_changed"
               className="data-[state=active]:bg-amber-100"
             >
-              Not Changed
+              Chưa đổi
               {activeTab === "not_changed" && ` (${pagination.total})`}
             </TabsTrigger>
             <TabsTrigger
               value="changed"
               className="data-[state=active]:bg-emerald-100"
             >
-              Changed
+              Đã đổi
               {activeTab === "changed" && ` (${pagination.total})`}
             </TabsTrigger>
           </TabsList>
@@ -321,14 +325,14 @@ const ResidentPasswordManagement: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-semibold text-gray-900">
-                      Account List
+                      Danh sách tài khoản
                     </CardTitle>
                     <CardDescription className="text-gray-600">
                       {activeTab === "all"
-                        ? "All resident accounts"
+                        ? "Tất cả tài khoản cư dân"
                         : activeTab === "not_changed"
-                        ? "Accounts with unchanged passwords (default passwords)"
-                        : "Accounts with changed passwords"}
+                        ? "Các tài khoản chưa đổi mật khẩu (mật khẩu mặc định)"
+                        : "Các tài khoản đã đổi mật khẩu"}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -340,11 +344,13 @@ const ResidentPasswordManagement: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="border-gray-200 bg-white">
-                        <SelectItem value="name">Sort by Name</SelectItem>
+                        <SelectItem value="name">Sắp xếp theo Tên</SelectItem>
                         <SelectItem value="created_at">
-                          Sort by Date Created
+                          Sắp xếp theo Ngày tạo
                         </SelectItem>
-                        <SelectItem value="status">Sort by Status</SelectItem>
+                        <SelectItem value="status">
+                          Sắp xếp theo Trạng thái
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
@@ -363,11 +369,11 @@ const ResidentPasswordManagement: React.FC = () => {
               <CardContent>
                 {loading ? (
                   <div className="text-center py-12 text-gray-500">
-                    Loading...
+                    Đang tải...
                   </div>
                 ) : data.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
-                    No accounts found
+                    Không tìm thấy tài khoản nào
                   </div>
                 ) : (
                   <>
@@ -382,17 +388,17 @@ const ResidentPasswordManagement: React.FC = () => {
                                 onClick={() => handleSort("name")}
                                 className="hover:bg-gray-100"
                               >
-                                Resident Name
+                                Tên cư dân
                                 {sortBy === "name" && (
                                   <ArrowUpDown className="ml-2 h-3 w-3" />
                                 )}
                               </Button>
                             </TableHead>
                             <TableHead className="border-gray-200">
-                              Username
+                              Tên người dùng
                             </TableHead>
                             <TableHead className="border-gray-200">
-                              Room
+                              Phòng
                             </TableHead>
                             <TableHead className="border-gray-200">
                               <Button
@@ -401,7 +407,7 @@ const ResidentPasswordManagement: React.FC = () => {
                                 onClick={() => handleSort("status")}
                                 className="hover:bg-gray-100"
                               >
-                                Password Status
+                                Trạng thái mật khẩu
                                 {sortBy === "status" && (
                                   <ArrowUpDown className="ml-2 h-3 w-3" />
                                 )}
@@ -414,14 +420,14 @@ const ResidentPasswordManagement: React.FC = () => {
                                 onClick={() => handleSort("created_at")}
                                 className="hover:bg-gray-100"
                               >
-                                Date Created
+                                Ngày tạo
                                 {sortBy === "created_at" && (
                                   <ArrowUpDown className="ml-2 h-3 w-3" />
                                 )}
                               </Button>
                             </TableHead>
                             <TableHead className="border-gray-200 text-right">
-                              Actions
+                              Hành động
                             </TableHead>
                           </TableRow>
                         </TableHeader>
@@ -459,7 +465,7 @@ const ResidentPasswordManagement: React.FC = () => {
                                     className="border-gray-200 text-amber-600 hover:bg-amber-50"
                                   >
                                     <RefreshCw className="h-4 w-4 mr-1" />
-                                    Reset
+                                    Đặt lại
                                   </Button>
                                   <Button
                                     variant="outline"
@@ -468,7 +474,7 @@ const ResidentPasswordManagement: React.FC = () => {
                                     className="border-gray-200 text-blue-600 hover:bg-blue-50"
                                   >
                                     <Edit className="h-4 w-4 mr-1" />
-                                    Change
+                                    Đổi
                                   </Button>
                                 </div>
                               </TableCell>
@@ -482,9 +488,9 @@ const ResidentPasswordManagement: React.FC = () => {
                     {pagination.totalPages > 1 && (
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                         <div className="text-sm text-gray-600">
-                          Showing {(page - 1) * limit + 1} -{" "}
-                          {Math.min(page * limit, pagination.total)} of{" "}
-                          {pagination.total} accounts
+                          Hiển thị {(page - 1) * limit + 1} -{" "}
+                          {Math.min(page * limit, pagination.total)} trong số{" "}
+                          {pagination.total} tài khoản
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
@@ -494,7 +500,7 @@ const ResidentPasswordManagement: React.FC = () => {
                             disabled={page === 1}
                             className="border-gray-200"
                           >
-                            Previous
+                            Trước
                           </Button>
                           {paginationItems.map((item, idx) => {
                             if (item === "ellipsis") {
@@ -530,7 +536,7 @@ const ResidentPasswordManagement: React.FC = () => {
                             disabled={page === pagination.totalPages}
                             className="border-gray-200"
                           >
-                            Next
+                            Sau
                           </Button>
                         </div>
                       </div>
@@ -547,25 +553,25 @@ const ResidentPasswordManagement: React.FC = () => {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-gray-900">
-                Reset Password
+                Đặt lại mật khẩu
               </DialogTitle>
               <DialogDescription className="text-gray-600">
-                Reset password for{" "}
-                <strong>{selectedResident?.full_name}</strong>. Resident will
-                need to change password on first login.
+                Đặt lại mật khẩu cho{" "}
+                <strong>{selectedResident?.full_name}</strong>. Cư dân sẽ cần
+                đổi mật khẩu trong lần đăng nhập đầu tiên.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  New Password *
+                  Mật khẩu mới *
                 </Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min. 6 chars)"
+                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
                     className="border-gray-200 pr-10"
                   />
                   <Button
@@ -585,14 +591,14 @@ const ResidentPasswordManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Confirm Password *
+                  Xác nhận mật khẩu *
                 </Label>
                 <div className="relative">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter new password"
+                    placeholder="Nhập lại mật khẩu mới"
                     className="border-gray-200 pr-10"
                   />
                   <Button
@@ -612,9 +618,9 @@ const ResidentPasswordManagement: React.FC = () => {
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> After reset, account status will be
-                  "Not Changed". Resident needs to change password on first
-                  login.
+                  <strong>Lưu ý:</strong> Sau khi đặt lại, trạng thái tài khoản
+                  sẽ là "Chưa đổi". Cư dân cần đổi mật khẩu trong lần đăng nhập
+                  đầu tiên.
                 </p>
               </div>
             </div>
@@ -625,14 +631,14 @@ const ResidentPasswordManagement: React.FC = () => {
                 disabled={submitting}
                 className="border-gray-200"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
                 className="bg-amber-500 text-white hover:bg-amber-600"
               >
-                {submitting ? "Processing..." : "Reset Password"}
+                {submitting ? "Đang xử lý..." : "Đặt lại mật khẩu"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -643,25 +649,24 @@ const ResidentPasswordManagement: React.FC = () => {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-gray-900">
-                Change Password
+                Đổi mật khẩu
               </DialogTitle>
               <DialogDescription className="text-gray-600">
-                Change password for{" "}
-                <strong>{selectedResident?.full_name}</strong>. Account will be
-                marked as "Changed".
+                Đổi mật khẩu cho <strong>{selectedResident?.full_name}</strong>.
+                Tài khoản sẽ được đánh dấu là "Đã đổi".
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  New Password *
+                  Mật khẩu mới *
                 </Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min. 6 chars)"
+                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
                     className="border-gray-200 pr-10"
                   />
                   <Button
@@ -681,14 +686,14 @@ const ResidentPasswordManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">
-                  Confirm Password *
+                  Xác nhận mật khẩu *
                 </Label>
                 <div className="relative">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter new password"
+                    placeholder="Nhập lại mật khẩu mới"
                     className="border-gray-200 pr-10"
                   />
                   <Button
@@ -708,8 +713,8 @@ const ResidentPasswordManagement: React.FC = () => {
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> After change, account status will be
-                  "Changed". Resident can use the new password immediately.
+                  <strong>Lưu ý:</strong> Sau khi đổi, trạng thái tài khoản sẽ
+                  là "Đã đổi". Cư dân có thể sử dụng mật khẩu mới ngay lập tức.
                 </p>
               </div>
             </div>
@@ -720,14 +725,14 @@ const ResidentPasswordManagement: React.FC = () => {
                 disabled={submitting}
                 className="border-gray-200"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
                 className="bg-blue-500 text-white hover:bg-blue-600"
               >
-                {submitting ? "Processing..." : "Change Password"}
+                {submitting ? "Đang xử lý..." : "Đổi mật khẩu"}
               </Button>
             </DialogFooter>
           </DialogContent>

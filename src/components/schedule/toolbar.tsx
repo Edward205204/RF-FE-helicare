@@ -68,7 +68,7 @@ export function Toolbar({
           onClick={onToday}
           className="cursor-pointer bg-green-500 text-white hover:bg-green-600"
         >
-          Today
+          Hôm nay
         </Button>
         <div className="text-lg font-semibold ml-2">{label}</div>
       </div>
@@ -78,8 +78,8 @@ export function Toolbar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-white border-none shadow-sm">
-            <SelectItem value="day">Day</SelectItem>
-            <SelectItem value="week">Week</SelectItem>
+            <SelectItem value="day">Ngày</SelectItem>
+            <SelectItem value="week">Tuần</SelectItem>
           </SelectContent>
         </Select>
         {showResidentSelector && (
@@ -88,7 +88,7 @@ export function Toolbar({
             onValueChange={(value) => value && setResident(value)}
           >
             <SelectTrigger className="w-[220px] border-none shadow-sm cursor-pointer">
-              <SelectValue placeholder="Select resident" />
+              <SelectValue placeholder="Chọn cư dân" />
             </SelectTrigger>
             <SelectContent className="border-none shadow-sm bg-white">
               {residents.map((r) => (
@@ -100,7 +100,7 @@ export function Toolbar({
           </Select>
         )}
         <div className="relative">
-          <Input placeholder="Search events..." className="pl-9 w-[220px]" />
+          <Input placeholder="Tìm kiếm sự kiện..." className="pl-9 w-[220px]" />
           <CalendarIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         </div>
 
@@ -114,16 +114,16 @@ export function Toolbar({
             <Filter className="h-4 w-4 text-slate-400" />
             <span>
               {eventTypeFilter === "care"
-                ? "Care"
+                ? "Chăm sóc"
                 : eventTypeFilter === "visit"
-                ? "Visit"
-                : "All"}
+                ? "Thăm viếng"
+                : "Tất cả"}
             </span>
           </SelectTrigger>
           <SelectContent className="border-none shadow-sm bg-white">
-            <SelectItem value="care">Care</SelectItem>
-            <SelectItem value="visit">Visit</SelectItem>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="care">Chăm sóc</SelectItem>
+            <SelectItem value="visit">Thăm viếng</SelectItem>
+            <SelectItem value="all">Tất cả</SelectItem>
           </SelectContent>
         </Select>
       </div>

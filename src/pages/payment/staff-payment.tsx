@@ -95,7 +95,7 @@ const PaymentModuleStaff: React.FC = () => {
       setPayments(paymentsRes.payments || []);
       setResidents(residentsRes.residents || []);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to load data");
+      toast.error(error.response?.data?.message || "Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ const PaymentModuleStaff: React.FC = () => {
     try {
       const amount = parseFloat(contractFormData.amount);
       if (amount <= 0) {
-        toast.error("Amount must be greater than 0");
+        toast.error("Số tiền phải lớn hơn 0");
         return;
       }
 
@@ -152,48 +152,49 @@ const PaymentModuleStaff: React.FC = () => {
 
       if (editingContract) {
         await updateServiceContract(editingContract.contract_id, data);
-        toast.success("Contract updated successfully");
+        toast.success("Cập nhật hợp đồng thành công");
       } else {
         await createServiceContract(data);
-        toast.success("Contract created successfully");
+        toast.success("Tạo hợp đồng thành công");
       }
 
       setIsContractModalOpen(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to save contract");
+      toast.error(error.response?.data?.message || "Không thể lưu hợp đồng");
     }
   };
 
   const handleDeleteContract = async (contractId: string) => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this contract? This action cannot be undone."
+        "Bạn có chắc chắn muốn xóa hợp đồng này? Hành động này không thể hoàn tác."
       )
     )
       return;
 
     try {
       await deleteServiceContract(contractId);
-      toast.success("Contract deleted");
+      toast.success("Đã xóa hợp đồng");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to delete contract");
+      toast.error(error.response?.data?.message || "Không thể xóa hợp đồng");
     }
   };
 
   const handleVerifyPayment = async (paymentId: string) => {
-    if (!window.confirm("Are you sure you want to verify this payment?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xác nhận thanh toán này?"))
+      return;
 
     try {
       await verifyPayment(paymentId);
-      toast.success("Payment verified");
+      toast.success("Đã xác nhận thanh toán");
       setIsPaymentDetailModalOpen(false);
       setSelectedPayment(null);
       loadData();
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to verify payment"
+        error.response?.data?.message || "Không thể xác nhận thanh toán"
       );
     }
   };
@@ -204,7 +205,7 @@ const PaymentModuleStaff: React.FC = () => {
       setSelectedPayment(response.data);
       setIsPaymentDetailModalOpen(true);
     } catch (error: any) {
-      toast.error("Failed to load payment details");
+      toast.error("Không thể tải chi tiết thanh toán");
     }
   };
 
@@ -229,29 +230,29 @@ const PaymentModuleStaff: React.FC = () => {
       case "SUCCESS":
         return (
           <Badge variant="default" className="text-lg bg-green-500">
-            Success
+            Thành công
           </Badge>
         );
       case "PENDING":
         return (
           <Badge variant="secondary" className="text-lg bg-yellow-500">
-            Pending
+            Đang chờ
           </Badge>
         );
       case "FAILED":
         return (
           <Badge variant="destructive" className="text-lg">
-            Failed
+            Thất bại
           </Badge>
         );
       case "REFUNDED":
         return (
           <Badge variant="outline" className="text-lg">
-            Refunded
+            Đã hoàn tiền
           </Badge>
         );
       default:
-        return <Badge className="text-lg">Unknown</Badge>;
+        return <Badge className="text-lg">Không rõ</Badge>;
     }
   };
 
@@ -260,9 +261,11 @@ const PaymentModuleStaff: React.FC = () => {
       case "VNPAY":
         return <Badge className="text-sm bg-blue-500">VNPay</Badge>;
       case "CASH":
-        return <Badge className="text-sm bg-gray-500">Bank Transfer</Badge>;
+        return (
+          <Badge className="text-sm bg-gray-500">Chuyển khoản / Tiền mặt</Badge>
+        );
       default:
-        return <Badge className="text-sm">Unknown</Badge>;
+        return <Badge className="text-sm">Không rõ</Badge>;
     }
   };
 
@@ -271,7 +274,7 @@ const PaymentModuleStaff: React.FC = () => {
       <div className="container mx-auto p-6">
         <Card>
           <CardContent className="p-6">
-            <p className="text-center text-lg">Loading data...</p>
+            <p className="text-center text-lg">Đang tải dữ liệu...</p>
           </CardContent>
         </Card>
       </div>
@@ -283,14 +286,14 @@ const PaymentModuleStaff: React.FC = () => {
       <Card className={CARD_STYLE}>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Payment Management
+            Quản lý thanh toán
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="contracts">Service Contracts</TabsTrigger>
-              <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="contracts">Hợp đồng dịch vụ</TabsTrigger>
+              <TabsTrigger value="payments">Thanh toán</TabsTrigger>
             </TabsList>
 
             <TabsContent value="contracts" className="space-y-4">
@@ -299,34 +302,34 @@ const PaymentModuleStaff: React.FC = () => {
                   onClick={handleCreateContract}
                   className="bg-[#689bdf] hover:bg-[#5183c9] text-white"
                 >
-                  Create New Contract
+                  Tạo hợp đồng mới
                 </Button>
               </div>
               {contracts.length === 0 ? (
                 <p className="text-center text-lg text-gray-500 py-8">
-                  No contracts yet
+                  Chưa có hợp đồng nào
                 </p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b border-gray-100">
                       <TableHead className="text-lg text-gray-600">
-                        Resident
+                        Cư dân
                       </TableHead>
                       <TableHead className="text-lg text-gray-600">
-                        Billing Cycle
+                        Kỳ thanh toán
                       </TableHead>
                       <TableHead className="text-lg text-gray-600">
-                        Amount
+                        Số tiền
                       </TableHead>
                       <TableHead className="text-lg text-gray-600">
-                        Next Payment Date
+                        Ngày thanh toán tiếp
                       </TableHead>
                       <TableHead className="text-lg text-gray-600">
-                        Status
+                        Trạng thái
                       </TableHead>
                       <TableHead className="text-lg text-gray-600">
-                        Actions
+                        Thao tác
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -341,8 +344,8 @@ const PaymentModuleStaff: React.FC = () => {
                         </TableCell>
                         <TableCell className="text-lg">
                           {contract.billing_cycle === "MONTHLY"
-                            ? "Monthly"
-                            : "Yearly"}
+                            ? "Hàng tháng"
+                            : "Hàng năm"}
                         </TableCell>
                         <TableCell className="text-lg font-medium">
                           {formatCurrency(contract.amount)}
@@ -353,11 +356,11 @@ const PaymentModuleStaff: React.FC = () => {
                         <TableCell>
                           {contract.is_active ? (
                             <Badge className="text-sm bg-green-500">
-                              Active
+                              Hoạt động
                             </Badge>
                           ) : (
                             <Badge className="text-sm bg-gray-500">
-                              Cancelled
+                              Đã hủy
                             </Badge>
                           )}
                         </TableCell>
@@ -367,7 +370,7 @@ const PaymentModuleStaff: React.FC = () => {
                             onClick={() => handleEditContract(contract)}
                             className="text-sm"
                           >
-                            Edit
+                            Sửa
                           </Button>
                           <Button
                             variant="destructive"
@@ -376,7 +379,7 @@ const PaymentModuleStaff: React.FC = () => {
                             }
                             className="text-sm"
                           >
-                            Delete
+                            Xóa
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -389,7 +392,7 @@ const PaymentModuleStaff: React.FC = () => {
             <TabsContent value="payments" className="space-y-4">
               {payments.length === 0 ? (
                 <p className="text-center text-lg text-gray-500 py-8">
-                  No pending payments
+                  Không có thanh toán nào đang xử lý
                 </p>
               ) : (
                 <Table>
@@ -445,7 +448,7 @@ const PaymentModuleStaff: React.FC = () => {
                             }
                             className="text-sm"
                           >
-                            Details
+                            Chi tiết
                           </Button>
                           {payment.status === "PENDING" &&
                             payment.payment_method === "CASH" && (
@@ -455,7 +458,7 @@ const PaymentModuleStaff: React.FC = () => {
                                 }
                                 className="text-sm ml-2 bg-green-500 hover:bg-green-600"
                               >
-                                Verify
+                                Xác nhận
                               </Button>
                             )}
                         </TableCell>
@@ -474,13 +477,13 @@ const PaymentModuleStaff: React.FC = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {editingContract ? "Edit Contract" : "Create New Contract"}
+              {editingContract ? "Chỉnh sửa hợp đồng" : "Tạo hợp đồng mới"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label htmlFor="resident_id" className="text-base mb-3">
-                Resident <span className="text-red-500">*</span>
+                Cư dân <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={contractFormData.resident_id}
@@ -493,7 +496,7 @@ const PaymentModuleStaff: React.FC = () => {
                 disabled={!!editingContract}
               >
                 <SelectTrigger className={INPUT_STYLE}>
-                  <SelectValue placeholder="Select resident" />
+                  <SelectValue placeholder="Chọn cư dân" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {residents.map((resident) => (
@@ -509,7 +512,7 @@ const PaymentModuleStaff: React.FC = () => {
             </div>
             <div>
               <Label htmlFor="billing_cycle" className="text-base mb-3">
-                Billing Cycle <span className="text-red-500">*</span>
+                Kỳ thanh toán <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={contractFormData.billing_cycle}
@@ -524,14 +527,14 @@ const PaymentModuleStaff: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  <SelectItem value="MONTHLY">Monthly</SelectItem>
-                  <SelectItem value="YEARLY">Yearly</SelectItem>
+                  <SelectItem value="MONTHLY">Hàng tháng</SelectItem>
+                  <SelectItem value="YEARLY">Hàng năm</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="amount" className="text-base mb-3">
-                Amount (VND) <span className="text-red-500">*</span>
+                Số tiền (VND) <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="amount"
@@ -543,13 +546,13 @@ const PaymentModuleStaff: React.FC = () => {
                     amount: e.target.value,
                   }))
                 }
-                placeholder="Enter amount"
+                placeholder="Nhập số tiền"
                 className={INPUT_STYLE}
               />
             </div>
             <div>
               <Label htmlFor="start_date" className="text-base mb-3">
-                Start Date (optional)
+                Ngày bắt đầu (tùy chọn)
               </Label>
               <Input
                 id="start_date"
@@ -587,13 +590,13 @@ const PaymentModuleStaff: React.FC = () => {
                 variant="outline"
                 onClick={() => setIsContractModalOpen(false)}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmitContract}
                 className="bg-[#689bdf] hover:bg-[#5183c9] text-white"
               >
-                {editingContract ? "Update" : "Create"}
+                {editingContract ? "Cập nhật" : "Tạo"}
               </Button>
             </div>
           </div>
@@ -607,40 +610,42 @@ const PaymentModuleStaff: React.FC = () => {
       >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">Payment Details</DialogTitle>
+            <DialogTitle className="text-xl">Chi tiết thanh toán</DialogTitle>
           </DialogHeader>
           {selectedPayment && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Resident:</p>
+                  <p className="text-sm text-gray-600">Cư dân:</p>
                   <p className="text-lg font-semibold">
                     {selectedPayment.contract?.resident?.full_name || "N/A"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Amount:</p>
+                  <p className="text-sm text-gray-600">Số tiền:</p>
                   <p className="text-lg font-bold text-blue-600">
                     {formatCurrency(selectedPayment.amount)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Payment Method:</p>
+                  <p className="text-sm text-gray-600">
+                    Phương thức thanh toán:
+                  </p>
                   {getPaymentMethodBadge(selectedPayment.payment_method)}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status:</p>
+                  <p className="text-sm text-gray-600">Trạng thái:</p>
                   {getPaymentStatusBadge(selectedPayment.status)}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Payment Period:</p>
+                  <p className="text-sm text-gray-600">Kỳ thanh toán:</p>
                   <p className="text-lg">
                     {formatDate(selectedPayment.period_start)} -{" "}
                     {formatDate(selectedPayment.period_end)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Created At:</p>
+                  <p className="text-sm text-gray-600">Ngày tạo:</p>
                   <p className="text-lg">
                     {formatDate(selectedPayment.created_at)}
                   </p>
@@ -648,7 +653,7 @@ const PaymentModuleStaff: React.FC = () => {
               </div>
               {selectedPayment.proof_image_url && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Proof Image:</p>
+                  <p className="text-sm text-gray-600 mb-2">Ảnh minh chứng:</p>
                   <img
                     src={selectedPayment.proof_image_url}
                     alt="Proof"
@@ -658,13 +663,13 @@ const PaymentModuleStaff: React.FC = () => {
               )}
               {selectedPayment.transaction_ref && (
                 <div>
-                  <p className="text-sm text-gray-600">Transaction Reference:</p>
+                  <p className="text-sm text-gray-600">Mã giao dịch:</p>
                   <p className="text-lg">{selectedPayment.transaction_ref}</p>
                 </div>
               )}
               {selectedPayment.notes && (
                 <div>
-                  <p className="text-sm text-gray-600">Notes:</p>
+                  <p className="text-sm text-gray-600">Ghi chú:</p>
                   <p className="text-lg">{selectedPayment.notes}</p>
                 </div>
               )}
@@ -677,7 +682,7 @@ const PaymentModuleStaff: React.FC = () => {
                       }
                       className="bg-green-500 hover:bg-green-600 text-white"
                     >
-                      Verify Payment
+                      Xác nhận thanh toán
                     </Button>
                   </div>
                 )}

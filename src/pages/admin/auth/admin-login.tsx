@@ -18,7 +18,7 @@ const AdminLogin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please fill in all fields");
+      toast.error("Vui lòng điền đầy đủ các trường");
       return;
     }
 
@@ -27,10 +27,10 @@ const AdminLogin: React.FC = () => {
       const response = await adminLogin({ email, password });
       setAccessTokenToLS(response.data.access_token);
       setProfileToLS(response.data.user);
-      toast.success("Logged in successfully");
+      toast.success("Đăng nhập thành công");
       navigate(path.adminDashboard);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Login failed");
+      toast.error(error.response?.data?.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ const AdminLogin: React.FC = () => {
       <Card className="w-full max-w-md bg-white border-gray-300">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-[#5985d8]">
-            Admin Login
+            Đăng nhập quản trị viên
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -59,13 +59,13 @@ const AdminLogin: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="Nhập mật khẩu"
                 className="bg-white border-gray-300"
                 required
               />
@@ -75,7 +75,7 @@ const AdminLogin: React.FC = () => {
               className="w-full bg-[#5985d8] hover:bg-[#5183c9] text-white"
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </form>
         </CardContent>

@@ -11,19 +11,21 @@ export function WeeklyDailyCalendar() {
       <Calendar />
 
       <div className="mt-6 border-t pt-4">
-        <h3 className="text-lg font-semibold mb-2 text-left">Event Types</h3>
+        <h3 className="text-lg font-semibold mb-2 text-left">
+          Các loại sự kiện
+        </h3>
         <div className="flex gap-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-sky-100 border border-sky-200 rounded"></div>
-            <span>Care</span>
+            <span>Chăm sóc</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-amber-100 border border-amber-200 rounded"></div>
-            <span>Visit</span>
+            <span>Thăm viếng</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-500 border border-red-500 rounded"></div>
-            <span>No slots</span>
+            <span>Hết suất</span>
           </div>
         </div>
       </div>

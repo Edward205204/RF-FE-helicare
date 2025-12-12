@@ -50,7 +50,9 @@ export default function StaffList(): React.JSX.Element {
       setData(staffList);
     } catch (error: any) {
       console.error("Error fetching staff:", error);
-      toast.error(error.response?.data?.message || "Failed to load staff list");
+      toast.error(
+        error.response?.data?.message || "Không tải được danh sách nhân viên"
+      );
     } finally {
       setLoading(false);
     }
@@ -99,7 +101,7 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
           <p className="text-sm text-slate-500 font-medium">
-            Loading staff data...
+            Đang tải dữ liệu nhân viên...
           </p>
         </div>
       </div>
@@ -113,10 +115,10 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Staff Management
+              Quản lý nhân viên
             </h1>
             <p className="mt-1 text-slate-500">
-              Overview of all nursing home staff and their assignments.
+              Tổng quan về tất cả nhân viên viện dưỡng lão và phân công của họ.
             </p>
           </div>
           <div className="flex gap-3">
@@ -124,7 +126,7 @@ export default function StaffList(): React.JSX.Element {
               variant="outline"
               className="border-slate-200 text-slate-600 hover:bg-slate-50"
             >
-              <MoreHorizontal className="h-4 w-4 mr-2" /> More Actions
+              <MoreHorizontal className="h-4 w-4 mr-2" /> Thêm hành động
             </Button>
             {/* Nếu có nút Add Staff thì đặt ở đây */}
           </div>
@@ -136,25 +138,25 @@ export default function StaffList(): React.JSX.Element {
             <TableHeader className="bg-slate-50/80">
               <TableRow className="hover:bg-transparent border-b border-slate-200">
                 <TableHead className="w-[280px] pl-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Staff
+                  Nhân viên
                 </TableHead>
                 <TableHead className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Role & Shift
+                  Vai trò & Ca làm việc
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Pending
+                  Đang chờ
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Completed Today
+                  Hoàn thành hôm nay
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Residents
+                  Cư dân
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Status
+                  Trạng thái
                 </TableHead>
                 <TableHead className="text-right pr-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Actions
+                  Hành động
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -168,7 +170,7 @@ export default function StaffList(): React.JSX.Element {
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
                       <User className="h-8 w-8 opacity-20" />
-                      <p>No staff found.</p>
+                      <p>Không tìm thấy nhân viên.</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -188,7 +190,7 @@ export default function StaffList(): React.JSX.Element {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
-                            {staff.full_name || "Unknown Name"}
+                            {staff.full_name || "Tên không xác định"}
                           </span>
                           <span className="text-xs text-slate-500 truncate max-w-[150px]">
                             {staff.email}
@@ -205,11 +207,11 @@ export default function StaffList(): React.JSX.Element {
                           className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-normal px-2.5"
                         >
                           <Briefcase className="w-3 h-3 mr-1.5 text-slate-500" />
-                          {staff.staff_role || "Staff"}
+                          {staff.staff_role || "Nhân viên"}
                         </Badge>
                         <div className="flex items-center text-xs text-slate-500">
                           <Clock className="w-3 h-3 mr-1.5" />
-                          {staff.shift || "No shift"}
+                          {staff.shift || "Chưa có ca"}
                         </div>
                       </div>
                     </TableCell>
@@ -256,7 +258,9 @@ export default function StaffList(): React.JSX.Element {
                             : "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200"
                         }
                       >
-                        {staff.status === "active" ? "Active" : "Inactive"}
+                        {staff.status === "active"
+                          ? "Hoạt động"
+                          : "Ngừng hoạt động"}
                       </Badge>
                     </TableCell>
 
@@ -282,7 +286,7 @@ export default function StaffList(): React.JSX.Element {
                           className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 h-8 px-3 text-xs font-medium rounded-full transition-all hover:scale-105 active:scale-95"
                         >
                           <Plus className="mr-1 h-3 w-3" />
-                          Assign Task
+                          Phân công
                         </Button>
                       </div>
                     </TableCell>

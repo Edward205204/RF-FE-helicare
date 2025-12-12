@@ -9,13 +9,13 @@ const ResidentMealNutrition: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
             <Utensils className="h-5 w-5" />
-            Weekly Nutrition
+            Dinh dưỡng hàng tuần
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-gray-600">
-            Feature in development. You will be able to view weekly menus and
-            nutrition information here.
+            Tính năng đang được phát triển. Bạn sẽ có thể xem thực đơn hàng tuần
+            và thông tin dinh dưỡng tại đây.
           </p>
         </CardContent>
       </Card>

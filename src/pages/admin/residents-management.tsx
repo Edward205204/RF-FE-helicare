@@ -80,7 +80,7 @@ const AdminResidentsManagement: React.FC = () => {
       setResidents(residentsRes.residents || []);
       setRooms(roomsRes.rooms || []);
     } catch (error: any) {
-      toast.error("Unable to load data");
+      toast.error("Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -125,17 +125,19 @@ const AdminResidentsManagement: React.FC = () => {
   ) => {
     try {
       await updateAdminResidentStatus(residentId, { status });
-      toast.success("Status updated");
+      toast.success("Đã cập nhật trạng thái");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to update status");
+      toast.error(
+        error.response?.data?.message || "Không thể cập nhật trạng thái"
+      );
     }
   };
 
   const handleExport = async (format: "csv" | "xlsx") => {
     try {
       const blob = await exportAdminResidents({
-        status: statusFilter || undefined,
+        status: (statusFilter as any) || undefined,
         room_id: roomFilter || undefined,
         search: search || undefined,
         format,
@@ -151,7 +153,7 @@ const AdminResidentsManagement: React.FC = () => {
       link.click();
       link.parentNode?.removeChild(link);
     } catch (error: any) {
-      toast.error("Export failed");
+      toast.error("Xuất dữ liệu thất bại");
     }
   };
 
@@ -161,13 +163,13 @@ const AdminResidentsManagement: React.FC = () => {
       setAuditLogs(res.data || []);
       setShowAudit(true);
     } catch (error: any) {
-      toast.error("Unable to load audit log");
+      toast.error("Không thể tải nhật ký kiểm toán");
     }
   };
 
   const handleSubmit = async () => {
     if (!formData.full_name || !formData.date_of_birth) {
-      toast.error("Please fill in all required fields");
+      toast.error("Vui lòng điền tất cả các trường bắt buộc");
       return;
     }
 
@@ -179,28 +181,27 @@ const AdminResidentsManagement: React.FC = () => {
     try {
       if (editingResident) {
         await updateAdminResident(editingResident.resident_id, requestData);
-        toast.success("Resident updated successfully");
+        toast.success("Cập nhật cư dân thành công");
       } else {
         await createAdminResident(requestData);
-        toast.success("Resident created successfully");
+        toast.success("Tạo cư dân thành công");
       }
       setIsDialogOpen(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to save resident");
+      toast.error(error.response?.data?.message || "Không thể lưu cư dân");
     }
   };
 
   const handleDelete = async (residentId: string) => {
-    if (!window.confirm("Are you sure you want to delete this resident?"))
-      return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa cư dân này không?")) return;
 
     try {
       await deleteAdminResident(residentId);
-      toast.success("Resident deleted");
+      toast.success("Đã xóa cư dân");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Unable to delete resident");
+      toast.error(error.response?.data?.message || "Không thể xóa cư dân");
     }
   };
 
@@ -212,16 +213,16 @@ const AdminResidentsManagement: React.FC = () => {
   const getStatusBadge = (resident: any) => {
     const isActive = resident.admission_date !== null;
     return isActive ? (
-      <Badge className="bg-green-500 text-white">Active</Badge>
+      <Badge className="bg-green-500 text-white">Hoạt động</Badge>
     ) : (
-      <Badge className="bg-gray-500 text-white">Not admitted</Badge>
+      <Badge className="bg-gray-500 text-white">Chưa tiếp nhận</Badge>
     );
   };
 
   if (loading && residents.length === 0) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-center">Loading...</p>
+        <p className="text-center">Đang tải...</p>
       </div>
     );
   }
@@ -232,7 +233,7 @@ const AdminResidentsManagement: React.FC = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold">
-              Resident Information
+              Thông tin cư dân
             </CardTitle>
           </div>
         </CardHeader>
@@ -241,11 +242,11 @@ const AdminResidentsManagement: React.FC = () => {
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div>
-                <Label>Search</Label>
+                <Label>Tìm kiếm</Label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by name..."
+                    placeholder="Tìm theo tên..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-8 bg-white border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
@@ -253,7 +254,7 @@ const AdminResidentsManagement: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label>Status</Label>
+                <Label>Trạng thái</Label>
                 <Select
                   // Radix không cho value rỗng, dùng 'all' làm sentinel
                   value={statusFilter || "all"}
@@ -265,15 +266,15 @@ const AdminResidentsManagement: React.FC = () => {
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="discharged">Not admitted</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="active">Hoạt động</SelectItem>
+                    <SelectItem value="inactive">Không hoạt động</SelectItem>
+                    <SelectItem value="discharged">Chưa tiếp nhận</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Room</Label>
+                <Label>Phòng</Label>
                 <Select
                   value={roomFilter || "all"}
                   onValueChange={(val) =>
@@ -284,7 +285,7 @@ const AdminResidentsManagement: React.FC = () => {
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {rooms.map((room) => (
                       <SelectItem key={room.room_id} value={room.room_id}>
                         {room.room_number}
@@ -303,7 +304,7 @@ const AdminResidentsManagement: React.FC = () => {
                   variant="outline"
                   className="w-full border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
                 >
-                  Clear filters
+                  Xóa bộ lọc
                 </Button>
               </div>
               <div className="flex items-end justify-start md:justify-end gap-2">
@@ -312,14 +313,14 @@ const AdminResidentsManagement: React.FC = () => {
                   className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
                   onClick={() => handleExport("csv")}
                 >
-                  Export CSV
+                  Xuất CSV
                 </Button>
                 <Button
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                   onClick={() => handleExport("xlsx")}
                 >
-                  Export XLSX
+                  Xuất XLSX
                 </Button>
               </div>
             </div>
@@ -328,19 +329,19 @@ const AdminResidentsManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Date of Birth</TableHead>
-                  <TableHead>Room</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Giới tính</TableHead>
+                  <TableHead>Ngày sinh</TableHead>
+                  <TableHead>Phòng</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredResidents.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center">
-                      No data
+                      Không có dữ liệu
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -350,7 +351,7 @@ const AdminResidentsManagement: React.FC = () => {
                         {resident.full_name}
                       </TableCell>
                       <TableCell>
-                        {resident.gender === "male" ? "Male" : "Female"}
+                        {resident.gender === "male" ? "Nam" : "Nữ"}
                       </TableCell>
                       <TableCell>
                         {formatDate(resident.date_of_birth)}
@@ -362,17 +363,22 @@ const AdminResidentsManagement: React.FC = () => {
                         <Select
                           value={resident.status || "active"}
                           onValueChange={async (val) =>
-                            handleUpdateStatus(resident.resident_id, val)
+                            handleUpdateStatus(
+                              resident.resident_id,
+                              val as "active" | "inactive" | "discharged"
+                            )
                           }
                         >
                           <SelectTrigger className="bg-white border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="active">Hoạt động</SelectItem>
+                            <SelectItem value="inactive">
+                              Không hoạt động
+                            </SelectItem>
                             <SelectItem value="discharged">
-                              Not admitted
+                              Chưa tiếp nhận
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -400,7 +406,7 @@ const AdminResidentsManagement: React.FC = () => {
                             className="border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
                             onClick={() => handleAudit(resident.resident_id)}
                           >
-                            Audit
+                            Kiểm toán
                           </Button>
                         </div>
                       </TableCell>
@@ -418,13 +424,13 @@ const AdminResidentsManagement: React.FC = () => {
         <DialogContent className="max-w-2xl bg-white border-gray-300">
           <DialogHeader>
             <DialogTitle>
-              {editingResident ? "Edit Resident" : "Add New Resident"}
+              {editingResident ? "Chỉnh sửa cư dân" : "Thêm cư dân mới"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label htmlFor="full_name">
-                Full name <span className="text-red-500">*</span>
+                Họ và tên <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="full_name"
@@ -438,7 +444,7 @@ const AdminResidentsManagement: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="gender">Gender</Label>
+                <Label htmlFor="gender">Giới tính</Label>
                 <Select
                   value={formData.gender}
                   onValueChange={(value: "male" | "female") =>
@@ -449,14 +455,14 @@ const AdminResidentsManagement: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="male">Nam</SelectItem>
+                    <SelectItem value="female">Nữ</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label htmlFor="date_of_birth">
-                  Date of birth <span className="text-red-500">*</span>
+                  Ngày sinh <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="date_of_birth"
@@ -471,7 +477,7 @@ const AdminResidentsManagement: React.FC = () => {
               </div>
             </div>
             <div>
-              <Label htmlFor="room_id">Room</Label>
+              <Label htmlFor="room_id">Phòng</Label>
               <Select
                 value={formData.room_id || "none"}
                 onValueChange={(value) =>
@@ -479,10 +485,10 @@ const AdminResidentsManagement: React.FC = () => {
                 }
               >
                 <SelectTrigger className="bg-white border-gray-300">
-                  <SelectValue placeholder="Select room" />
+                  <SelectValue placeholder="Chọn phòng" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No selection</SelectItem>
+                  <SelectItem value="none">Không chọn</SelectItem>
                   {rooms.map((room) => (
                     <SelectItem key={room.room_id} value={room.room_id}>
                       {room.room_number}
@@ -492,7 +498,7 @@ const AdminResidentsManagement: React.FC = () => {
               </Select>
             </div>
             <div>
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">Ghi chú</Label>
               <Input
                 id="notes"
                 value={formData.notes}
@@ -508,13 +514,13 @@ const AdminResidentsManagement: React.FC = () => {
                 onClick={() => setIsDialogOpen(false)}
                 className="border-gray-300"
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 onClick={handleSubmit}
                 className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
               >
-                {editingResident ? "Update" : "Create"}
+                {editingResident ? "Cập nhật" : "Tạo mới"}
               </Button>
             </div>
           </div>
@@ -525,11 +531,11 @@ const AdminResidentsManagement: React.FC = () => {
       <Dialog open={showAudit} onOpenChange={setShowAudit}>
         <DialogContent className="max-w-3xl bg-white border-gray-300">
           <DialogHeader>
-            <DialogTitle>Audit Logs</DialogTitle>
+            <DialogTitle>Nhật ký kiểm toán</DialogTitle>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto space-y-2">
             {auditLogs.length === 0 ? (
-              <p className="text-sm text-gray-500">No audit logs</p>
+              <p className="text-sm text-gray-500">Không có nhật ký</p>
             ) : (
               auditLogs.map((log: any) => (
                 <div

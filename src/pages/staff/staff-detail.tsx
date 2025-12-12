@@ -38,7 +38,7 @@ export default function StaffDetail(): React.JSX.Element {
 
   useEffect(() => {
     if (!staff_id) {
-      toast.error("Invalid Staff ID");
+      toast.error("ID nhân viên không hợp lệ");
       navigate(path.staffList);
       return;
     }
@@ -51,7 +51,7 @@ export default function StaffDetail(): React.JSX.Element {
       } catch (error: any) {
         console.error("Error fetching staff detail:", error);
         toast.error(
-          error.response?.data?.message || "Cannot load staff information"
+          error.response?.data?.message || "Không thể tải thông tin nhân viên"
         );
         navigate(path.staffList);
       } finally {
@@ -71,7 +71,7 @@ export default function StaffDetail(): React.JSX.Element {
         setResidents(response.data || []);
       } catch (error: any) {
         console.error("Error fetching residents:", error);
-        toast.error("Cannot load residents list");
+        toast.error("Không thể tải danh sách cư dân");
       }
     };
 
@@ -87,7 +87,7 @@ export default function StaffDetail(): React.JSX.Element {
         setTasks(response.data || null);
       } catch (error: any) {
         console.error("Error fetching tasks:", error);
-        toast.error("Cannot load tasks list");
+        toast.error("Không thể tải danh sách nhiệm vụ");
       }
     };
 
@@ -98,7 +98,7 @@ export default function StaffDetail(): React.JSX.Element {
     try {
       setMarkingDone(task_id);
       await markTaskDone(task_id);
-      toast.success("Task marked as completed");
+      toast.success("Đã đánh dấu nhiệm vụ hoàn thành");
       // Refresh tasks
       if (staff_id) {
         const response = await getStaffTasks(staff_id);
@@ -107,7 +107,8 @@ export default function StaffDetail(): React.JSX.Element {
     } catch (error: any) {
       console.error("Error marking task done:", error);
       toast.error(
-        error.response?.data?.message || "Cannot mark task as completed"
+        error.response?.data?.message ||
+          "Không thể đánh dấu nhiệm vụ hoàn thành"
       );
     } finally {
       setMarkingDone(null);
@@ -152,7 +153,7 @@ export default function StaffDetail(): React.JSX.Element {
   if (!staff) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Staff information not found</p>
+        <p className="text-gray-500">Không tìm thấy thông tin nhân viên</p>
       </div>
     );
   }
@@ -167,11 +168,11 @@ export default function StaffDetail(): React.JSX.Element {
             className="border-gray-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            Quay lại
           </Button>
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
-              Staff Details
+              Chi tiết nhân viên
             </h1>
             <p className="mt-1 text-sm text-gray-600">{staff.full_name}</p>
           </div>
@@ -189,7 +190,7 @@ export default function StaffDetail(): React.JSX.Element {
               }`}
             >
               <User className="inline mr-2 h-4 w-4" />
-              Profile
+              Hồ sơ
             </button>
             <button
               onClick={() => setActiveTab("residents")}
@@ -200,7 +201,7 @@ export default function StaffDetail(): React.JSX.Element {
               }`}
             >
               <Users className="inline mr-2 h-4 w-4" />
-              Assigned Residents
+              Cư dân được phân công
             </button>
             <button
               onClick={() => setActiveTab("tasks")}
@@ -211,7 +212,7 @@ export default function StaffDetail(): React.JSX.Element {
               }`}
             >
               <CheckCircle2 className="inline mr-2 h-4 w-4" />
-              Tasks
+              Nhiệm vụ
             </button>
           </nav>
         </div>
@@ -221,7 +222,7 @@ export default function StaffDetail(): React.JSX.Element {
           {activeTab === "profile" && (
             <Card>
               <CardHeader>
-                <CardTitle>Staff Information</CardTitle>
+                <CardTitle>Thông tin nhân viên</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Avatar Section */}
@@ -240,7 +241,7 @@ export default function StaffDetail(): React.JSX.Element {
                       {staff.full_name}
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                      {staff.staff_role || "Staff"}
+                      {staff.staff_role || "Nhân viên"}
                     </p>
                   </div>
                 </div>
@@ -251,20 +252,22 @@ export default function StaffDetail(): React.JSX.Element {
                     <p className="text-sm text-gray-900">{staff.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Phone</p>
+                    <p className="text-sm font-medium text-gray-500">
+                      Số điện thoại
+                    </p>
                     <p className="text-sm text-gray-900">
                       {staff.phone_number || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Role</p>
+                    <p className="text-sm font-medium text-gray-500">Vai trò</p>
                     <p className="text-sm text-gray-900">
                       {staff.staff_role || "-"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">
-                      Hire Date
+                      Ngày tuyển
                     </p>
                     <p className="text-sm text-gray-900">
                       {staff.hire_date ? formatDate(staff.hire_date) : "-"}
@@ -272,7 +275,9 @@ export default function StaffDetail(): React.JSX.Element {
                   </div>
                   {staff.notes && (
                     <div className="col-span-2">
-                      <p className="text-sm font-medium text-gray-500">Notes</p>
+                      <p className="text-sm font-medium text-gray-500">
+                        Ghi chú
+                      </p>
                       <p className="text-sm text-gray-900">{staff.notes}</p>
                     </div>
                   )}
@@ -284,16 +289,16 @@ export default function StaffDetail(): React.JSX.Element {
           {activeTab === "residents" && (
             <Card>
               <CardHeader>
-                <CardTitle>Assigned Residents</CardTitle>
+                <CardTitle>Cư dân được phân công</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Full Name</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Room</TableHead>
-                      <TableHead>Admission Date</TableHead>
+                      <TableHead>Họ và tên</TableHead>
+                      <TableHead>Giới tính</TableHead>
+                      <TableHead>Phòng</TableHead>
+                      <TableHead>Ngày nhập viện</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -303,7 +308,7 @@ export default function StaffDetail(): React.JSX.Element {
                           colSpan={4}
                           className="text-center py-8 text-gray-500"
                         >
-                          No assigned residents
+                          Chưa có cư dân được phân công
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -314,9 +319,9 @@ export default function StaffDetail(): React.JSX.Element {
                           </TableCell>
                           <TableCell>
                             {resident.gender === "male"
-                              ? "Male"
+                              ? "Nam"
                               : resident.gender === "female"
-                              ? "Female"
+                              ? "Nữ"
                               : resident.gender}
                           </TableCell>
                           <TableCell>
@@ -341,17 +346,17 @@ export default function StaffDetail(): React.JSX.Element {
               {/* Pending Tasks */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Pending Tasks</CardTitle>
+                  <CardTitle>Nhiệm vụ đang chờ</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Resident</TableHead>
-                        <TableHead>Deadline</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Tiêu đề</TableHead>
+                        <TableHead>Loại</TableHead>
+                        <TableHead>Cư dân</TableHead>
+                        <TableHead>Hạn</TableHead>
+                        <TableHead>Hành động</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -361,7 +366,7 @@ export default function StaffDetail(): React.JSX.Element {
                             colSpan={5}
                             className="text-center py-8 text-gray-500"
                           >
-                            No pending tasks
+                            Không có nhiệm vụ đang chờ
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -387,7 +392,7 @@ export default function StaffDetail(): React.JSX.Element {
                                 {markingDone === task.care_log_id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                  "Mark as Done"
+                                  "Đánh dấu hoàn thành"
                                 )}
                               </Button>
                             </TableCell>
@@ -402,16 +407,16 @@ export default function StaffDetail(): React.JSX.Element {
               {/* Completed Tasks */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Completed Tasks</CardTitle>
+                  <CardTitle>Nhiệm vụ đã hoàn thành</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Resident</TableHead>
-                        <TableHead>Completed At</TableHead>
+                        <TableHead>Tiêu đề</TableHead>
+                        <TableHead>Loại</TableHead>
+                        <TableHead>Cư dân</TableHead>
+                        <TableHead>Hoàn thành lúc</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -421,7 +426,7 @@ export default function StaffDetail(): React.JSX.Element {
                             colSpan={4}
                             className="text-center py-8 text-gray-500"
                           >
-                            No completed tasks
+                            Không có nhiệm vụ đã hoàn thành
                           </TableCell>
                         </TableRow>
                       ) : (

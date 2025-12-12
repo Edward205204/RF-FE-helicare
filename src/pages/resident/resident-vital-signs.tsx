@@ -8,7 +8,7 @@ import { AppContext } from "@/contexts/app.context";
 
 const formatDateTime = (value?: string) => {
   if (!value) return "—";
-  return new Date(value).toLocaleString("en-US", {
+  return new Date(value).toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
@@ -42,7 +42,7 @@ const ResidentVitalSigns: React.FC = () => {
       <div className="p-6">
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-600">
-            Resident information not found.
+            Không tìm thấy thông tin cư dân.
           </CardContent>
         </Card>
       </div>
@@ -54,7 +54,7 @@ const ResidentVitalSigns: React.FC = () => {
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl text-gray-900">
-            Vital Signs History
+            Lịch sử chỉ số sinh tồn
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -71,7 +71,7 @@ const ResidentVitalSigns: React.FC = () => {
                     stroke="#2563eb"
                     strokeWidth={2}
                     dot={false}
-                    name="Systolic"
+                    name="Tâm thu"
                   />
                   <Line
                     type="monotone"
@@ -79,7 +79,7 @@ const ResidentVitalSigns: React.FC = () => {
                     stroke="#7c3aed"
                     strokeWidth={2}
                     dot={false}
-                    name="Diastolic"
+                    name="Tâm trương"
                   />
                   <Line
                     type="monotone"
@@ -88,13 +88,13 @@ const ResidentVitalSigns: React.FC = () => {
                     strokeDasharray="4 4"
                     strokeWidth={2}
                     dot={false}
-                    name="Heart Rate"
+                    name="Nhịp tim"
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-gray-500 text-sm">
-                No vital signs data to display.
+                Không có dữ liệu chỉ số sinh tồn.
               </div>
             )}
           </div>
@@ -109,7 +109,7 @@ const ResidentVitalSigns: React.FC = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <Heart className="h-5 w-5 text-red-500" />
                         <span className="text-sm font-semibold text-gray-700">
-                          Blood Pressure
+                          Huyết áp
                         </span>
                       </div>
                       <p className="text-2xl font-bold text-gray-900">
@@ -126,7 +126,7 @@ const ResidentVitalSigns: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <Heart className="h-5 w-5 text-blue-500" />
                       <span className="text-sm font-semibold text-gray-700">
-                        Heart Rate
+                        Nhịp tim
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-gray-900">
@@ -142,7 +142,7 @@ const ResidentVitalSigns: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <Thermometer className="h-5 w-5 text-orange-500" />
                       <span className="text-sm font-semibold text-gray-700">
-                        Temperature
+                        Nhiệt độ
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-gray-900">
@@ -160,7 +160,7 @@ const ResidentVitalSigns: React.FC = () => {
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Alerts
+                Cảnh báo
               </h3>
               {summary.alerts.map((alert) => (
                 <Card

@@ -26,11 +26,12 @@ import { ResponsiveContainer, LineChart, Line, XAxis, Tooltip } from "recharts";
 
 const formatDateTime = (value?: string) => {
   if (!value) return "—";
-  return new Date(value).toLocaleString("en-US", {
+  return new Date(value).toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
   });
 };
 
@@ -94,44 +95,44 @@ const FamilyHealthCare: React.FC = () => {
         case "careplan-lag":
           return {
             ...alert,
-            message: "The team is optimizing the care schedule",
+            message: "Đội ngũ đang tối ưu hóa lịch trình chăm sóc",
             recommendation:
-              "We have reminded nurses to balance the schedule to ensure residents are fully cared for.",
+              "Chúng tôi đã nhắc nhở y tá cân bằng lịch trình để đảm bảo cư dân được chăm sóc đầy đủ.",
           };
         case "hydration-gap":
           return {
             ...alert,
-            message: "Need to record more meals/drinks",
+            message: "Cần ghi chép thêm nhật ký ăn uống",
             recommendation:
-              "The nursing home will update the nutrition log and notify the family if there are issues.",
+              "Viện dưỡng lão sẽ cập nhật nhật ký dinh dưỡng và thông báo cho gia đình nếu có vấn đề.",
           };
         case "stale-vitals":
           return {
             ...alert,
-            message: "Pending new vital signs data",
+            message: "Đang chờ dữ liệu chỉ số sinh tồn mới",
             recommendation:
-              "Medical staff will remeasure soon and update the family as soon as results are available.",
+              "Nhân viên y tế sẽ đo lại sớm và cập nhật cho gia đình ngay khi có kết quả.",
           };
         case "hypertension-risk":
           return {
             ...alert,
-            message: "Blood pressure needs close monitoring",
+            message: "Huyết áp cần được theo dõi sát sao",
             recommendation:
-              "The attending doctor has been notified to adjust the regimen if necessary.",
+              "Bác sĩ điều trị đã được thông báo để điều chỉnh phác đồ nếu cần thiết.",
           };
         case "oxygen-drop":
           return {
             ...alert,
-            message: "Oxygen saturation decreased",
+            message: "Độ bão hòa oxy giảm",
             recommendation:
-              "Respiratory support protocol activated, medical team is monitoring continuously.",
+              "Giao thức hỗ trợ hô hấp đã được kích hoạt, đội ngũ y tế đang theo dõi liên tục.",
           };
         case "infection-risk":
           return {
             ...alert,
-            message: "Health signs require attention",
+            message: "Các dấu hiệu sức khỏe cần chú ý",
             recommendation:
-              "Medical staff is assessing further to ensure resident safety.",
+              "Nhân viên y tế đang đánh giá thêm để đảm bảo an toàn cho cư dân.",
           };
         default:
           return alert;
@@ -148,7 +149,7 @@ const FamilyHealthCare: React.FC = () => {
       <div className="p-6">
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-500">
-            Loading residents list...
+            Đang tải danh sách cư dân...
           </CardContent>
         </Card>
       </div>
@@ -160,8 +161,8 @@ const FamilyHealthCare: React.FC = () => {
       <div className="p-6">
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-600">
-            You have no residents linked. Please return to the My Resident page
-            to link a resident.
+            Bạn chưa liên kết với cư dân nào. Vui lòng quay lại trang Người thân
+            để liên kết.
           </CardContent>
         </Card>
       </div>
@@ -188,13 +189,14 @@ const FamilyHealthCare: React.FC = () => {
                 {selectedResident.full_name}
               </CardTitle>
               <p className="text-sm text-gray-600">
-                {selectedResident.gender === "male" ? "Male" : "Female"} •{" "}
-                {summary?.resident.age ?? "—"} years old • Room{" "}
+                {selectedResident.gender === "male" ? "Nam" : "Nữ"} •{" "}
+                {summary?.resident.age ?? "—"} tuổi • Phòng{" "}
                 {selectedResident.room?.room_number ?? "—"}
               </p>
               {summary?.meta && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Updated at {formatDateTime(summary.meta.generated_at) || "—"}
+                  Cập nhật lúc{" "}
+                  {formatDateTime(summary.meta.generated_at) || "—"}
                 </p>
               )}
             </div>
@@ -206,7 +208,7 @@ const FamilyHealthCare: React.FC = () => {
             }
           >
             <SelectTrigger className="w-full md:w-80 bg-white border border-gray-200 shadow-sm">
-              <SelectValue placeholder="Select resident" />
+              <SelectValue placeholder="Chọn cư dân" />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-200 shadow-lg">
               {residentsQuery.data?.map((resident) => (
@@ -226,7 +228,7 @@ const FamilyHealthCare: React.FC = () => {
       {summaryQuery.isLoading ? (
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-500">
-            Loading health data...
+            Đang tải dữ liệu sức khỏe...
           </CardContent>
         </Card>
       ) : summary ? (
@@ -258,10 +260,10 @@ const FamilyHealthCare: React.FC = () => {
                     }`}
                   >
                     {indicator.severity === "normal"
-                      ? "Stable"
+                      ? "Ổn định"
                       : indicator.severity === "warning"
-                      ? "Warning"
-                      : "Critical"}
+                      ? "Cảnh báo"
+                      : "Nguy hiểm"}
                   </Badge>
                   <p className="mt-2 text-xs text-gray-500">
                     {indicator.description}
@@ -275,9 +277,9 @@ const FamilyHealthCare: React.FC = () => {
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <CardTitle>Vital Signs Trend</CardTitle>
+                  <CardTitle>Xu hướng chỉ số sinh tồn</CardTitle>
                   <p className="text-sm text-gray-500">
-                    Monitor blood pressure & heart rate (last 7 measurements)
+                    Theo dõi huyết áp & nhịp tim (7 lần đo gần nhất)
                   </p>
                 </div>
                 <Badge
@@ -299,7 +301,7 @@ const FamilyHealthCare: React.FC = () => {
                         stroke="#2563eb"
                         strokeWidth={2}
                         dot={false}
-                        name="Systolic Blood Pressure"
+                        name="Huyết áp tâm thu"
                       />
                       <Line
                         type="monotone"
@@ -307,7 +309,7 @@ const FamilyHealthCare: React.FC = () => {
                         stroke="#7c3aed"
                         strokeWidth={2}
                         dot={false}
-                        name="Diastolic Blood Pressure"
+                        name="Huyết áp tâm trương"
                       />
                       <Line
                         type="monotone"
@@ -316,13 +318,13 @@ const FamilyHealthCare: React.FC = () => {
                         strokeDasharray="4 4"
                         strokeWidth={2}
                         dot={false}
-                        name="Heart Rate"
+                        name="Nhịp tim"
                       />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex h-full items-center justify-center text-gray-500 text-sm">
-                    No vital signs data to display.
+                    Không có dữ liệu chỉ số sinh tồn để hiển thị.
                   </div>
                 )}
               </CardContent>
@@ -330,7 +332,7 @@ const FamilyHealthCare: React.FC = () => {
 
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>Alerts & Recommendations</CardTitle>
+                <CardTitle>Cảnh báo & Khuyến nghị</CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-72">
@@ -364,13 +366,13 @@ const FamilyHealthCare: React.FC = () => {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>Latest Vital Signs</CardTitle>
+                <CardTitle>Chỉ số sinh tồn mới nhất</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {summary.vitals.latest ? (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span>Measured at</span>
+                      <span>Đo lúc</span>
                       <strong>
                         {formatDateTime(
                           summary.vitals.latest.measured_at ||
@@ -380,7 +382,7 @@ const FamilyHealthCare: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="rounded-lg border border-gray-100 bg-slate-50 p-3 shadow-sm">
-                        <p className="text-xs text-gray-500">Blood Pressure</p>
+                        <p className="text-xs text-gray-500">Huyết áp</p>
                         <p className="text-lg font-semibold">
                           {summary.vitals.latest.blood_pressure_systolic ?? "—"}
                           /
@@ -390,13 +392,13 @@ const FamilyHealthCare: React.FC = () => {
                         </p>
                       </div>
                       <div className="rounded-lg border border-gray-100 bg-slate-50 p-3 shadow-sm">
-                        <p className="text-xs text-gray-500">Heart Rate</p>
+                        <p className="text-xs text-gray-500">Nhịp tim</p>
                         <p className="text-lg font-semibold">
                           {summary.vitals.latest.heart_rate ?? "—"} bpm
                         </p>
                       </div>
                       <div className="rounded-lg border border-gray-100 bg-slate-50 p-3 shadow-sm">
-                        <p className="text-xs text-gray-500">Temperature</p>
+                        <p className="text-xs text-gray-500">Nhiệt độ</p>
                         <p className="text-lg font-semibold">
                           {summary.vitals.latest.temperature_c ?? "—"} °C
                         </p>
@@ -411,7 +413,7 @@ const FamilyHealthCare: React.FC = () => {
                   </>
                 ) : (
                   <p className="text-sm text-gray-500">
-                    No measurements recorded for this resident.
+                    Không có chỉ số nào được ghi lại cho cư dân này.
                   </p>
                 )}
               </CardContent>
@@ -419,7 +421,7 @@ const FamilyHealthCare: React.FC = () => {
 
             <Card className="border border-gray-200 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>Latest Carelog</CardTitle>
+                <CardTitle>Nhật ký chăm sóc mới nhất</CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-64">
@@ -437,10 +439,10 @@ const FamilyHealthCare: React.FC = () => {
                               className="border-gray-200"
                             >
                               {log.status === "completed"
-                                ? "Completed"
+                                ? "Hoàn thành"
                                 : log.status === "in_progress"
-                                ? "In Progress"
-                                : "Pending"}
+                                ? "Đang thực hiện"
+                                : "Đang chờ"}
                             </Badge>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
@@ -455,7 +457,7 @@ const FamilyHealthCare: React.FC = () => {
                       ))
                     ) : (
                       <p className="text-sm text-gray-500">
-                        No carelogs in the last 20 activities.
+                        Không có nhật ký chăm sóc trong 20 hoạt động gần nhất.
                       </p>
                     )}
                   </div>
@@ -467,7 +469,7 @@ const FamilyHealthCare: React.FC = () => {
       ) : (
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-500">
-            Cannot load health data. Please try again.
+            Không thể tải dữ liệu sức khỏe. Vui lòng thử lại.
           </CardContent>
         </Card>
       )}

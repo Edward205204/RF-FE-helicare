@@ -68,7 +68,7 @@ const FamilyResidents: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -105,11 +105,11 @@ const FamilyResidents: React.FC = () => {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
         <User className="h-16 w-16 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          No linked residents
+          Không có cư dân được liên kết
         </h3>
         <p className="text-gray-500">
-          You have not linked with any residents. Please contact the institution
-          for support.
+          Bạn chưa liên kết với cư dân nào. Vui lòng liên hệ với cơ sở để được
+          hỗ trợ.
         </p>
       </div>
     );
@@ -118,9 +118,11 @@ const FamilyResidents: React.FC = () => {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">My Relatives</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Người thân của tôi
+        </h1>
         <p className="text-gray-600">
-          List of residents linked to your account
+          Danh sách cư dân được liên kết với tài khoản của bạn
         </p>
       </div>
 
@@ -130,7 +132,7 @@ const FamilyResidents: React.FC = () => {
             key={resident.resident_id}
             role="button"
             tabIndex={0}
-            aria-label={`View health profile of ${resident.full_name}`}
+            aria-label={`Xem hồ sơ sức khỏe của ${resident.full_name}`}
             onClick={() =>
               navigate(
                 `${path.familyHealthCare}?residentId=${resident.resident_id}`
@@ -163,8 +165,8 @@ const FamilyResidents: React.FC = () => {
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <span>
-                      {resident.gender === "male" ? "Male" : "Female"},{" "}
-                      {resident.age} years old
+                      {resident.gender === "male" ? "Nam" : "Nữ"},{" "}
+                      {resident.age} tuổi
                     </span>
                   </div>
                 </div>
@@ -191,7 +193,7 @@ const FamilyResidents: React.FC = () => {
               {resident.room && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="h-4 w-4 text-gray-400" />
-                  <span>Room {resident.room.room_number}</span>
+                  <span>Phòng {resident.room.room_number}</span>
                 </div>
               )}
 
@@ -200,7 +202,7 @@ const FamilyResidents: React.FC = () => {
                 resident.chronicDiseases.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-gray-700 mb-2">
-                      Chronic Diseases:
+                      Bệnh mãn tính:
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {resident.chronicDiseases.slice(0, 3).map((disease) => (
@@ -228,7 +230,7 @@ const FamilyResidents: React.FC = () => {
               {resident.allergies && resident.allergies.length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-gray-700 mb-2">
-                    Allergies:
+                    Dị ứng:
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {resident.allergies.slice(0, 3).map((allergy) => (
@@ -258,12 +260,12 @@ const FamilyResidents: React.FC = () => {
                 resident.healthAssessments.length > 0 && (
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs font-medium text-gray-700 mb-2">
-                      Latest Health Assessment:
+                      Đánh giá sức khỏe mới nhất:
                     </p>
                     <div className="space-y-1 text-xs text-gray-600">
                       {resident.healthAssessments[0].temperature_c && (
                         <div className="flex justify-between">
-                          <span>Temperature:</span>
+                          <span>Nhiệt độ:</span>
                           <span className="font-medium">
                             {resident.healthAssessments[0].temperature_c}°C
                           </span>
@@ -272,7 +274,7 @@ const FamilyResidents: React.FC = () => {
                       {resident.healthAssessments[0]
                         .blood_pressure_systolic && (
                         <div className="flex justify-between">
-                          <span>Blood Pressure:</span>
+                          <span>Huyết áp:</span>
                           <span className="font-medium">
                             {
                               resident.healthAssessments[0]
@@ -300,7 +302,7 @@ const FamilyResidents: React.FC = () => {
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Calendar className="h-3 w-3" />
                     <span>
-                      Admission Date: {formatDate(resident.admission_date)}
+                      Ngày nhập viện: {formatDate(resident.admission_date)}
                     </span>
                   </div>
                 </div>

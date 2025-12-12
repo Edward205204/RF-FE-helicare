@@ -49,14 +49,14 @@ type CreateStaffFormValues = {
 };
 
 const STAFF_POSITIONS: { value: string; label: string }[] = [
-  { value: "NURSE", label: "Nurse" },
-  { value: "CAREGIVER", label: "Caregiver" },
-  { value: "THERAPIST", label: "Therapist" },
-  { value: "PHYSICIAN", label: "Physician" },
-  { value: "SOCIAL_WORKER", label: "Social Worker" },
-  { value: "ACTIVITY_COORDINATOR", label: "Activity Coordinator" },
-  { value: "DIETITIAN", label: "Dietitian" },
-  { value: "OTHER", label: "Other" },
+  { value: "NURSE", label: "Y tá" },
+  { value: "CAREGIVER", label: "Người chăm sóc" },
+  { value: "THERAPIST", label: "Chuyên gia trị liệu" },
+  { value: "PHYSICIAN", label: "Bác sĩ" },
+  { value: "SOCIAL_WORKER", label: "Nhân viên xã hội" },
+  { value: "ACTIVITY_COORDINATOR", label: "Điều phối viên hoạt động" },
+  { value: "DIETITIAN", label: "Chuyên gia dinh dưỡng" },
+  { value: "OTHER", label: "Khác" },
 ];
 
 const DEFAULT_INPUT_STYLE =
@@ -140,15 +140,15 @@ const StaffOnboard: React.FC = () => {
     if (!uploadedAvatar?.url) return;
     try {
       await navigator.clipboard.writeText(uploadedAvatar.url);
-      toast.success("Copied image URL to clipboard");
+      toast.success("Đã sao chép URL ảnh vào bộ nhớ tạm");
     } catch {
-      toast.error("Cannot copy URL. Please try again.");
+      toast.error("Không thể sao chép URL. Vui lòng thử lại.");
     }
   };
 
   const onUploadAvatar = async () => {
     if (!selectedFile) {
-      toast.error("Please select an image first.");
+      toast.error("Vui lòng chọn ảnh trước.");
       return;
     }
     setIsUploadingAvatar(true);
@@ -156,11 +156,11 @@ const StaffOnboard: React.FC = () => {
       const response = await uploadStaffAvatar(selectedFile);
       setUploadedAvatar(response.data);
       setValue("avatar", response.data.url);
-      toast.success(response.message || "Avatar uploaded successfully");
+      toast.success(response.message || "Tải ảnh lên thành công");
     } catch (error) {
       const err = error as AxiosError<ServerErrorPayload>;
       const message =
-        err.response?.data?.message || err.message || "Upload failed";
+        err.response?.data?.message || err.message || "Tải lên thất bại";
       toast.error(message);
     } finally {
       setIsUploadingAvatar(false);
@@ -174,7 +174,7 @@ const StaffOnboard: React.FC = () => {
 
       if (!institutionId) {
         toast.error(
-          "Institution ID not found in login info. Please login again."
+          "Không tìm thấy ID Tổ chức trong thông tin đăng nhập. Vui lòng đăng nhập lại."
         );
         return;
       }
@@ -193,7 +193,7 @@ const StaffOnboard: React.FC = () => {
       };
 
       const response = await createStaffForInstitution(payload);
-      toast.success(response.message || "Staff created successfully");
+      toast.success(response.message || "Tạo nhân viên thành công");
 
       // Reset form
       reset({
@@ -237,7 +237,7 @@ const StaffOnboard: React.FC = () => {
             const message =
               typeof value?.msg === "string"
                 ? value.msg
-                : value?.msg?.message || "Invalid information";
+                : value?.msg?.message || "Thông tin không hợp lệ";
 
             if (key === "institution_id") {
               toast.error(message);
@@ -259,7 +259,7 @@ const StaffOnboard: React.FC = () => {
         const message =
           err.response?.data?.message ||
           err.message ||
-          "Failed to create staff";
+          "Không thể tạo nhân viên";
         toast.error(message);
       }
     } finally {
@@ -272,12 +272,12 @@ const StaffOnboard: React.FC = () => {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">
-            Staff Onboarding & Access Grant
+            Tiếp nhận & Cấp quyền truy cập nhân viên
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-gray-600">
-            Complete the process to invite staff to the system: upload avatar
-            and create staff profile. Staff will authenticate the invitation on
-            their dedicated page.
+            Hoàn tất quy trình mời nhân viên vào hệ thống: tải lên ảnh đại diện
+            và tạo hồ sơ nhân viên. Nhân viên sẽ xác thực lời mời trên trang
+            dành riêng cho họ.
           </p>
         </div>
 
@@ -285,11 +285,11 @@ const StaffOnboard: React.FC = () => {
           <Card className="rounded-2xl border border-gray-100 bg-white shadow-sm col-span-3 ">
             <CardHeader>
               <CardTitle className="text-lg text-gray-900">
-                Create Staff for Institution
+                Tạo nhân viên cho Tổ chức
               </CardTitle>
               <CardDescription className="text-sm text-gray-500">
-                Fill in staff information. Avatar URL is automatically retrieved
-                from the upload step above.
+                Điền thông tin nhân viên. URL ảnh đại diện được tự động lấy từ
+                bước tải lên ở trên.
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit(onCreateStaff)}>
@@ -305,7 +305,7 @@ const StaffOnboard: React.FC = () => {
                     placeholder="staff@example.com"
                     className={DEFAULT_INPUT_STYLE}
                     {...register("email", {
-                      required: "Email is required",
+                      required: "Email là bắt buộc",
                     })}
                   />
                   <p className="min-h-[1rem] text-sm text-red-500">
@@ -315,14 +315,14 @@ const StaffOnboard: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="full_name" className="text-sm text-gray-700">
-                    Full Name
+                    Họ và tên
                   </Label>
                   <Input
                     id="full_name"
-                    placeholder="Ex: John Doe"
+                    placeholder="Ví dụ: Nguyễn Văn A"
                     className={DEFAULT_INPUT_STYLE}
                     {...register("full_name", {
-                      required: "Full name is required",
+                      required: "Họ và tên là bắt buộc",
                     })}
                   />
                   <p className="min-h-[1rem] text-sm text-red-500">
@@ -332,18 +332,18 @@ const StaffOnboard: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm text-gray-700">
-                    Phone Number
+                    Số điện thoại
                   </Label>
                   <Input
                     id="phone"
                     placeholder="0xxxxxxxxx"
                     className={DEFAULT_INPUT_STYLE}
                     {...register("phone", {
-                      required: "Phone number is required",
+                      required: "Số điện thoại là bắt buộc",
                       pattern: {
                         value: /^0\d{9}$/,
                         message:
-                          "Phone number must be 10 digits and start with 0",
+                          "Số điện thoại phải có 10 chữ số và bắt đầu bằng số 0",
                       },
                     })}
                   />
@@ -354,14 +354,14 @@ const StaffOnboard: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="hire_date" className="text-sm text-gray-700">
-                    Hire Date
+                    Ngày làm việc
                   </Label>
                   <Input
                     id="hire_date"
                     type="date"
                     className={DEFAULT_INPUT_STYLE}
                     {...register("hire_date", {
-                      required: "Please select start date",
+                      required: "Vui lòng chọn ngày bắt đầu",
                     })}
                   />
                   <p className="min-h-[1rem] text-sm text-red-500">
@@ -370,11 +370,11 @@ const StaffOnboard: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm text-gray-700">Position</Label>
+                  <Label className="text-sm text-gray-700">Chức vụ</Label>
                   <Controller
                     control={control}
                     name="position"
-                    rules={{ required: "Please select position" }}
+                    rules={{ required: "Vui lòng chọn chức vụ" }}
                     render={({ field }) => (
                       <>
                         <Select
@@ -382,7 +382,7 @@ const StaffOnboard: React.FC = () => {
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger className={DEFAULT_INPUT_STYLE}>
-                            <SelectValue placeholder="Select position" />
+                            <SelectValue placeholder="Chọn chức vụ" />
                           </SelectTrigger>
                           <SelectContent className="border border-gray-200 bg-white">
                             {STAFF_POSITIONS.map((position) => (
@@ -405,15 +405,15 @@ const StaffOnboard: React.FC = () => {
 
                 <div className="md:col-span-2 space-y-2">
                   <Label htmlFor="notes" className="text-sm text-gray-700">
-                    Notes
+                    Ghi chú
                     <span className="ml-2 text-xs font-medium text-gray-400">
-                      (Optional)
+                      (Tùy chọn)
                     </span>
                   </Label>
                   <Textarea
                     id="notes"
                     rows={3}
-                    placeholder="Additional information about staff"
+                    placeholder="Thông tin bổ sung về nhân viên"
                     className={DEFAULT_INPUT_STYLE}
                     {...register("notes")}
                   />
@@ -431,10 +431,10 @@ const StaffOnboard: React.FC = () => {
                   {isCreatingStaff ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Creating Staff...
+                      Đang tạo nhân viên...
                     </span>
                   ) : (
-                    "Create Staff"
+                    "Tạo nhân viên"
                   )}
                 </Button>
               </CardFooter>
@@ -444,11 +444,11 @@ const StaffOnboard: React.FC = () => {
             <Card className="rounded-2xl border border-gray-100 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg text-gray-900">
-                  Upload Avatar
+                  Tải lên ảnh đại diện
                 </CardTitle>
                 <CardDescription className="text-sm text-gray-500">
-                  Select staff portrait, preview and upload to get URL saved to
-                  profile.
+                  Chọn ảnh chân dung nhân viên, xem trước và tải lên để lấy URL
+                  lưu vào hồ sơ.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
@@ -461,7 +461,7 @@ const StaffOnboard: React.FC = () => {
                 />
                 <div className="flex flex-col gap-3">
                   <Label className="text-sm font-medium text-gray-700">
-                    Avatar
+                    Ảnh đại diện
                   </Label>
                   <div className="flex flex-col gap-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center">
                     {avatarPreview ? (
@@ -477,7 +477,7 @@ const StaffOnboard: React.FC = () => {
                     )}
                     <div className="space-y-2">
                       <p className="text-sm text-gray-500">
-                        PNG, JPG or JPEG. Max size 10MB.
+                        PNG, JPG hoặc JPEG. Kích thước tối đa 10MB.
                       </p>
                       {selectedFileName && (
                         <p className="text-sm font-medium text-gray-700">
@@ -492,7 +492,7 @@ const StaffOnboard: React.FC = () => {
                         onClick={triggerFilePicker}
                         className="border-gray-200 text-[#5985d8] hover:bg-blue-50 cursor-pointer "
                       >
-                        Select Image
+                        Chọn ảnh
                       </Button>
                       <Button
                         type="button"
@@ -503,12 +503,12 @@ const StaffOnboard: React.FC = () => {
                         {isUploadingAvatar ? (
                           <span className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            Loading...
+                            Đang tải...
                           </span>
                         ) : (
                           <span className="flex items-center gap-2">
                             <UploadCloud className="h-4 w-4" />
-                            Upload
+                            Tải lên
                           </span>
                         )}
                       </Button>
@@ -519,7 +519,7 @@ const StaffOnboard: React.FC = () => {
                 {uploadedAvatar?.url && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">
-                      Uploaded Image URL
+                      URL ảnh đã tải lên
                     </Label>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                       <Input
@@ -534,12 +534,12 @@ const StaffOnboard: React.FC = () => {
                         className="border-gray-200 text-[#5985d8] hover:bg-blue-50"
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy
+                        Sao chép
                       </Button>
                     </div>
                     <p className="flex items-center gap-2 text-sm text-green-600">
                       <CheckCircle2 className="h-4 w-4" />
-                      URL is ready to use in the staff creation form.
+                      URL đã sẵn sàng để sử dụng trong biểu mẫu tạo nhân viên.
                     </p>
                   </div>
                 )}

@@ -135,6 +135,27 @@ const INPUT_STYLE =
   "bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-400 transition-colors";
 const BADGE_STYLE = "shadow-sm text-white";
 
+const ALERT_TYPE_MAP: Record<string, string> = {
+  fall: "Ngã",
+  abnormal_vitals: "Chỉ số bất thường",
+  emergency_button: "Nút khẩn cấp",
+};
+
+const ALERT_STATUS_MAP: Record<string, string> = {
+  pending: "Chờ xử lý",
+  acknowledged: "Đã xác nhận",
+  in_progress: "Đang xử lý",
+  resolved: "Đã giải quyết",
+  escalated: "Đã leo thang",
+};
+
+const INCIDENT_TYPE_MAP: Record<string, string> = {
+  fall: "Ngã",
+  health_event: "Sự cố sức khỏe",
+  behavioral: "Hành vi",
+  environmental_hazard: "Hiểm họa môi trường",
+};
+
 const StaffSOSIncidentManagement: React.FC = () => {
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
@@ -180,7 +201,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
         alert.id === id ? { ...alert, status: "acknowledged" } : alert
       )
     );
-    toast("Alert Acknowledged — You have acknowledged the alert.");
+    toast("Cảnh báo đã được xác nhận — Bạn đã xác nhận cảnh báo.");
   };
 
   // Handle mark in progress
@@ -190,7 +211,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
         alert.id === id ? { ...alert, status: "in_progress" } : alert
       )
     );
-    toast("Alert In Progress — Alert marked as in progress.");
+    toast("Cảnh báo đang xử lý — Cảnh báo đã được đánh dấu là đang xử lý.");
   };
 
   // Handle resolve alert
@@ -202,7 +223,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
     );
     setResolutionNotes("");
     setResolutionNotes("");
-    toast("Alert Resolved — The alert has been resolved.");
+    toast("Cảnh báo đã giải quyết — Cảnh báo đã được giải quyết.");
   };
 
   // Open incident report dialog, pre-populate with alert data if available
@@ -231,7 +252,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
       !report.actionsTaken ||
       !report.outcome
     ) {
-      toast("Validation Error — Please fill in all required fields.");
+      toast("Lỗi xác thực — Vui lòng điền tất cả các trường bắt buộc.");
       return;
     }
     // Mock submit logic: Add to reported incidents
@@ -242,9 +263,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
     };
     setReportedIncidents([newReport, ...reportedIncidents]);
     console.log("Incident Report Submitted:", newReport);
-    toast(
-      "Report Submitted — Incident report has been submitted successfully."
-    );
+    toast("Gửi báo cáo — Báo cáo sự cố đã được gửi thành công.");
     // Reset form
     setReport({
       id: "",
@@ -289,7 +308,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
           {/* SOS Alerts Section */}
           <section className="mb-8">
             <h2 className="text-3xl font-bold mb-4 text-gray-800">
-              Active SOS Alerts
+              Cảnh báo SOS đang hoạt động
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {alerts.map((alert) => (
@@ -318,28 +337,30 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             : "bg-violet-500")
                         }
                       >
-                        {alert.status}
+                        {ALERT_STATUS_MAP[alert.status] || alert.status}
                       </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p>
-                      <strong>Room/Bed:</strong> {alert.roomBed}
+                      <strong>Phòng/Giường:</strong> {alert.roomBed}
                     </p>
                     <p>
-                      <strong>Type:</strong> {alert.type.replace("_", " ")}
+                      <strong>Loại:</strong>{" "}
+                      {ALERT_TYPE_MAP[alert.type] || alert.type}
                     </p>
                     <p>
-                      <strong>Time:</strong> {alert.timestamp}
+                      <strong>Thời gian:</strong> {alert.timestamp}
                     </p>
                     {alert.vitalSnapshot && (
                       <p>
-                        <strong>Vital Signs:</strong> {alert.vitalSnapshot}
+                        <strong>Dấu hiệu sinh tồn:</strong>{" "}
+                        {alert.vitalSnapshot}
                       </p>
                     )}
                     {alert.status === "pending" && (
                       <p className="text-red-600 font-bold">
-                        Timer: {alert.timer}s
+                        Thời gian: {alert.timer}s
                       </p>
                     )}
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -348,7 +369,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                           onClick={() => acknowledgeAlert(alert.id)}
                           className="bg-[#5985d8] hover:bg-[#4a6fc1] shadow-sm cursor-pointer"
                         >
-                          Confirm
+                          Xác nhận
                         </Button>
                       )}
                       {alert.status === "acknowledged" && (
@@ -356,7 +377,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                           onClick={() => markInProgress(alert.id)}
                           className="bg-[#f59e0b] hover:bg-[#d97706] shadow-sm cursor-pointer"
                         >
-                          In Progress
+                          Đang xử lý
                         </Button>
                       )}
                       {(alert.status === "acknowledged" ||
@@ -367,15 +388,15 @@ const StaffSOSIncidentManagement: React.FC = () => {
                               onClick={() => setSelectedAlert(alert)}
                               className="bg-[#22c55e] hover:bg-[#16a34a] shadow-sm cursor-pointer"
                             >
-                              Resolve
+                              Giải quyết
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="bg-white">
                             <DialogHeader>
-                              <DialogTitle>Resolve Alert</DialogTitle>
+                              <DialogTitle>Giải quyết cảnh báo</DialogTitle>
                             </DialogHeader>
                             <textarea
-                              placeholder="Resolution notes..."
+                              placeholder="Ghi chú giải quyết..."
                               value={resolutionNotes}
                               onChange={(e) =>
                                 setResolutionNotes(e.target.value)
@@ -386,7 +407,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                               onClick={() => resolveAlert(alert.id)}
                               className="bg-[#5985d8] hover:bg-[#4a6fc1] shadow-sm cursor-pointer"
                             >
-                              Send Resolution
+                              Gửi giải quyết
                             </Button>
                           </DialogContent>
                         </Dialog>
@@ -402,13 +423,13 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             // Update class button outline: white bg, gray border, shadow
                             className="bg-white border-gray-200 text-[#5985d8] hover:bg-gray-50 shadow-sm cursor-pointer"
                           >
-                            Create Incident Report
+                            Tạo báo cáo sự cố
                           </Button>
                         </DialogTrigger>
                         {/* Update DialogContent: bg-white */}
                         <DialogContent className="bg-white max-w-6xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Incident Report Form</DialogTitle>
+                            <DialogTitle>Biểu mẫu báo cáo sự cố</DialogTitle>
                           </DialogHeader>
                           <form
                             onSubmit={handleSubmitReport}
@@ -417,7 +438,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-sm font-medium">
-                                  Resident *
+                                  Cư dân *
                                 </label>
                                 <Select
                                   value={report.residentId}
@@ -426,7 +447,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                   }
                                 >
                                   <SelectTrigger className={INPUT_STYLE}>
-                                    <SelectValue placeholder="Select resident" />
+                                    <SelectValue placeholder="Chọn cư dân" />
                                   </SelectTrigger>
                                   {/* Update SelectContent: bg-white */}
                                   <SelectContent className="bg-white">
@@ -440,7 +461,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium">
-                                  Incident Type *
+                                  Loại sự cố *
                                 </label>
                                 <Select
                                   value={report.incidentType}
@@ -452,18 +473,18 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                   }
                                 >
                                   <SelectTrigger className={INPUT_STYLE}>
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Chọn loại" />
                                   </SelectTrigger>
                                   <SelectContent className="bg-white">
-                                    <SelectItem value="fall">Fall</SelectItem>
+                                    <SelectItem value="fall">Ngã</SelectItem>
                                     <SelectItem value="health_event">
-                                      Health Event
+                                      Sự cố sức khỏe
                                     </SelectItem>
                                     <SelectItem value="behavioral">
-                                      Behavioral
+                                      Hành vi
                                     </SelectItem>
                                     <SelectItem value="environmental_hazard">
-                                      Environmental Hazard
+                                      Hiểm họa môi trường
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -474,7 +495,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="flex flex-col space-y-1">
                                 <label className="text-sm font-medium">
-                                  Date of Incident
+                                  Ngày xảy ra
                                 </label>
                                 <Popover>
                                   <PopoverTrigger asChild>
@@ -485,7 +506,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                         value={
                                           date ? format(date, "yyyy-MM-dd") : ""
                                         }
-                                        placeholder="Select date"
+                                        placeholder="Chọn ngày"
                                         className={`w-full rounded-md px-3 py-2 text-sm cursor-pointer ${INPUT_STYLE}`}
                                       />
 
@@ -516,7 +537,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                               {/* time */}
                               <div className="flex flex-col space-y-1">
                                 <label className="text-sm font-medium">
-                                  Time of Incident
+                                  Thời gian xảy ra
                                 </label>
 
                                 <Popover>
@@ -524,7 +545,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                     <div className="relative">
                                       <Input
                                         readOnly
-                                        placeholder="Select time"
+                                        placeholder="Chọn thời gian"
                                         value={report.timeOccurred}
                                         className={`cursor-pointer text-sm ${INPUT_STYLE}`}
                                       />
@@ -555,7 +576,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                         <SelectTrigger
                                           className={`h-8 px-2 text-sm ${INPUT_STYLE}`}
                                         >
-                                          <SelectValue placeholder="Hr" />
+                                          <SelectValue placeholder="Giờ" />
                                         </SelectTrigger>
 
                                         <SelectContent className="max-h-40 text-sm bg-white">
@@ -595,7 +616,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                           });
                                         }}
                                       >
-                                        <option value="">Min</option>
+                                        <option value="">Phút</option>
                                         {[
                                           "00",
                                           "05",
@@ -622,10 +643,10 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             </div>
                             <div>
                               <label className="block text-sm font-medium">
-                                Root Cause
+                                Nguyên nhân gốc rễ
                               </label>
                               <Textarea
-                                placeholder="Describe root cause if known..."
+                                placeholder="Mô tả nguyên nhân gốc rễ nếu biết..."
                                 value={report.rootCause}
                                 onChange={(
                                   e: React.ChangeEvent<HTMLTextAreaElement>
@@ -640,10 +661,10 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             </div>
                             <div>
                               <label className="block text-sm font-medium">
-                                Actions Taken *
+                                Hành động đã thực hiện *
                               </label>
                               <Textarea
-                                placeholder="Details of actions taken..."
+                                placeholder="Chi tiết hành động đã thực hiện..."
                                 value={report.actionsTaken}
                                 onChange={(
                                   e: React.ChangeEvent<HTMLTextAreaElement>
@@ -658,10 +679,10 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             </div>
                             <div>
                               <label className="block text-sm font-medium">
-                                Outcome *
+                                Kết quả *
                               </label>
                               <Textarea
-                                placeholder="Describe outcome (e.g., stabilized, transferred)..."
+                                placeholder="Mô tả kết quả (ví dụ: ổn định, chuyển viện)..."
                                 value={report.outcome}
                                 onChange={(
                                   e: React.ChangeEvent<HTMLTextAreaElement>
@@ -677,10 +698,10 @@ const StaffSOSIncidentManagement: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-sm font-medium">
-                                  Staff on Duty
+                                  Nhân viên trực
                                 </label>
                                 <Input
-                                  placeholder="Enter staff name"
+                                  placeholder="Nhập tên nhân viên"
                                   value={report.staffOnDuty}
                                   onChange={(
                                     e: React.ChangeEvent<HTMLInputElement>
@@ -695,7 +716,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium">
-                                  Upload Images (Optional)
+                                  Tải ảnh lên (Tùy chọn)
                                 </label>
                                 <input
                                   type="file"
@@ -711,7 +732,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                 />
                                 {report.images.length > 0 && (
                                   <p className="text-xs text-gray-400 mt-1 bg-gray-50 rounded-md px-2 border border-gray-100">
-                                    Selected {report.images.length} files
+                                    Đã chọn {report.images.length} tệp
                                   </p>
                                 )}
                               </div>
@@ -721,7 +742,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                 type="submit"
                                 className="bg-[#5985d8] hover:bg-[#4a6fc1] shadow-sm cursor-pointer"
                               >
-                                Send Report
+                                Gửi báo cáo
                               </Button>
                               <Button
                                 type="button"
@@ -729,7 +750,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
                                 variant="secondary"
                                 className="shadow-sm bg-gray-100 border border-gray-200 hover:bg-gray-200 cursor-pointer"
                               >
-                                Cancel
+                                Hủy
                               </Button>
                             </div>
                           </form>
@@ -745,7 +766,7 @@ const StaffSOSIncidentManagement: React.FC = () => {
         {/* Reported Incidents Table Section */}
         <section className="mb-8">
           <h2 className="text-3xl font-bold mb-4 text-gray-800 w-full text-center">
-            Reported Incidents
+            Sự cố đã báo cáo
           </h2>
           <Card className={CARD_STYLE}>
             <CardContent className="p-0">
@@ -754,22 +775,22 @@ const StaffSOSIncidentManagement: React.FC = () => {
                   <TableHeader>
                     <TableRow className="border-b border-gray-100">
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Resident
+                        Cư dân
                       </TableHead>
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Incident Type
+                        Loại sự cố
                       </TableHead>
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Date/Time
+                        Ngày/Giờ
                       </TableHead>
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Actions Taken
+                        Hành động đã thực hiện
                       </TableHead>
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Outcome
+                        Kết quả
                       </TableHead>
                       <TableHead className="text-lg font-semibold text-center text-gray-700">
-                        Staff
+                        Nhân viên
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -782,10 +803,11 @@ const StaffSOSIncidentManagement: React.FC = () => {
                         <TableCell>
                           {mockResidents.find(
                             (r) => r.id === incident.residentId
-                          )?.name || "Unknown"}
+                          )?.name || "Không rõ"}
                         </TableCell>
                         <TableCell>
-                          {incident.incidentType.replace("_", " ")}
+                          {INCIDENT_TYPE_MAP[incident.incidentType] ||
+                            incident.incidentType}
                         </TableCell>
                         <TableCell>
                           {incident.dateOccurred} {incident.timeOccurred}

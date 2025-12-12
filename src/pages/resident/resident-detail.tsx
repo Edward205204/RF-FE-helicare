@@ -36,7 +36,7 @@ export default function ResidentDetail(): React.JSX.Element {
 
   useEffect(() => {
     if (!resident_id) {
-      toast.error("Invalid resident ID");
+      toast.error("ID cư dân không hợp lệ");
       navigate(path.residentList);
       return;
     }
@@ -59,7 +59,7 @@ export default function ResidentDetail(): React.JSX.Element {
       } catch (error: any) {
         console.error("Error fetching resident detail:", error);
         toast.error(
-          error.response?.data?.message || "Cannot load resident information"
+          error.response?.data?.message || "Không thể tải thông tin cư dân"
         );
         navigate(path.residentList);
       } finally {
@@ -75,7 +75,7 @@ export default function ResidentDetail(): React.JSX.Element {
       <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
         <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
           <div className="flex items-center justify-center h-96">
-            <p className="text-gray-500">Loading information...</p>
+            <p className="text-gray-500">Đang tải thông tin...</p>
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function ResidentDetail(): React.JSX.Element {
       <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
         <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
           <div className="flex items-center justify-center h-96">
-            <p className="text-gray-500">Resident information not found</p>
+            <p className="text-gray-500">Không tìm thấy thông tin cư dân</p>
           </div>
         </div>
       </div>
@@ -137,12 +137,12 @@ export default function ResidentDetail(): React.JSX.Element {
                 className="flex items-center justify-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
               >
                 <ArrowLeft className="h-5 w-5" />
-                <span>Back</span>
+                <span>Quay lại</span>
               </button>
             </div>
             <div className="flex flex-col gap-2">
               <h1 className="text-3xl font-bold" style={{ color: "#5985d8" }}>
-                Resident Details
+                Chi tiết cư dân
               </h1>
               <p className="text-sm text-gray-500">
                 {new Date().toLocaleDateString("en-US")}
@@ -158,13 +158,13 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Personal Information
+                      Thông tin cá nhân
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Full Name
+                        Họ và tên
                       </p>
                       <p className="text-lg font-semibold text-gray-900">
                         {resident.full_name}
@@ -172,35 +172,35 @@ export default function ResidentDetail(): React.JSX.Element {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Date of Birth
+                        Ngày sinh
                       </p>
                       <p className="text-base text-gray-800">
                         {formatDate(resident.date_of_birth)} (
-                        {calculateAge(resident.date_of_birth)} years old)
+                        {calculateAge(resident.date_of_birth)} tuổi)
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">
-                        Gender
+                        Giới tính
                       </p>
                       <p className="text-base text-gray-800 capitalize">
-                        {resident.gender === "male" ? "Male" : "Female"}
+                        {resident.gender === "male" ? "Nam" : "Nữ"}
                       </p>
                     </div>
                     {resident.room && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">
-                          Room
+                          Phòng
                         </p>
                         <p className="text-base text-gray-800">
-                          Room {resident.room.room_number}
+                          Phòng {resident.room.room_number}
                         </p>
                       </div>
                     )}
                     {resident.notes && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">
-                          Notes
+                          Ghi chú
                         </p>
                         <p className="text-base text-gray-800">
                           {resident.notes}
@@ -211,7 +211,7 @@ export default function ResidentDetail(): React.JSX.Element {
                       resident.chronicDiseases.length > 0 && (
                         <div>
                           <p className="text-sm font-medium text-gray-500 mb-2">
-                            Chronic Diseases
+                            Bệnh mãn tính
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {resident.chronicDiseases.map((disease) => (
@@ -225,7 +225,7 @@ export default function ResidentDetail(): React.JSX.Element {
                     {resident.allergies && resident.allergies.length > 0 && (
                       <div>
                         <p className="text-sm font-medium text-gray-500 mb-2">
-                          Allergies
+                          Dị ứng
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {resident.allergies.map((allergy) => (
@@ -247,26 +247,26 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
-                      Assessment List
+                      Danh sách đánh giá
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {assessments.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">
-                        No assessments
+                        Không có đánh giá nào
                       </p>
                     ) : (
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Date Time</TableHead>
-                              <TableHead>Temperature (°C)</TableHead>
-                              <TableHead>Blood Pressure</TableHead>
-                              <TableHead>Heart Rate</TableHead>
-                              <TableHead>Respiratory Rate</TableHead>
+                              <TableHead>Thời gian</TableHead>
+                              <TableHead>Nhiệt độ (°C)</TableHead>
+                              <TableHead>Huyết áp</TableHead>
+                              <TableHead>Nhịp tim</TableHead>
+                              <TableHead>Nhịp thở</TableHead>
                               <TableHead>SpO₂ (%)</TableHead>
-                              <TableHead>Notes</TableHead>
+                              <TableHead>Ghi chú</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -318,13 +318,13 @@ export default function ResidentDetail(): React.JSX.Element {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      Linked Family Members
+                      Thành viên gia đình liên kết
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {familyMembers.length === 0 ? (
                       <p className="text-gray-500 text-center py-8">
-                        No linked family members
+                        Không có thành viên gia đình liên kết
                       </p>
                     ) : (
                       <div className="space-y-4">
@@ -345,7 +345,7 @@ export default function ResidentDetail(): React.JSX.Element {
                                 }
                               >
                                 {member.status === "active"
-                                  ? "Active"
+                                  ? "Hoạt động"
                                   : member.status}
                               </Badge>
                             </div>
@@ -367,7 +367,7 @@ export default function ResidentDetail(): React.JSX.Element {
                                 </div>
                               )}
                               <div className="text-xs text-gray-400 mt-2">
-                                Linked since: {formatDate(member.created_at)}
+                                Liên kết từ: {formatDate(member.created_at)}
                               </div>
                             </div>
                           </div>

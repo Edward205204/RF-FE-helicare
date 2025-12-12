@@ -37,7 +37,7 @@ const AdminDashboard: React.FC = () => {
       const response = await getDashboardStats();
       setStats(response.data);
     } catch (error: any) {
-      toast.error("Unable to load dashboard stats");
+      toast.error("Không thể tải thống kê bảng điều khiển");
     } finally {
       setLoading(false);
     }
@@ -46,32 +46,32 @@ const AdminDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-center">Loading...</p>
+        <p className="text-center">Đang tải...</p>
       </div>
     );
   }
 
   const overviewStats = [
     {
-      title: "Total Residents",
+      title: "Tổng số cư dân",
       value: stats?.total_residents || 0,
       icon: Users,
       color: "bg-blue-100",
     },
     {
-      title: "Active Residents",
+      title: "Cư dân đang hoạt động",
       value: stats?.active_residents || 0,
       icon: UserCheck,
       color: "bg-green-100",
     },
     {
-      title: "Staff",
+      title: "Nhân viên",
       value: stats?.total_staff || 0,
       icon: UserCheck,
       color: "bg-yellow-100",
     },
     {
-      title: "Alerts",
+      title: "Cảnh báo",
       value: stats?.alerts_count || 0,
       icon: AlertTriangle,
       color: "bg-red-100",
@@ -81,7 +81,9 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="w-full relative">
       <div className="container mx-auto p-6 space-y-6 bg-transparent">
-        <h1 className="text-3xl font-bold text-gray-800">Overview Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-800">
+          Bảng điều khiển tổng quan
+        </h1>
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -109,7 +111,7 @@ const AdminDashboard: React.FC = () => {
         {/* Room & Bed Summary */}
         <Card className="bg-white border-gray-300">
           <CardHeader>
-            <CardTitle className="text-xl">Room & Bed Summary</CardTitle>
+            <CardTitle className="text-xl">Tổng quan Phòng & Giường</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
@@ -124,8 +126,8 @@ const AdminDashboard: React.FC = () => {
               </span>
             </div>
             <p className="text-lg mt-2">
-              Occupancy: {stats?.occupied_beds || 0} / {stats?.total_beds || 0}{" "}
-              beds
+              Đang sử dụng: {stats?.occupied_beds || 0} /{" "}
+              {stats?.total_beds || 0} giường
             </p>
           </CardContent>
         </Card>
@@ -134,7 +136,7 @@ const AdminDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Total Tasks</CardTitle>
+              <CardTitle className="text-lg">Tổng công việc</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
@@ -144,7 +146,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Pending</CardTitle>
+              <CardTitle className="text-lg">Đang chờ</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-yellow-600">
@@ -154,7 +156,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Completed</CardTitle>
+              <CardTitle className="text-lg">Hoàn thành</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
@@ -167,7 +169,7 @@ const AdminDashboard: React.FC = () => {
         {/* Quick Actions */}
         <Card className="bg-white border-gray-300">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
+            <CardTitle className="text-xl font-bold">Thao tác nhanh</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
@@ -175,13 +177,13 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => navigate(path.adminResidents)}
                 className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
               >
-                Manage Residents
+                Quản lý cư dân
               </Button>
               <Button
                 onClick={() => navigate(path.adminStaff)}
                 className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
               >
-                Manage Staff
+                Quản lý nhân viên
               </Button>
             </div>
           </CardContent>

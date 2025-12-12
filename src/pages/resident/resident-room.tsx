@@ -27,7 +27,7 @@ const ResidentRoom: React.FC = () => {
       } catch (error: any) {
         console.error("Failed to fetch room info:", error);
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
-          toast.error("Cannot load room info. Please try again later.");
+          toast.error("Không thể tải thông tin phòng. Vui lòng thử lại sau.");
         }
         setRoomInfo(null);
       } finally {
@@ -43,7 +43,7 @@ const ResidentRoom: React.FC = () => {
       <div className="p-6">
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-500">
-            Loading room info...
+            Đang tải thông tin phòng...
           </CardContent>
         </Card>
       </div>
@@ -55,7 +55,7 @@ const ResidentRoom: React.FC = () => {
       <div className="p-6">
         <Card className="border border-gray-200 shadow-sm">
           <CardContent className="p-6 text-center text-gray-600">
-            Room not assigned.
+            Chưa được phân phòng.
           </CardContent>
         </Card>
       </div>
@@ -67,22 +67,22 @@ const ResidentRoom: React.FC = () => {
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl text-gray-900">
-            Room Information
+            Thông tin phòng
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Room {roomInfo.room_number}
+                Phòng {roomInfo.room_number}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Type:{" "}
+                Loại phòng:{" "}
                 {roomInfo.type === "single"
-                  ? "Single"
+                  ? "Đơn"
                   : roomInfo.type === "double"
-                  ? "Double"
-                  : "Multiple"}
+                  ? "Đôi"
+                  : "Nhiều người"}
               </p>
             </div>
             <Badge
@@ -98,13 +98,13 @@ const ResidentRoom: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Capacity</p>
+              <p className="text-sm text-gray-600">Sức chứa</p>
               <p className="text-2xl font-bold text-gray-900">
                 {roomInfo.capacity}
               </p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Occupied</p>
+              <p className="text-sm text-gray-600">Đang ở</p>
               <p className="text-2xl font-bold text-gray-900">
                 {roomInfo.current_occupancy}
               </p>
