@@ -18,7 +18,7 @@ const AdminLogin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+      toast.error("Please fill in all fields");
       return;
     }
 
@@ -27,10 +27,10 @@ const AdminLogin: React.FC = () => {
       const response = await adminLogin({ email, password });
       setAccessTokenToLS(response.data.access_token);
       setProfileToLS(response.data.user);
-      toast.success("Đăng nhập thành công");
+      toast.success("Logged in successfully");
       navigate(path.adminDashboard);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Đăng nhập thất bại");
+      toast.error(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -59,13 +59,13 @@ const AdminLogin: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Mật khẩu</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu"
+                placeholder="Enter password"
                 className="bg-white border-gray-300"
                 required
               />
@@ -75,7 +75,7 @@ const AdminLogin: React.FC = () => {
               className="w-full bg-[#5985d8] hover:bg-[#5183c9] text-white"
               disabled={loading}
             >
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </CardContent>

@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
-
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
 
 /* ------------------------------------------
    TYPES
@@ -51,14 +67,14 @@ export type ResidentView = {
 
 // ADMIN → STAFF
 export const mapAdminToStaff = (adminRooms: Room[]): StaffResident[] =>
-  adminRooms.flatMap(room =>
-    room.beds.map(bed => ({
+  adminRooms.flatMap((room) =>
+    room.beds.map((bed) => ({
       id: `${room.id}-${bed.bed}`,
       name: bed.resident,
       age: null,
       room: room.id,
       bed: bed.bed,
-      status: bed.status
+      status: bed.status,
     }))
   );
 
@@ -67,15 +83,14 @@ export const mapAdminToResident = (
   adminRooms: Room[],
   residentName: string
 ): ResidentView | null => {
-
   for (const room of adminRooms) {
-    const found = room.beds.find(b => b.resident === residentName);
+    const found = room.beds.find((b) => b.resident === residentName);
     if (found) {
       return {
         residentName,
         room: room.id,
         bed: found.bed,
-        status: found.status
+        status: found.status,
       };
     }
   }
@@ -95,16 +110,16 @@ const initialRooms: Room[] = [
     description: "Single room with window",
     beds: [
       { bed: "A", resident: "John Doe", status: "Occupied" },
-      { bed: "B", resident: null, status: "Available" }
-    ]
+      { bed: "B", resident: null, status: "Available" },
+    ],
   },
   {
     id: "102",
     floor: 1,
     area: "South Wing",
     description: "Double room",
-    beds: [{ bed: "A", resident: null, status: "Available" }]
-  }
+    beds: [{ bed: "A", resident: null, status: "Available" }],
+  },
 ];
 
 /* ------------------------------------------
@@ -118,16 +133,30 @@ const RoomBedAdminPage: React.FC = () => {
 
   /* ----- DASHBOARD STATS ----- */
   const totalBeds = rooms.reduce((sum, r) => sum + r.beds.length, 0);
-  const occupied = rooms.reduce((s, r) => s + r.beds.filter(b => b.status === "Occupied").length, 0);
-  const available = rooms.reduce((s, r) => s + r.beds.filter(b => b.status === "Available").length, 0);
-  const maintenance = rooms.reduce((s, r) => s + r.beds.filter(b => b.status === "Maintenance").length, 0);
-  const occupancyRate = totalBeds ? Math.round(occupied / totalBeds * 100) : 0;
+  const occupied = rooms.reduce(
+    (s, r) => s + r.beds.filter((b) => b.status === "Occupied").length,
+    0
+  );
+  const available = rooms.reduce(
+    (s, r) => s + r.beds.filter((b) => b.status === "Available").length,
+    0
+  );
+  const maintenance = rooms.reduce(
+    (s, r) => s + r.beds.filter((b) => b.status === "Maintenance").length,
+    0
+  );
+  const occupancyRate = totalBeds
+    ? Math.round((occupied / totalBeds) * 100)
+    : 0;
 
   const getStatusBadge = (s: string) => {
     const base = "text-white text-sm px-3 py-1 rounded-md";
-    if (s === "Available") return <Badge className={base + " bg-green-500"}>Available</Badge>;
-    if (s === "Occupied") return <Badge className={base + " bg-yellow-500"}>Occupied</Badge>;
-    if (s === "Maintenance") return <Badge className={base + " bg-red-500"}>Maintenance</Badge>;
+    if (s === "Available")
+      return <Badge className={base + " bg-green-500"}>Available</Badge>;
+    if (s === "Occupied")
+      return <Badge className={base + " bg-yellow-500"}>Occupied</Badge>;
+    if (s === "Maintenance")
+      return <Badge className={base + " bg-red-500"}>Maintenance</Badge>;
     return <Badge>Unknown</Badge>;
   };
 
@@ -141,8 +170,8 @@ const RoomBedAdminPage: React.FC = () => {
   const handleSaveEdit = () => {
     if (!editingRoom) return;
 
-    setRooms(prev =>
-      prev.map(r => (r.id === editingRoom.id ? editingRoom : r))
+    setRooms((prev) =>
+      prev.map((r) => (r.id === editingRoom.id ? editingRoom : r))
     );
 
     setIsEditDialogOpen(false);
@@ -156,20 +185,49 @@ const RoomBedAdminPage: React.FC = () => {
 
   return (
     <div className="max-w-screen-xl mx-auto p-4 space-y-6">
-
-      <h1 className="text-3xl font-bold">Room & Bed Management</h1>
+      <h1 className="text-3xl font-bold">Room & Bed Admin</h1>
 
       {/* DASHBOARD */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card><CardHeader><CardTitle>Total Beds</CardTitle></CardHeader><CardContent><p className="text-3xl">{totalBeds}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Occupied</CardTitle></CardHeader><CardContent><p className="text-3xl text-yellow-600">{occupied}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Available</CardTitle></CardHeader><CardContent><p className="text-3xl text-green-600">{available}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Maintenance</CardTitle></CardHeader><CardContent><p className="text-3xl text-red-600">{maintenance}</p></CardContent></Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Beds</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl">{totalBeds}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Occupied</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl text-yellow-600">{occupied}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Available</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl text-green-600">{available}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Maintenance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl text-red-600">{maintenance}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* OCCUPANCY BAR */}
       <Card>
-        <CardHeader><CardTitle>Occupancy Rate</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Occupancy Rate</CardTitle>
+        </CardHeader>
         <CardContent>
           <div className="w-full h-8 bg-gray-200 rounded-full">
             <div
@@ -184,22 +242,36 @@ const RoomBedAdminPage: React.FC = () => {
 
       {/* TABLE */}
       <Card>
-        <CardHeader><CardTitle>All Rooms</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Rooms</CardTitle>
+        </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-base font-semibold text-center">Room</TableHead>
-                <TableHead className="text-base font-semibold text-center">Floor</TableHead>
-                <TableHead className="text-base font-semibold text-center">Area</TableHead>
-                <TableHead className="text-base font-semibold text-center">Description</TableHead>
-                <TableHead className="text-base font-semibold text-center">Beds</TableHead>
-                <TableHead className="text-base font-semibold text-center">Actions</TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Room
+                </TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Floor
+                </TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Area
+                </TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Description
+                </TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Beds
+                </TableHead>
+                <TableHead className="text-base font-semibold text-center">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {rooms.map(room => (
+              {rooms.map((room) => (
                 <TableRow key={room.id}>
                   <TableCell>{room.id}</TableCell>
                   <TableCell>{room.floor}</TableCell>
@@ -217,7 +289,12 @@ const RoomBedAdminPage: React.FC = () => {
                   </TableCell>
 
                   <TableCell>
-                    <Button className="bg-gray-500" onClick={() => handleEditRoom(room)}>Edit</Button>
+                    <Button
+                      className="bg-gray-500"
+                      onClick={() => handleEditRoom(room)}
+                    >
+                      Edit
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -229,17 +306,20 @@ const RoomBedAdminPage: React.FC = () => {
       {/* EDIT DIALOG */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Edit Room</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Edit Room</DialogTitle>
+          </DialogHeader>
 
           {editingRoom && (
             <div className="space-y-4">
-
               <div>
                 <Label>Floor</Label>
                 <Input
                   type="number"
                   value={editingRoom.floor}
-                  onChange={e => handleInputChange("floor", Number(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange("floor", Number(e.target.value))
+                  }
                 />
               </div>
 
@@ -247,7 +327,7 @@ const RoomBedAdminPage: React.FC = () => {
                 <Label>Area</Label>
                 <Input
                   value={editingRoom.area}
-                  onChange={e => handleInputChange("area", e.target.value)}
+                  onChange={(e) => handleInputChange("area", e.target.value)}
                 />
               </div>
 
@@ -255,7 +335,9 @@ const RoomBedAdminPage: React.FC = () => {
                 <Label>Description</Label>
                 <Textarea
                   value={editingRoom.description || ""}
-                  onChange={e => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                 />
               </div>
 
@@ -264,7 +346,6 @@ const RoomBedAdminPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

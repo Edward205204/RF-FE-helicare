@@ -69,7 +69,6 @@ const path = {
   adminDashboard: "/admin/dashboard",
   adminResidents: "/admin/residents",
   adminStaff: "/admin/staff",
-  adminTasks: "/admin/tasks",
   adminSettings: "/admin/settings",
 } as const;
 

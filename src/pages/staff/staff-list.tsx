@@ -50,7 +50,7 @@ export default function StaffList(): React.JSX.Element {
       setData(staffList);
     } catch (error: any) {
       console.error("Error fetching staff:", error);
-      toast.error(error.response?.data?.message || "Không thể tải danh sách nhân viên");
+      toast.error(error.response?.data?.message || "Failed to load staff list");
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
           <p className="text-sm text-slate-500 font-medium">
-            Loading dữ liệu nhân viên...
+            Loading staff data...
           </p>
         </div>
       </div>
@@ -113,10 +113,10 @@ export default function StaffList(): React.JSX.Element {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Quản lý Staff
+              Staff Management
             </h1>
             <p className="mt-1 text-slate-500">
-              Tổng quan về tất cả nhân viên viện dưỡng lão và phân công của họ.
+              Overview of all nursing home staff and their assignments.
             </p>
           </div>
           <div className="flex gap-3">
@@ -124,7 +124,7 @@ export default function StaffList(): React.JSX.Element {
               variant="outline"
               className="border-slate-200 text-slate-600 hover:bg-slate-50"
             >
-              <MoreHorizontal className="h-4 w-4 mr-2" /> Add thao tác
+              <MoreHorizontal className="h-4 w-4 mr-2" /> More Actions
             </Button>
             {/* Nếu có nút Add Staff thì đặt ở đây */}
           </div>
@@ -139,22 +139,22 @@ export default function StaffList(): React.JSX.Element {
                   Staff
                 </TableHead>
                 <TableHead className="py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Vai trò & Ca làm việc
+                  Role & Shift
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Pending
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Hoàn thành hôm nay
+                  Completed Today
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Resident
+                  Residents
                 </TableHead>
                 <TableHead className="text-center py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Trạng thái
+                  Status
                 </TableHead>
                 <TableHead className="text-right pr-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Thao tác
+                  Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -168,7 +168,7 @@ export default function StaffList(): React.JSX.Element {
                   >
                     <div className="flex flex-col items-center justify-center gap-2">
                       <User className="h-8 w-8 opacity-20" />
-                      <p>Không tìm thấy nhân viên nào.</p>
+                      <p>No staff found.</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -188,7 +188,7 @@ export default function StaffList(): React.JSX.Element {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
-                            {staff.full_name || "Tên không xác định"}
+                            {staff.full_name || "Unknown Name"}
                           </span>
                           <span className="text-xs text-slate-500 truncate max-w-[150px]">
                             {staff.email}
@@ -209,7 +209,7 @@ export default function StaffList(): React.JSX.Element {
                         </Badge>
                         <div className="flex items-center text-xs text-slate-500">
                           <Clock className="w-3 h-3 mr-1.5" />
-                          {staff.shift || "No ca"}
+                          {staff.shift || "No shift"}
                         </div>
                       </div>
                     </TableCell>
@@ -282,7 +282,7 @@ export default function StaffList(): React.JSX.Element {
                           className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 h-8 px-3 text-xs font-medium rounded-full transition-all hover:scale-105 active:scale-95"
                         >
                           <Plus className="mr-1 h-3 w-3" />
-                          Phân công
+                          Assign Task
                         </Button>
                       </div>
                     </TableCell>

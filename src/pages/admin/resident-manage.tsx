@@ -1,80 +1,101 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Badge } from '../components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../components/ui/pagination';
-import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Label,
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
+import { Search, Plus, Eye, Edit, Trash2 } from "lucide-react";
 
 // Mock data for residents
 const initialResidents = [
   {
     id: 1,
-    fullName: 'Nguyen Van A',
+    fullName: "Nguyen Van A",
     age: 70,
-    gender: 'Male',
-    room: 'P203',
-    bed: 'B01',
-    status: 'active' as 'active' | 'discharged',
-    medicalRisk: 'low' as 'low' | 'medium' | 'high',
+    gender: "Male",
+    room: "P203",
+    bed: "B01",
+    status: "active" as "active" | "discharged",
+    medicalRisk: "low" as "low" | "medium" | "high",
   },
   {
     id: 2,
-    fullName: 'Tran Thi B',
+    fullName: "Tran Thi B",
     age: 65,
-    gender: 'Female',
-    room: 'P203',
-    bed: 'B02',
-    status: 'active' as 'active' | 'discharged',
-    medicalRisk: 'medium' as 'low' | 'medium' | 'high',
+    gender: "Female",
+    room: "P203",
+    bed: "B02",
+    status: "active" as "active" | "discharged",
+    medicalRisk: "medium" as "low" | "medium" | "high",
   },
   {
     id: 3,
-    fullName: 'Le Van C',
+    fullName: "Le Van C",
     age: 75,
-    gender: 'Male',
-    room: 'P105',
-    bed: 'B01',
-    status: 'discharged' as 'active' | 'discharged',
-    medicalRisk: 'high' as 'low' | 'medium' | 'high',
+    gender: "Male",
+    room: "P105",
+    bed: "B01",
+    status: "discharged" as "active" | "discharged",
+    medicalRisk: "high" as "low" | "medium" | "high",
   },
   // Add more mock data as needed
 ];
 
-type Resident = typeof initialResidents[0];
+type Resident = (typeof initialResidents)[0];
 
 const ResidentManagementPage: React.FC = () => {
   const [residents, setResidents] = useState<Resident[]>(initialResidents);
-  const [search, setSearch] = useState('');
-  const [roomFilter, setRoomFilter] = useState('');
-  const [bedFilter, setBedFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [roomFilter, setRoomFilter] = useState("all_rooms");
+  const [bedFilter, setBedFilter] = useState("all_beds");
+  const [statusFilter, setStatusFilter] = useState("all_statuses");
   const [currentPage, setCurrentPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
   const [formData, setFormData] = useState({
-    fullName: '',
-    age: '',
-    gender: '',
-    room: '',
-    bed: '',
-    status: 'active' as 'active' | 'discharged',
-    medicalRisk: 'low' as 'low' | 'medium' | 'high',
+    fullName: "",
+    age: "",
+    gender: "",
+    room: "",
+    bed: "",
+    status: "active" as "active" | "discharged",
+    medicalRisk: "low" as "low" | "medium" | "high",
   });
 
   const itemsPerPage = 5;
 
   // Filtered and searched residents
   const filteredResidents = useMemo(() => {
-    return residents.filter(resident => {
-      const matchesSearch = resident.fullName.toLowerCase().includes(search.toLowerCase());
-      const matchesRoom = roomFilter === "all_rooms" || resident.room === roomFilter;
+    return residents.filter((resident) => {
+      const matchesSearch = resident.fullName
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesRoom =
+        roomFilter === "all_rooms" || resident.room === roomFilter;
       const matchesBed = bedFilter === "all_beds" || resident.bed === bedFilter;
-      const matchesStatus = statusFilter === "all_statuses" || resident.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all_statuses" || resident.status === statusFilter;
       return matchesSearch && matchesRoom && matchesBed && matchesStatus;
     });
   }, [residents, search, roomFilter, bedFilter, statusFilter]);
@@ -88,20 +109,32 @@ const ResidentManagementPage: React.FC = () => {
   const totalPages = Math.ceil(filteredResidents.length / itemsPerPage);
 
   const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
-      <Badge variant="default" className="bg-green-500 text-white">Active</Badge>
+    return status === "active" ? (
+      <Badge variant="default" className="bg-green-500 text-white">
+        Active
+      </Badge>
     ) : (
-      <Badge variant="secondary" className="bg-gray-500 text-white">Discharged</Badge>
+      <Badge variant="secondary" className="bg-gray-500 text-white">
+        Discharged
+      </Badge>
     );
   };
 
   const getRiskBadge = (risk: string) => {
     switch (risk) {
-      case 'low':
-        return <Badge variant="default" className="bg-green-500 text-white">Low</Badge>;
-      case 'medium':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Medium</Badge>;
-      case 'high':
+      case "low":
+        return (
+          <Badge variant="default" className="bg-green-500 text-white">
+            Low
+          </Badge>
+        );
+      case "medium":
+        return (
+          <Badge variant="secondary" className="bg-yellow-500 text-white">
+            Medium
+          </Badge>
+        );
+      case "high":
         return <Badge variant="destructive">High</Badge>;
       default:
         return <Badge>Unknown</Badge>;
@@ -124,26 +157,28 @@ const ResidentManagementPage: React.FC = () => {
     };
 
     if (editingResident) {
-      setResidents(prev =>
-        prev.map(res => (res.id === editingResident.id ? { ...res, ...payload } : res))
+      setResidents((prev) =>
+        prev.map((res) =>
+          res.id === editingResident.id ? { ...res, ...payload } : res
+        )
       );
     } else {
       const newResident: Resident = {
         id: residents.length + 1,
         ...payload,
       };
-      setResidents(prev => [...prev, newResident]);
+      setResidents((prev) => [...prev, newResident]);
     }
     setIsDialogOpen(false);
     setEditingResident(null);
     setFormData({
-      fullName: '',
-      age: '',
-      gender: '',
-      room: '',
-      bed: '',
-      status: 'active',
-      medicalRisk: 'low',
+      fullName: "",
+      age: "",
+      gender: "",
+      room: "",
+      bed: "",
+      status: "active",
+      medicalRisk: "low",
     });
   };
 
@@ -162,19 +197,19 @@ const ResidentManagementPage: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    setResidents(prev => prev.filter(res => res.id !== id));
+    setResidents((prev) => prev.filter((res) => res.id !== id));
   };
 
   const handleView = (resident: Resident) => {
     alert(`Viewing details for ${resident.fullName}`);
   };
 
-  const uniqueRooms = [...new Set(residents.map(r => r.room))];
-  const uniqueBeds = [...new Set(residents.map(r => r.bed))];
+  const uniqueRooms = [...new Set(residents.map((r) => r.room))];
+  const uniqueBeds = [...new Set(residents.map((r) => r.bed))];
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-blue-800">Resident Management</h1>
+      <h1 className="text-3xl font-bold text-blue-800">Resident Admin</h1>
 
       {/* Filters and Search */}
       <Card>
@@ -191,7 +226,9 @@ const ResidentManagementPage: React.FC = () => {
                   id="search"
                   placeholder="Search residents..."
                   value={search}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearch(e.target.value)
+                  }
                   className="pl-8"
                 />
               </div>
@@ -204,22 +241,26 @@ const ResidentManagementPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all_rooms">All Rooms</SelectItem>
-                  {uniqueRooms.map(room => (
-                    <SelectItem key={room} value={room}>{room}</SelectItem>
+                  {uniqueRooms.map((room) => (
+                    <SelectItem key={room} value={room}>
+                      {room}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label  htmlFor="bedFilter">Filter by Bed</Label>
+              <Label htmlFor="bedFilter">Filter by Bed</Label>
               <Select value={bedFilter} onValueChange={setBedFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Beds" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all_beds">All Beds</SelectItem>
-                  {uniqueBeds.map(bed => (
-                    <SelectItem key={bed} value={bed}>{bed}</SelectItem>
+                  {uniqueBeds.map((bed) => (
+                    <SelectItem key={bed} value={bed}>
+                      {bed}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -245,14 +286,19 @@ const ResidentManagementPage: React.FC = () => {
       <div className="flex justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-500" onClick={() => setEditingResident(null)}>
+            {/* <Button
+              className="bg-blue-500"
+              onClick={() => setEditingResident(null)}
+            >
               <Plus className="h-4 w-4 mr-2 bg-blue-500" />
               Add Resident
-            </Button>
+            </Button> */}
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editingResident ? 'Edit Resident' : 'Add New Resident'}</DialogTitle>
+              <DialogTitle>
+                {editingResident ? "Edit Resident" : "Add New Resident"}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -260,7 +306,12 @@ const ResidentManagementPage: React.FC = () => {
                 <Input
                   id="fullName"
                   value={formData.fullName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      fullName: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div>
@@ -269,12 +320,19 @@ const ResidentManagementPage: React.FC = () => {
                   id="age"
                   type="number"
                   value={formData.age}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({ ...prev, age: e.target.value }))
+                  }
                 />
               </div>
               <div>
                 <Label htmlFor="gender">Gender</Label>
-                <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value: "Male" | "Female" | "Other") =>
+                    setFormData((prev) => ({ ...prev, gender: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Gender" />
                   </SelectTrigger>
@@ -290,7 +348,9 @@ const ResidentManagementPage: React.FC = () => {
                 <Input
                   id="room"
                   value={formData.room}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, room: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({ ...prev, room: e.target.value }))
+                  }
                 />
               </div>
               <div>
@@ -298,12 +358,19 @@ const ResidentManagementPage: React.FC = () => {
                 <Input
                   id="bed"
                   value={formData.bed}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, bed: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({ ...prev, bed: e.target.value }))
+                  }
                 />
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value: 'active' | 'discharged') => setFormData(prev => ({ ...prev, status: value }))}>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: "active" | "discharged") =>
+                    setFormData((prev) => ({ ...prev, status: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -315,7 +382,12 @@ const ResidentManagementPage: React.FC = () => {
               </div>
               <div>
                 <Label htmlFor="medicalRisk">Medical Risk Level</Label>
-                <Select value={formData.medicalRisk} onValueChange={(value: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, medicalRisk: value }))}>
+                <Select
+                  value={formData.medicalRisk}
+                  onValueChange={(value: "low" | "medium" | "high") =>
+                    setFormData((prev) => ({ ...prev, medicalRisk: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -327,7 +399,7 @@ const ResidentManagementPage: React.FC = () => {
                 </Select>
               </div>
               <Button onClick={handleAddEdit} className="w-full">
-                {editingResident ? 'Update Resident' : 'Add Resident'}
+                {editingResident ? "Update Resident" : "Add Resident"}
               </Button>
             </div>
           </DialogContent>
@@ -343,14 +415,24 @@ const ResidentManagementPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-base font-semibold">Full Name</TableHead>
+                <TableHead className="text-base font-semibold">
+                  Full Name
+                </TableHead>
                 <TableHead className="text-base font-semibold">Age</TableHead>
-                <TableHead className="text-base font-semibold">Gender</TableHead>
+                <TableHead className="text-base font-semibold">
+                  Gender
+                </TableHead>
                 <TableHead className="text-base font-semibold">Room</TableHead>
                 <TableHead className="text-base font-semibold">Bed</TableHead>
-                <TableHead className="text-base font-semibold">Status</TableHead>
-                <TableHead className="text-base font-semibold">Medical Risk</TableHead>
-                <TableHead className="text-base font-semibold">Actions</TableHead>
+                <TableHead className="text-base font-semibold">
+                  Status
+                </TableHead>
+                <TableHead className="text-base font-semibold">
+                  Medical Risk
+                </TableHead>
+                <TableHead className="text-base font-semibold">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -365,13 +447,25 @@ const ResidentManagementPage: React.FC = () => {
                   <TableCell>{getRiskBadge(resident.medicalRisk)}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => handleView(resident)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleView(resident)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(resident)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(resident)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(resident.id)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(resident.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -385,32 +479,38 @@ const ResidentManagementPage: React.FC = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(page)}
-                  isActive={page === currentPage}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
             ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
       )}
     </div>
   );

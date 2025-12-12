@@ -47,7 +47,7 @@ export interface ResidentListParams {
   page?: number;
   limit?: number;
   search?: string;
-  status?: "active" | "discharged";
+  status?: "active" | "inactive" | "discharged";
   room_id?: string;
 }
 
@@ -67,12 +67,35 @@ export interface UpdateResidentReqBody {
   notes?: string;
 }
 
+export interface UpdateResidentStatusReqBody {
+  status: "active" | "inactive" | "discharged";
+}
+
+export interface ExportQuery {
+  format?: "csv" | "xlsx";
+  search?: string;
+  status?: string;
+  room_id?: string;
+  role?: "Staff" | "Admin" | "RootAdmin";
+}
+
+export interface AuditLog {
+  audit_id: string;
+  target_type: string;
+  target_id: string | null;
+  action: string;
+  metadata?: any;
+  created_at: string;
+  actor_id?: string | null;
+}
+
 // Staff/Admin Management
 export interface StaffListParams {
   page?: number;
   limit?: number;
   search?: string;
   role?: "Staff" | "Admin" | "RootAdmin";
+  status?: "active" | "inactive" | "pending";
 }
 
 export interface CreateAdminReqBody {
@@ -82,7 +105,23 @@ export interface CreateAdminReqBody {
 
 export interface UpdateStaffReqBody {
   role?: "Staff" | "Admin";
-  status?: "active" | "inactive";
+  status?: "active" | "inactive" | "pending";
+}
+
+export interface ApproveStaffReqBody {
+  approve: boolean;
+  reason?: string;
+}
+
+export interface AssignStaffResidentReqBody {
+  resident_id: string;
+  role?: string;
+}
+
+export interface RevenueQuery {
+  from?: string;
+  to?: string;
+  granularity?: "day" | "week" | "month";
 }
 
 // Tasks
@@ -179,10 +218,45 @@ export const updateAdminResident = async (
   return response.data;
 };
 
+export const updateAdminResidentStatus = async (
+  id: string,
+  data: UpdateResidentStatusReqBody
+): Promise<{ message: string; data: any }> => {
+  const response = await request.patch(
+    `/api/admin/residents/${id}/status`,
+    data
+  );
+  return response.data;
+};
+
 export const deleteAdminResident = async (
   id: string
 ): Promise<{ message: string }> => {
   const response = await request.delete(`/api/admin/residents/${id}`);
+  return response.data;
+};
+
+export const exportAdminResidents = async (
+  params?: ResidentListParams & ExportQuery
+): Promise<Blob> => {
+  const response = await request.get("/api/admin/residents/export", {
+    params,
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const getAdminResidentAudit = async (
+  id: string
+): Promise<{ message: string; data: AuditLog[] }> => {
+  const response = await request.get(`/api/admin/residents/${id}/audit`);
+  return response.data;
+};
+
+export const getAdminResidentAssignments = async (
+  id: string
+): Promise<{ message: string; data: any[] }> => {
+  const response = await request.get(`/api/admin/residents/${id}/assignments`);
   return response.data;
 };
 
@@ -216,6 +290,63 @@ export const updateAdminStaff = async (
   data: UpdateStaffReqBody
 ): Promise<{ message: string; data: any }> => {
   const response = await request.put(`/api/admin/staff/${id}`, data);
+  return response.data;
+};
+
+export const exportAdminStaff = async (
+  params?: StaffListParams & ExportQuery
+): Promise<Blob> => {
+  const response = await request.get("/api/admin/staff/export", {
+    params,
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const approveAdminStaff = async (
+  id: string
+): Promise<{ message: string; data: any }> => {
+  const response = await request.patch(`/api/admin/staff/${id}/approve`);
+  return response.data;
+};
+
+export const rejectAdminStaff = async (
+  id: string,
+  body?: ApproveStaffReqBody
+): Promise<{ message: string; data: any }> => {
+  const response = await request.patch(`/api/admin/staff/${id}/reject`, body);
+  return response.data;
+};
+
+export const resetAdminStaffPassword = async (
+  id: string
+): Promise<{ message: string }> => {
+  const response = await request.post(`/api/admin/staff/${id}/reset-password`);
+  return response.data;
+};
+
+export const assignAdminStaffResident = async (
+  id: string,
+  body: AssignStaffResidentReqBody
+): Promise<{ message: string; data: any }> => {
+  const response = await request.post(`/api/admin/staff/${id}/assign`, body);
+  return response.data;
+};
+
+export const unassignAdminStaffResident = async (
+  id: string,
+  resident_id: string
+): Promise<{ message: string }> => {
+  const response = await request.delete(`/api/admin/staff/${id}/assign`, {
+    data: { resident_id },
+  });
+  return response.data;
+};
+
+export const getAdminStaffAudit = async (
+  id: string
+): Promise<{ message: string; data: AuditLog[] }> => {
+  const response = await request.get(`/api/admin/staff/${id}/audit`);
   return response.data;
 };
 
@@ -263,5 +394,55 @@ export const deleteAdminTask = async (
   id: string
 ): Promise<{ message: string }> => {
   const response = await request.delete(`/api/admin/tasks/${id}`);
+  return response.data;
+};
+
+// ========== AUDIT / SETTINGS / ANALYTICS ==========
+
+export const getAdminAuditLogs = async (
+  params?: any
+): Promise<{ message: string; data: AuditLog[] }> => {
+  const response = await request.get("/api/admin/audit", { params });
+  return response.data;
+};
+
+export const getAdminSettings = async (): Promise<{
+  message: string;
+  data: any;
+}> => {
+  const response = await request.get("/api/admin/settings");
+  return response.data;
+};
+
+export const updateAdminSettings = async (
+  data: any
+): Promise<{ message: string; data: any }> => {
+  const response = await request.put("/api/admin/settings", data);
+  return response.data;
+};
+
+export const getAdminRevenueAnalytics = async (
+  params?: RevenueQuery
+): Promise<{
+  message: string;
+  data: { series: { date: string; value: number }[] };
+}> => {
+  const response = await request.get("/api/admin/analytics/revenue", {
+    params,
+  });
+  return response.data;
+};
+
+export const getAdminAnalyticsSummary = async (): Promise<{
+  message: string;
+  data: {
+    total_revenue: number;
+    mrr: number;
+    arr: number;
+    active_contracts: number;
+    unpaid_invoices: number;
+  };
+}> => {
+  const response = await request.get("/api/admin/analytics/summary");
   return response.data;
 };

@@ -41,8 +41,8 @@ const AdminTasksManagement: React.FC = () => {
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [staffFilter, setStaffFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [staffFilter, setStaffFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [formData, setFormData] = useState({
@@ -68,12 +68,12 @@ const AdminTasksManagement: React.FC = () => {
     try {
       setLoading(true);
       const response = await getAdminTasks({
-        status: statusFilter as any,
-        staff_id: staffFilter || undefined,
+        status: statusFilter === "all" ? undefined : (statusFilter as any),
+        staff_id: staffFilter === "all" ? undefined : staffFilter,
       });
       setTasks(response.tasks || []);
     } catch (error: any) {
-      toast.error("Không thể tải dữ liệu");
+      toast.error("Unable to load data");
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ const AdminTasksManagement: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.staff_id) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -127,7 +127,7 @@ const AdminTasksManagement: React.FC = () => {
         await updateAdminTask(editingTask.care_log_id, {
           description: formData.description,
         });
-        toast.success("Cập nhật nhiệm vụ thành công");
+        toast.success("Task updated successfully");
         setIsDialogOpen(false);
         loadData();
         return;
@@ -140,24 +140,24 @@ const AdminTasksManagement: React.FC = () => {
           due_date: formData.due_date || undefined,
           priority: formData.priority,
         });
-        toast.success("Tạo nhiệm vụ thành công");
+        toast.success("Task created successfully");
       }
       setIsDialogOpen(false);
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể lưu nhiệm vụ");
+      toast.error(error.response?.data?.message || "Unable to save task");
     }
   };
 
   const handleDelete = async (taskId: string) => {
-    if (!window.confirm("Bạn có chắc muốn xóa nhiệm vụ này?")) return;
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
       await deleteAdminTask(taskId);
-      toast.success("Đã xóa nhiệm vụ");
+      toast.success("Task deleted");
       loadData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể xóa nhiệm vụ");
+      toast.error(error.response?.data?.message || "Unable to delete task");
     }
   };
 
@@ -169,11 +169,11 @@ const AdminTasksManagement: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-500 text-white">Hoàn thành</Badge>;
+        return <Badge className="bg-green-500 text-white">Completed</Badge>;
       case "in_progress":
-        return <Badge className="bg-blue-500 text-white">Đang thực hiện</Badge>;
+        return <Badge className="bg-blue-500 text-white">In progress</Badge>;
       case "pending":
-        return <Badge className="bg-yellow-500 text-white">Đang chờ</Badge>;
+        return <Badge className="bg-yellow-500 text-white">Pending</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -182,7 +182,7 @@ const AdminTasksManagement: React.FC = () => {
   if (loading && tasks.length === 0) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-center">Đang tải...</p>
+        <p className="text-center">Loading...</p>
       </div>
     );
   }
@@ -193,14 +193,14 @@ const AdminTasksManagement: React.FC = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold">
-              Nhiệm vụ & Báo cáo
+              Tasks & Reports
             </CardTitle>
             <Button
               onClick={handleCreate}
               className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Tạo Nhiệm vụ
+              Create Task
             </Button>
           </div>
         </CardHeader>
@@ -209,27 +209,27 @@ const AdminTasksManagement: React.FC = () => {
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>Trạng thái</Label>
+                <Label>Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue placeholder="Tất cả" />
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả</SelectItem>
-                    <SelectItem value="pending">Đang chờ</SelectItem>
-                    <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Nhân viên</Label>
+                <Label>Staff</Label>
                 <Select value={staffFilter} onValueChange={setStaffFilter}>
                   <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue placeholder="Tất cả" />
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {staff.map((s) => (
                       <SelectItem key={s.user_id} value={s.user_id}>
                         {s.staffProfile?.full_name || s.email}
@@ -241,13 +241,13 @@ const AdminTasksManagement: React.FC = () => {
               <div className="flex items-end">
                 <Button
                   onClick={() => {
-                    setStatusFilter("");
-                    setStaffFilter("");
+                    setStatusFilter("all");
+                    setStaffFilter("all");
                   }}
                   variant="outline"
                   className="w-full border-gray-300"
                 >
-                  Xóa bộ lọc
+                  Clear filters
                 </Button>
               </div>
             </div>
@@ -256,19 +256,19 @@ const AdminTasksManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mô tả</TableHead>
-                  <TableHead>Nhân viên</TableHead>
-                  <TableHead>Cư dân</TableHead>
-                  <TableHead>Hạn chót</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Thao tác</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Staff</TableHead>
+                  <TableHead>Resident</TableHead>
+                  <TableHead>Due date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tasks.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center">
-                      Không có dữ liệu
+                      No data
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -314,13 +314,13 @@ const AdminTasksManagement: React.FC = () => {
         <DialogContent className="max-w-2xl bg-white border-gray-300">
           <DialogHeader>
             <DialogTitle>
-              {editingTask ? "Sửa Nhiệm vụ" : "Tạo Nhiệm vụ mới"}
+              {editingTask ? "Edit Task" : "Create New Task"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label htmlFor="title">
-                Tiêu đề <span className="text-red-500">*</span>
+                Title <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="title"
@@ -333,7 +333,7 @@ const AdminTasksManagement: React.FC = () => {
               />
             </div>
             <div>
-              <Label htmlFor="description">Mô tả</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -346,7 +346,7 @@ const AdminTasksManagement: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="staff_id">
-                  Nhân viên <span className="text-red-500">*</span>
+                  Staff <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.staff_id}
@@ -355,7 +355,7 @@ const AdminTasksManagement: React.FC = () => {
                   }
                 >
                   <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue placeholder="Chọn nhân viên" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
                     {staff.map((s) => (
@@ -367,7 +367,7 @@ const AdminTasksManagement: React.FC = () => {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="due_date">Hạn chót</Label>
+                <Label htmlFor="due_date">Due date</Label>
                 <Input
                   id="due_date"
                   type="date"
@@ -381,7 +381,7 @@ const AdminTasksManagement: React.FC = () => {
             </div>
             {editingTask && (
               <div>
-                <Label htmlFor="status">Trạng thái</Label>
+                <Label htmlFor="status">Status</Label>
                 <Select
                   value={editingTask.status}
                   onValueChange={async (value: any) => {
@@ -389,12 +389,12 @@ const AdminTasksManagement: React.FC = () => {
                       await updateAdminTask(editingTask.care_log_id, {
                         status: value,
                       });
-                      toast.success("Cập nhật trạng thái thành công");
+                      toast.success("Status updated successfully");
                       loadData();
                       setIsDialogOpen(false);
                     } catch (error: any) {
                       toast.error(
-                        error.response?.data?.message || "Không thể cập nhật"
+                        error.response?.data?.message || "Unable to update"
                       );
                     }
                   }}
@@ -403,9 +403,9 @@ const AdminTasksManagement: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Đang chờ</SelectItem>
-                    <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -416,13 +416,13 @@ const AdminTasksManagement: React.FC = () => {
                 onClick={() => setIsDialogOpen(false)}
                 className="border-gray-300"
               >
-                Hủy
+                Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
               >
-                {editingTask ? "Cập nhật" : "Tạo"}
+                {editingTask ? "Update" : "Create"}
               </Button>
             </div>
           </div>

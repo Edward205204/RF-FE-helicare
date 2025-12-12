@@ -9,12 +9,12 @@ const AdminSettings: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center">
             <Settings className="mr-2 h-6 w-6" />
-            Cài đặt Hệ thống
+            System Settings
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-lg text-gray-600">
-            Trang cài đặt sẽ được phát triển trong tương lai.
+            Settings page will be developed in the future.
           </p>
         </CardContent>
       </Card>

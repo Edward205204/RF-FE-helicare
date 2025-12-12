@@ -114,7 +114,6 @@ export function ProtectedRoute() {
       path.adminDashboard,
       path.adminResidents,
       path.adminStaff,
-      path.adminTasks,
       path.adminSettings,
       path.adminRegister,
     ];

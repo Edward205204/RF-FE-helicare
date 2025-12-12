@@ -53,7 +53,6 @@ import AdminRegister from "@/pages/admin/auth/admin-register";
 import AdminDashboard from "@/pages/admin/dashboard-new";
 import AdminResidentsManagement from "@/pages/admin/residents-management";
 import AdminStaffManagement from "@/pages/admin/staff-management";
-import AdminTasksManagement from "@/pages/admin/tasks-management";
 import AdminSettings from "@/pages/admin/settings";
 import ResidentHome from "@/pages/resident/resident-home";
 import ResidentSchedule from "@/pages/resident/resident-schedule";
@@ -409,14 +408,6 @@ export default function useReactRouter() {
           element: (
             <AdminLayout>
               <AdminStaffManagement />
-            </AdminLayout>
-          ),
-        },
-        {
-          path: path.adminTasks,
-          element: (
-            <AdminLayout>
-              <AdminTasksManagement />
             </AdminLayout>
           ),
         },

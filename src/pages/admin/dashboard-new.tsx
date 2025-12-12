@@ -37,7 +37,7 @@ const AdminDashboard: React.FC = () => {
       const response = await getDashboardStats();
       setStats(response.data);
     } catch (error: any) {
-      toast.error("Không thể tải thống kê");
+      toast.error("Unable to load dashboard stats");
     } finally {
       setLoading(false);
     }
@@ -46,32 +46,32 @@ const AdminDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="container mx-auto p-6">
-        <p className="text-center">Đang tải...</p>
+        <p className="text-center">Loading...</p>
       </div>
     );
   }
 
   const overviewStats = [
     {
-      title: "Tổng Cư dân",
+      title: "Total Residents",
       value: stats?.total_residents || 0,
       icon: Users,
       color: "bg-blue-100",
     },
     {
-      title: "Cư dân Đang ở",
+      title: "Active Residents",
       value: stats?.active_residents || 0,
       icon: UserCheck,
       color: "bg-green-100",
     },
     {
-      title: "Nhân viên",
+      title: "Staff",
       value: stats?.total_staff || 0,
       icon: UserCheck,
       color: "bg-yellow-100",
     },
     {
-      title: "Cảnh báo",
+      title: "Alerts",
       value: stats?.alerts_count || 0,
       icon: AlertTriangle,
       color: "bg-red-100",
@@ -81,9 +81,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="w-full relative">
       <div className="container mx-auto p-6 space-y-6 bg-transparent">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Dashboard Tổng quan
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800">Overview Dashboard</h1>
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -111,7 +109,7 @@ const AdminDashboard: React.FC = () => {
         {/* Room & Bed Summary */}
         <Card className="bg-white border-gray-300">
           <CardHeader>
-            <CardTitle className="text-xl">Tóm tắt Phòng & Giường</CardTitle>
+            <CardTitle className="text-xl">Room & Bed Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
@@ -126,8 +124,8 @@ const AdminDashboard: React.FC = () => {
               </span>
             </div>
             <p className="text-lg mt-2">
-              Tỷ lệ lấp đầy: {stats?.occupied_beds || 0} /{" "}
-              {stats?.total_beds || 0} giường
+              Occupancy: {stats?.occupied_beds || 0} / {stats?.total_beds || 0}{" "}
+              beds
             </p>
           </CardContent>
         </Card>
@@ -136,7 +134,7 @@ const AdminDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Tổng Nhiệm vụ</CardTitle>
+              <CardTitle className="text-lg">Total Tasks</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
@@ -146,7 +144,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Đang chờ</CardTitle>
+              <CardTitle className="text-lg">Pending</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-yellow-600">
@@ -156,7 +154,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
           <Card className="bg-white border-gray-300">
             <CardHeader>
-              <CardTitle className="text-lg">Hoàn thành</CardTitle>
+              <CardTitle className="text-lg">Completed</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
@@ -169,33 +167,21 @@ const AdminDashboard: React.FC = () => {
         {/* Quick Actions */}
         <Card className="bg-white border-gray-300">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">Thao tác nhanh</CardTitle>
+            <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
               <Button
                 onClick={() => navigate(path.adminResidents)}
                 className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
               >
-                Quản lý Cư dân
+                Manage Residents
               </Button>
               <Button
                 onClick={() => navigate(path.adminStaff)}
                 className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
               >
-                Quản lý Nhân viên
-              </Button>
-              <Button
-                onClick={() => navigate(path.adminTasks)}
-                className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
-              >
-                Nhiệm vụ & Báo cáo
-              </Button>
-              <Button
-                onClick={() => navigate(path.adminSettings)}
-                className="h-12 bg-[#5985d8] text-lg text-white hover:bg-[#5183c9]"
-              >
-                Cài đặt
+                Manage Staff
               </Button>
             </div>
           </CardContent>

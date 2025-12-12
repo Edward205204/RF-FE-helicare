@@ -16,23 +16,13 @@ export const adminMenu: AdminMenuItem[] = [
     icon: <LayoutDashboard size={20} />,
   },
   {
-    label: "Quản lý Cư dân",
+    label: "Residents",
     path: path.adminResidents,
     icon: <Users size={20} />,
   },
   {
-    label: "Quản lý Nhân viên",
+    label: "Staff",
     path: path.adminStaff,
     icon: <UserCog size={20} />,
-  },
-  {
-    label: "Nhiệm vụ & Báo cáo",
-    path: path.adminTasks,
-    icon: <ClipboardList size={20} />,
-  },
-  {
-    label: "Cài đặt",
-    path: path.adminSettings,
-    icon: <Settings size={20} />,
   },
 ];
