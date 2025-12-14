@@ -32,10 +32,12 @@ const path = {
   staffPerformance: "/staff/:staff_id/performance",
 
   verifyStaffInvite: "/verify-staff-invite",
+  verifyFamilyLink: "/verify-family-link",
 
   invite: "/invite",
 
   roomManagement: "/room/management",
+  roomDetail: "/room/detail/:room_id",
 
   residentAssignedStaff: "/resident/:id/assigned-staff",
 

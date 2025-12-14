@@ -34,6 +34,7 @@ import {
   createServiceContract,
   updateServiceContract,
   deleteServiceContract,
+  getOverdueServiceContracts,
   ServiceContractResponse,
   BillingCycle,
 } from "@/apis/service-contract.api";
@@ -56,6 +57,9 @@ const INPUT_STYLE =
 const PaymentModuleStaff: React.FC = () => {
   // Contracts state
   const [contracts, setContracts] = useState<ServiceContractResponse[]>([]);
+  const [overdueContracts, setOverdueContracts] = useState<
+    ServiceContractResponse[]
+  >([]);
   const [payments, setPayments] = useState<PaymentResponse[]>([]);
   const [residents, setResidents] = useState<ResidentResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,12 +90,15 @@ const PaymentModuleStaff: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [contractsRes, paymentsRes, residentsRes] = await Promise.all([
-        getServiceContracts({ is_active: true }),
-        getPayments({ status: "PENDING" }),
-        getResidents({ limit: 1000 }),
-      ]);
+      const [contractsRes, overdueRes, paymentsRes, residentsRes] =
+        await Promise.all([
+          getServiceContracts({ is_active: true }),
+          getOverdueServiceContracts(),
+          getPayments({ status: "PENDING" }),
+          getResidents({ limit: 1000 }),
+        ]);
       setContracts(contractsRes.contracts || []);
+      setOverdueContracts(overdueRes.data || []);
       setPayments(paymentsRes.payments || []);
       setResidents(residentsRes.residents || []);
     } catch (error: any) {
@@ -291,8 +298,16 @@ const PaymentModuleStaff: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="contracts">Hợp đồng dịch vụ</TabsTrigger>
+              <TabsTrigger value="overdue">
+                Hợp đồng quá hạn
+                {overdueContracts.length > 0 && (
+                  <Badge className="ml-2 bg-red-500 text-white">
+                    {overdueContracts.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="payments">Thanh toán</TabsTrigger>
             </TabsList>
 
@@ -386,6 +401,97 @@ const PaymentModuleStaff: React.FC = () => {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+            </TabsContent>
+
+            <TabsContent value="overdue" className="space-y-4">
+              {overdueContracts.length === 0 ? (
+                <p className="text-center text-lg text-gray-500 py-8">
+                  Không có hợp đồng nào quá hạn
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-lg font-semibold text-red-700">
+                      Cảnh báo: Có {overdueContracts.length} hợp đồng quá hạn
+                      thanh toán
+                    </p>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-100">
+                        <TableHead className="text-lg text-gray-600">
+                          Cư dân
+                        </TableHead>
+                        <TableHead className="text-lg text-gray-600">
+                          Kỳ thanh toán
+                        </TableHead>
+                        <TableHead className="text-lg text-gray-600">
+                          Số tiền
+                        </TableHead>
+                        <TableHead className="text-lg text-gray-600">
+                          Ngày thanh toán tiếp
+                        </TableHead>
+                        <TableHead className="text-lg text-gray-600">
+                          Số ngày quá hạn
+                        </TableHead>
+                        <TableHead className="text-lg text-gray-600">
+                          Thao tác
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {overdueContracts.map((contract) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const nextBilling = new Date(
+                          contract.next_billing_date
+                        );
+                        nextBilling.setHours(0, 0, 0, 0);
+                        const daysOverdue = Math.floor(
+                          (today.getTime() - nextBilling.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        );
+
+                        return (
+                          <TableRow
+                            key={contract.contract_id}
+                            className="border-b border-gray-50 hover:bg-red-50/50"
+                          >
+                            <TableCell className="text-lg">
+                              {contract.resident?.full_name || "N/A"}
+                            </TableCell>
+                            <TableCell className="text-lg">
+                              {contract.billing_cycle === "MONTHLY"
+                                ? "Hàng tháng"
+                                : "Hàng năm"}
+                            </TableCell>
+                            <TableCell className="text-lg font-medium text-red-600">
+                              {formatCurrency(contract.amount)}
+                            </TableCell>
+                            <TableCell className="text-lg text-red-600">
+                              {formatDate(contract.next_billing_date)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className="text-sm bg-red-500 text-white">
+                                {daysOverdue} ngày
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="space-x-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => handleEditContract(contract)}
+                                className="text-sm"
+                              >
+                                Sửa
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </TabsContent>
 

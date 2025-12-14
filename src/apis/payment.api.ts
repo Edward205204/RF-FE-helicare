@@ -53,6 +53,10 @@ export interface PaymentResponse {
       resident_id: string;
       full_name: string;
     };
+    institution?: {
+      institution_id: string;
+      name: string;
+    };
   };
   payer?: {
     user_id: string;
@@ -130,11 +134,15 @@ export const getPayments = async (
 };
 
 // Lấy payments của Family user
-export const getPaymentsByFamily = async (): Promise<{
+export const getPaymentsByFamily = async (
+  params?: GetPaymentsQuery
+): Promise<{
   message: string;
   data: PaymentResponse[];
 }> => {
-  const response = await request.get("/api/payments/family");
+  const response = await request.get("/api/payments/family", {
+    params,
+  });
   return response.data;
 };
 

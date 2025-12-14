@@ -29,9 +29,13 @@ import {
   markFamilyNotificationsAllRead,
   markFamilyNotificationsRead,
 } from "@/apis/notification.api";
+import {
+  getRoomChangeRequestsForFamily,
+  type RoomChangeRequestResponse,
+} from "@/apis/room.api";
 import { AppContext } from "@/contexts/app.context";
 
-type NotificationSource = "feedback" | "post" | "health";
+type NotificationSource = "feedback" | "post" | "health" | "room";
 type NotificationSeverity = "info" | "warning" | "critical";
 
 interface FamilyNotification {
@@ -157,11 +161,57 @@ const FamilyNotifications: React.FC = () => {
         }
       }
 
+      // 6) Room change requests
+      const roomNotifications: FamilyNotification[] = [];
+      try {
+        const roomRequestsRes = await getRoomChangeRequestsForFamily();
+        const roomRequests: RoomChangeRequestResponse[] =
+          roomRequestsRes.data || [];
+
+        roomRequests.forEach((req) => {
+          const resident = residentMap.get(req.resident_id);
+          const statusText =
+            req.status === "pending"
+              ? "Đang chờ xử lý"
+              : req.status === "approved"
+              ? "Đã được duyệt"
+              : req.status === "rejected"
+              ? "Đã bị từ chối"
+              : "Đã hoàn thành";
+
+          const currentRoomText =
+            req.current_room?.room_number || "Chưa có phòng";
+          const requestedRoomText = req.requested_room?.room_number || "N/A";
+
+          roomNotifications.push({
+            id: `room:${req.request_id}`,
+            source: "room",
+            title: `Yêu cầu đổi phòng: ${statusText}`,
+            message: `Từ phòng ${currentRoomText} đến phòng ${requestedRoomText}${
+              req.reason ? `. Lý do: ${req.reason}` : ""
+            }`,
+            createdAt: req.created_at,
+            residentName: resident?.full_name || req.resident?.full_name,
+            relatedResidentId: req.resident_id,
+            severity:
+              req.status === "pending"
+                ? "warning"
+                : req.status === "approved" || req.status === "completed"
+                ? "info"
+                : "critical",
+            isRead: false,
+          });
+        });
+      } catch (e) {
+        console.warn("Failed to load room change requests:", e);
+      }
+
       // Gộp & sort
       let merged: FamilyNotification[] = [
         ...feedbackNotifications,
         ...postNotifications,
         ...healthNotifications,
+        ...roomNotifications,
       ];
 
       merged.sort(
@@ -279,6 +329,8 @@ const FamilyNotifications: React.FC = () => {
         return "Phản hồi";
       case "post":
         return "Bài viết";
+      case "room":
+        return "Đổi phòng";
       default:
         return "";
     }
@@ -380,7 +432,7 @@ const FamilyNotifications: React.FC = () => {
         onValueChange={(val) => setActiveTab(val as NotificationSource | "all")}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-4 mb-6 rounded-lg bg-white shadow-sm">
+        <TabsList className="grid w-full grid-cols-5 mb-6 rounded-lg bg-white shadow-sm">
           <TabsTrigger value="all" className="rounded-md">
             Tất cả
           </TabsTrigger>
@@ -392,6 +444,9 @@ const FamilyNotifications: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="post" className="rounded-md">
             Bài viết
+          </TabsTrigger>
+          <TabsTrigger value="room" className="rounded-md">
+            Đổi phòng
           </TabsTrigger>
         </TabsList>
 
@@ -405,7 +460,9 @@ const FamilyNotifications: React.FC = () => {
                   ? "Thông báo sức khỏe"
                   : activeTab === "feedback"
                   ? "Thông báo phản hồi"
-                  : "Thông báo bài viết"}
+                  : activeTab === "post"
+                  ? "Thông báo bài viết"
+                  : "Thông báo đổi phòng"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">

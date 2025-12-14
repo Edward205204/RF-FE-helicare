@@ -142,3 +142,12 @@ export const deleteServiceContract = async (
   const response = await request.delete(`/api/service-contracts/${contractId}`);
   return response.data;
 };
+
+// Lấy danh sách hợp đồng quá hạn (Admin/Staff)
+export const getOverdueServiceContracts = async (): Promise<{
+  message: string;
+  data: ServiceContractResponse[];
+}> => {
+  const response = await request.get("/api/service-contracts/overdue");
+  return response.data;
+};

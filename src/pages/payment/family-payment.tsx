@@ -21,6 +21,14 @@ import {
 } from "@/components/ui";
 import { RadioGroup, RadioGroupItem } from "@/components/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
+
 import { toast } from "react-toastify";
 import {
   getServiceContractsByFamily,
@@ -32,9 +40,11 @@ import {
   createVNPayPayment,
   uploadProof,
   cancelPayment,
+  getPaymentById,
   PaymentResponse,
   PaymentMethod,
   PaymentStatus,
+  GetPaymentsQuery,
 } from "@/apis/payment.api";
 import { uploadImage } from "@/apis/media.api";
 
@@ -49,22 +59,42 @@ const PaymentModuleFamily: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentResponse | null>(null);
+  const [isPaymentDetailModalOpen, setIsPaymentDetailModalOpen] =
+    useState(false);
   const [uploading, setUploading] = useState(false);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [transactionRef, setTransactionRef] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Filter states
+  const [filterStatus, setFilterStatus] = useState<PaymentStatus | "ALL">(
+    "ALL"
+  );
+  const [filterMethod, setFilterMethod] = useState<PaymentMethod | "ALL">(
+    "ALL"
+  );
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
 
   // Load data
   useEffect(() => {
     loadData();
   }, []);
 
+  // Load payments when filters change
+  useEffect(() => {
+    if (!loading) {
+      loadPayments();
+    }
+  }, [filterStatus, filterMethod, filterStartDate, filterEndDate]);
+
   const loadData = async () => {
     try {
       setLoading(true);
+      // Load contracts và payments cùng lúc để có thể check payment status
       const [contractsRes, paymentsRes] = await Promise.all([
         getServiceContractsByFamily(),
-        getPaymentsByFamily(),
+        getPaymentsByFamily({}),
       ]);
       setContracts(contractsRes.data || []);
       setPayments(paymentsRes.data || []);
@@ -75,20 +105,81 @@ const PaymentModuleFamily: React.FC = () => {
     }
   };
 
-  // Kiểm tra xem contract có cần thanh toán không
-  const needsPayment = (contract: ServiceContractResponse): boolean => {
-    const today = new Date();
-    const nextBillingDate = new Date(contract.next_billing_date);
-    return today >= nextBillingDate && contract.is_active;
+  const loadPayments = async () => {
+    try {
+      const filterParams: any = {};
+      if (filterStatus !== "ALL") {
+        filterParams.status = filterStatus;
+      }
+      if (filterMethod !== "ALL") {
+        filterParams.payment_method = filterMethod;
+      }
+      if (filterStartDate) {
+        filterParams.start_date = new Date(filterStartDate).toISOString();
+      }
+      if (filterEndDate) {
+        filterParams.end_date = new Date(filterEndDate).toISOString();
+      }
+
+      const paymentsRes = await getPaymentsByFamily(filterParams);
+      setPayments(paymentsRes.data || []);
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Không thể tải danh sách thanh toán"
+      );
+    }
   };
 
-  // Tính toán period dates cho payment
+  // Kiểm tra xem contract có payment thành công cho chu kỳ hiện tại (next_billing_date) không
+  // Logic: Tính period dates dựa trên next_billing_date, nếu có payment SUCCESS cho period đó thì đã thanh toán
+  const hasPaidForCurrentPeriod = (
+    contract: ServiceContractResponse
+  ): boolean => {
+    if (!contract.is_active) return false;
+
+    // Tính period dates cho chu kỳ cần thanh toán (dựa trên next_billing_date)
+    const periodDates = calculatePeriodDates(contract);
+    const periodStart = new Date(periodDates.start);
+    const periodEnd = new Date(periodDates.end);
+    periodStart.setHours(0, 0, 0, 0);
+    periodEnd.setHours(23, 59, 59, 999);
+
+    // Kiểm tra xem có payment SUCCESS nào cho period này không
+    return payments.some(
+      (payment) =>
+        payment.contract_id === contract.contract_id &&
+        payment.status === "SUCCESS" &&
+        new Date(payment.period_start).getTime() === periodStart.getTime() &&
+        new Date(payment.period_end).getTime() === periodEnd.getTime()
+    );
+  };
+
+  // Kiểm tra xem contract có cần thanh toán không
+  // Logic: Khi đến next_billing_date (bắt đầu chu kỳ mới) thì có thể thanh toán
+  const needsPayment = (contract: ServiceContractResponse): boolean => {
+    if (!contract.is_active) return false;
+
+    // Nếu đã thanh toán cho chu kỳ hiện tại thì không cần thanh toán
+    if (hasPaidForCurrentPeriod(contract)) return false;
+
+    // Kiểm tra xem đã đến ngày thanh toán chưa (next_billing_date)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextBillingDate = new Date(contract.next_billing_date);
+    nextBillingDate.setHours(0, 0, 0, 0);
+
+    // Khi today >= next_billing_date thì có thể thanh toán (đã đến hạn)
+    return today >= nextBillingDate;
+  };
+
+  // Tính toán period dates cho payment (period mà next_billing_date đang nằm trong đó)
   const calculatePeriodDates = (
     contract: ServiceContractResponse
   ): { start: string; end: string } => {
     const nextBilling = new Date(contract.next_billing_date);
     const start = new Date(nextBilling);
     start.setDate(1); // Ngày đầu tháng
+    start.setHours(0, 0, 0, 0);
 
     const end = new Date(start);
     if (contract.billing_cycle === "MONTHLY") {
@@ -96,8 +187,10 @@ const PaymentModuleFamily: React.FC = () => {
       end.setDate(0); // Ngày cuối tháng
     } else {
       end.setFullYear(end.getFullYear() + 1);
-      end.setDate(0);
+      end.setMonth(0);
+      end.setDate(0); // Ngày cuối năm
     }
+    end.setHours(23, 59, 59, 999);
 
     return {
       start: start.toISOString(),
@@ -221,6 +314,52 @@ const PaymentModuleFamily: React.FC = () => {
     }).format(amount);
   };
 
+  // Format payment number (short version of payment_id)
+  const formatPaymentNumber = (paymentId: string): string => {
+    return paymentId.substring(0, 8).toUpperCase();
+  };
+
+  // Get service name
+  const getServiceName = (payment: PaymentResponse): string => {
+    if (payment.contract?.institution?.name) {
+      return payment.contract.institution.name;
+    }
+    if (payment.contract?.resident?.full_name) {
+      return `Dịch vụ chăm sóc - ${payment.contract.resident.full_name}`;
+    }
+    return "Dịch vụ chăm sóc";
+  };
+
+  // Get paid at date
+  const getPaidAt = (payment: PaymentResponse): string | null => {
+    if (payment.status === "SUCCESS" && payment.verified_at) {
+      return payment.verified_at;
+    }
+    if (payment.status === "SUCCESS" && payment.created_at) {
+      return payment.created_at;
+    }
+    return null;
+  };
+
+  // Reset filters
+  const handleResetFilters = () => {
+    setFilterStatus("ALL");
+    setFilterMethod("ALL");
+    setFilterStartDate("");
+    setFilterEndDate("");
+  };
+
+  // View payment detail
+  const handleViewPaymentDetail = async (paymentId: string) => {
+    try {
+      const response = await getPaymentById(paymentId);
+      setSelectedPayment(response.data);
+      setIsPaymentDetailModalOpen(true);
+    } catch (error: any) {
+      toast.error("Không thể tải chi tiết thanh toán");
+    }
+  };
+
   const getStatusBadge = (status: PaymentStatus) => {
     switch (status) {
       case "SUCCESS":
@@ -327,28 +466,32 @@ const PaymentModuleFamily: React.FC = () => {
                           {formatDate(contract.next_billing_date)}
                         </TableCell>
                         <TableCell>
-                          {needsPayment(contract) ? (
-                            <Badge variant="destructive" className="text-lg">
-                              Cần thanh toán
-                            </Badge>
-                          ) : (
+                          {hasPaidForCurrentPeriod(contract) ? (
                             <Badge
                               variant="default"
                               className="text-lg bg-green-500"
                             >
                               Đã thanh toán
                             </Badge>
+                          ) : needsPayment(contract) ? (
+                            <Badge variant="destructive" className="text-lg">
+                              Cần thanh toán
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-lg">
+                              Chưa đến hạn
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>
-                          {needsPayment(contract) && (
+                          {needsPayment(contract) ? (
                             <Button
                               onClick={() => handlePayNow(contract)}
-                              className="text-lg"
+                              className="text-lg bg-[#5985d8] hover:bg-[#466bb3] text-white"
                             >
-                              Thanh toán ngay
+                              Thanh toán
                             </Button>
-                          )}
+                          ) : null}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -358,6 +501,89 @@ const PaymentModuleFamily: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
+              {/* Filter Section */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <Label htmlFor="filter-status" className="text-sm mb-2 block">
+                    Trạng thái
+                  </Label>
+                  <Select
+                    value={filterStatus}
+                    onValueChange={(value: string) =>
+                      setFilterStatus(value as PaymentStatus | "ALL")
+                    }
+                  >
+                    <SelectTrigger id="filter-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Tất cả</SelectItem>
+                      <SelectItem value="PENDING">Đang chờ</SelectItem>
+                      <SelectItem value="SUCCESS">Thành công</SelectItem>
+                      <SelectItem value="FAILED">Thất bại</SelectItem>
+                      <SelectItem value="REFUNDED">Đã hoàn tiền</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="filter-method" className="text-sm mb-2 block">
+                    Phương thức
+                  </Label>
+                  <Select
+                    value={filterMethod}
+                    onValueChange={(value: string) =>
+                      setFilterMethod(value as PaymentMethod | "ALL")
+                    }
+                  >
+                    <SelectTrigger id="filter-method">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">Tất cả</SelectItem>
+                      <SelectItem value="VNPAY">VNPay</SelectItem>
+                      <SelectItem value="CASH">Chuyển khoản</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label
+                    htmlFor="filter-start-date"
+                    className="text-sm mb-2 block"
+                  >
+                    Từ ngày
+                  </Label>
+                  <Input
+                    id="filter-start-date"
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="filter-end-date"
+                    className="text-sm mb-2 block"
+                  >
+                    Đến ngày
+                  </Label>
+                  <Input
+                    id="filter-end-date"
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={handleResetFilters}
+                    className="w-full"
+                  >
+                    Đặt lại
+                  </Button>
+                </div>
+              </div>
+
               {payments.length === 0 ? (
                 <p className="text-center text-lg text-gray-500 py-8">
                   Chưa có thanh toán nào
@@ -366,19 +592,21 @@ const PaymentModuleFamily: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-lg">Cư dân</TableHead>
+                      <TableHead className="text-lg">Số thanh toán</TableHead>
                       <TableHead className="text-lg">Số tiền</TableHead>
                       <TableHead className="text-lg">Phương thức</TableHead>
-                      <TableHead className="text-lg">Kỳ thanh toán</TableHead>
                       <TableHead className="text-lg">Trạng thái</TableHead>
+                      <TableHead className="text-lg">Ngày đến hạn</TableHead>
+                      <TableHead className="text-lg">Ngày thanh toán</TableHead>
+                      <TableHead className="text-lg">Tên dịch vụ</TableHead>
                       <TableHead className="text-lg">Hành động</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {payments.map((payment) => (
                       <TableRow key={payment.payment_id}>
-                        <TableCell className="text-lg">
-                          {payment.contract?.resident?.full_name || "N/A"}
+                        <TableCell className="text-lg font-mono">
+                          {formatPaymentNumber(payment.payment_id)}
                         </TableCell>
                         <TableCell className="text-lg font-bold">
                           {formatCurrency(payment.amount)}
@@ -386,12 +614,28 @@ const PaymentModuleFamily: React.FC = () => {
                         <TableCell>
                           {getPaymentMethodBadge(payment.payment_method)}
                         </TableCell>
+                        <TableCell>{getStatusBadge(payment.status)}</TableCell>
                         <TableCell className="text-lg">
-                          {formatDate(payment.period_start)} -{" "}
                           {formatDate(payment.period_end)}
                         </TableCell>
-                        <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                        <TableCell className="text-lg">
+                          {getPaidAt(payment)
+                            ? formatDate(getPaidAt(payment)!)
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-lg">
+                          {getServiceName(payment)}
+                        </TableCell>
                         <TableCell>
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              handleViewPaymentDetail(payment.payment_id)
+                            }
+                            className="text-sm mr-2"
+                          >
+                            Chi tiết
+                          </Button>
                           {payment.status === "PENDING" &&
                             payment.payment_method === "CASH" &&
                             !payment.proof_image_url && (
@@ -558,6 +802,115 @@ const PaymentModuleFamily: React.FC = () => {
               {uploading ? "Đang tải lên..." : "Tải minh chứng"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Detail Modal */}
+      <Dialog
+        open={isPaymentDetailModalOpen}
+        onOpenChange={setIsPaymentDetailModalOpen}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Chi tiết thanh toán</DialogTitle>
+          </DialogHeader>
+          {selectedPayment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Số thanh toán:</p>
+                  <p className="text-lg font-semibold font-mono">
+                    {formatPaymentNumber(selectedPayment.payment_id)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Số tiền:</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {formatCurrency(selectedPayment.amount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Phương thức thanh toán:
+                  </p>
+                  {getPaymentMethodBadge(selectedPayment.payment_method)}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Trạng thái:</p>
+                  {getStatusBadge(selectedPayment.status)}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Cư dân:</p>
+                  <p className="text-lg font-semibold">
+                    {selectedPayment.contract?.resident?.full_name || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Tên dịch vụ:</p>
+                  <p className="text-lg font-semibold">
+                    {getServiceName(selectedPayment)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Kỳ thanh toán:</p>
+                  <p className="text-lg">
+                    {formatDate(selectedPayment.period_start)} -{" "}
+                    {formatDate(selectedPayment.period_end)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Ngày đến hạn:</p>
+                  <p className="text-lg">
+                    {formatDate(selectedPayment.period_end)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Ngày thanh toán:</p>
+                  <p className="text-lg">
+                    {getPaidAt(selectedPayment)
+                      ? formatDate(getPaidAt(selectedPayment)!)
+                      : "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Ngày tạo:</p>
+                  <p className="text-lg">
+                    {formatDate(selectedPayment.created_at)}
+                  </p>
+                </div>
+              </div>
+              {selectedPayment.proof_image_url && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Ảnh minh chứng:</p>
+                  <img
+                    src={selectedPayment.proof_image_url}
+                    alt="Proof"
+                    className="max-w-full h-auto border rounded"
+                  />
+                </div>
+              )}
+              {selectedPayment.transaction_ref && (
+                <div>
+                  <p className="text-sm text-gray-600">Mã giao dịch:</p>
+                  <p className="text-lg">{selectedPayment.transaction_ref}</p>
+                </div>
+              )}
+              {selectedPayment.vnpay_transaction_no && (
+                <div>
+                  <p className="text-sm text-gray-600">Mã giao dịch VNPay:</p>
+                  <p className="text-lg">
+                    {selectedPayment.vnpay_transaction_no}
+                  </p>
+                </div>
+              )}
+              {selectedPayment.notes && (
+                <div>
+                  <p className="text-sm text-gray-600">Ghi chú:</p>
+                  <p className="text-lg">{selectedPayment.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

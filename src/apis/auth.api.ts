@@ -1,5 +1,9 @@
 import request from "@/utils/request";
-import { SigninFormData, SignupFormData, ResidentSigninFormData } from "@/utils/zod";
+import {
+  SigninFormData,
+  SignupFormData,
+  ResidentSigninFormData,
+} from "@/utils/zod";
 
 export interface CheckUserByEmailResponse {
   user_id: string;
@@ -77,5 +81,24 @@ export const changePassword = async (data: {
   confirm_password: string;
 }) => {
   const response = await request.post("/auth/change-password", data);
+  return response.data;
+};
+
+export const validateFamilyLinkToken = async (token: string) => {
+  const response = await request.get("/auth/family-link/validate", {
+    params: { family_link_token: token },
+  });
+  return response.data;
+};
+
+export const confirmFamilyLink = async (token: string) => {
+  const response = await request.post("/auth/family-link/confirm", {
+    family_link_token: token,
+  });
+  return response.data;
+};
+
+export const resendFamilyLink = async () => {
+  const response = await request.post("/auth/family-link/resend");
   return response.data;
 };

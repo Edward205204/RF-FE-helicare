@@ -18,6 +18,7 @@ import VitalSignForm from "@/pages/vital-sign/vital-sign-form";
 import StaffCreateEvent from "@/pages/event/staff-create-event";
 import StaffManageEvent from "@/pages/event/staff-manage-event";
 import RoomManagement from "@/pages/room/room-management";
+import RoomDetail from "@/pages/room/room-detail";
 import StaffLayout from "@/layouts/staff-layout";
 import NewsFeed from "@/pages/posts/newsfeed";
 import Post from "@/pages/posts/post";
@@ -26,6 +27,7 @@ import StaffList from "@/pages/staff/staff-list";
 import StaffDetail from "@/pages/staff/staff-detail";
 import StaffPerformance from "@/pages/staff/staff-performance";
 import VerifyStaffInvite from "@/pages/auth/staff/verify-staff-invite";
+import VerifyFamilyLink from "@/pages/auth/family/verify-family-link";
 import InviteRedirect from "@/pages/auth/invite-redirect";
 import FamilyLayout from "@/layouts/family-layout";
 import FamilyNewsFeed from "@/pages/posts/family-newsfeed";
@@ -132,6 +134,14 @@ export default function useReactRouter() {
           element: (
             <StaffLayout>
               <RoomManagement />
+            </StaffLayout>
+          ),
+        },
+        {
+          path: path.roomDetail,
+          element: (
+            <StaffLayout>
+              <RoomDetail />
             </StaffLayout>
           ),
         },
@@ -485,6 +495,10 @@ export default function useReactRouter() {
         {
           path: path.verifyStaffInvite,
           element: <VerifyStaffInvite />,
+        },
+        {
+          path: path.verifyFamilyLink,
+          element: <VerifyFamilyLink />,
         },
       ],
     },

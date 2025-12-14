@@ -38,6 +38,11 @@ import {
   getAdminResidentAssignments,
 } from "@/apis/admin.api";
 import { getRooms } from "@/apis/room.api";
+import {
+  createServiceContract,
+  type CreateServiceContractReqBody,
+  type BillingCycle,
+} from "@/apis/service-contract.api";
 
 const AdminResidentsManagement: React.FC = () => {
   const [residents, setResidents] = useState<any[]>([]);
@@ -58,6 +63,13 @@ const AdminResidentsManagement: React.FC = () => {
   });
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [showAudit, setShowAudit] = useState(false);
+  // Contract form state
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+  const [newResidentId, setNewResidentId] = useState<string | null>(null);
+  const [contractFormData, setContractFormData] = useState({
+    billing_cycle: "MONTHLY" as BillingCycle,
+    amount: "",
+  });
 
   const itemsPerPage = 10;
 
@@ -182,14 +194,70 @@ const AdminResidentsManagement: React.FC = () => {
       if (editingResident) {
         await updateAdminResident(editingResident.resident_id, requestData);
         toast.success("Cập nhật cư dân thành công");
+        setIsDialogOpen(false);
+        loadData();
       } else {
-        await createAdminResident(requestData);
+        const response = await createAdminResident(requestData);
         toast.success("Tạo cư dân thành công");
+        setIsDialogOpen(false);
+
+        // Hiện dialog tạo contract
+        const residentId = response.data?.resident_id;
+        if (residentId) {
+          setNewResidentId(residentId);
+          setIsContractDialogOpen(true);
+          setContractFormData({
+            billing_cycle: "MONTHLY",
+            amount: "",
+          });
+        } else {
+          loadData();
+        }
       }
-      setIsDialogOpen(false);
-      loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Không thể lưu cư dân");
+    }
+  };
+
+  const handleCreateContract = async () => {
+    if (!newResidentId || !contractFormData.amount) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    try {
+      const amount = parseFloat(contractFormData.amount);
+      if (isNaN(amount) || amount <= 0) {
+        toast.error("Số tiền phải lớn hơn 0");
+        return;
+      }
+
+      // Tính next_billing_date: tháng tiếp theo, ngày 1
+      const today = new Date();
+      const nextBillingDate = new Date(today);
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+      nextBillingDate.setDate(1);
+
+      const contractData: CreateServiceContractReqBody = {
+        resident_id: newResidentId,
+        billing_cycle: contractFormData.billing_cycle,
+        amount: amount,
+        next_billing_date: nextBillingDate.toISOString(),
+      };
+
+      await createServiceContract(contractData);
+      toast.success("Tạo hợp đồng dịch vụ thành công");
+      setIsContractDialogOpen(false);
+      setNewResidentId(null);
+      setContractFormData({
+        billing_cycle: "MONTHLY",
+        amount: "",
+      });
+      loadData();
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Không thể tạo hợp đồng dịch vụ"
+      );
     }
   };
 
@@ -521,6 +589,82 @@ const AdminResidentsManagement: React.FC = () => {
                 className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
               >
                 {editingResident ? "Cập nhật" : "Tạo mới"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Contract Dialog */}
+      <Dialog
+        open={isContractDialogOpen}
+        onOpenChange={setIsContractDialogOpen}
+      >
+        <DialogContent className="max-w-md bg-white border-gray-300">
+          <DialogHeader>
+            <DialogTitle>Tạo hợp đồng dịch vụ</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="billing_cycle">
+                Chu kỳ thanh toán <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={contractFormData.billing_cycle}
+                onValueChange={(value: BillingCycle) =>
+                  setContractFormData({
+                    ...contractFormData,
+                    billing_cycle: value,
+                  })
+                }
+              >
+                <SelectTrigger className="bg-white border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTHLY">Theo tháng</SelectItem>
+                  <SelectItem value="YEARLY">Theo năm</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="amount">
+                Số tiền (VND) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                value={contractFormData.amount}
+                onChange={(e) =>
+                  setContractFormData({
+                    ...contractFormData,
+                    amount: e.target.value,
+                  })
+                }
+                placeholder="Nhập số tiền"
+                className="bg-white border-gray-300"
+                required
+                min="0"
+                step="1000"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsContractDialogOpen(false);
+                  setNewResidentId(null);
+                  loadData();
+                }}
+                className="border-gray-300"
+              >
+                Bỏ qua
+              </Button>
+              <Button
+                onClick={handleCreateContract}
+                className="bg-[#5985d8] hover:bg-[#5183c9] text-white"
+              >
+                Tạo hợp đồng
               </Button>
             </div>
           </div>

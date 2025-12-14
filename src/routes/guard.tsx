@@ -155,10 +155,20 @@ export function ProtectedRoute() {
 
 export function RejectedRoute() {
   const { isAuthenticated, profile } = useContext(AppContext);
+  const location = useLocation();
   const [hasInstitutionAccessState, setHasInstitutionAccessState] = useState<
     boolean | null
   >(null);
   const [isChecking, setIsChecking] = useState(false);
+
+  // Allow access to verify-family-link even when authenticated
+  const allowedRoutesWhenAuthenticated = [
+    path.verifyFamilyLink,
+    path.verifyEmail,
+    path.verifyForgotPassword,
+    path.resetPassword,
+    path.verifyStaffInvite,
+  ];
 
   // Check institution access for family users
   useEffect(() => {
@@ -198,6 +208,14 @@ export function RejectedRoute() {
       checkAccess();
     }
   }, [isAuthenticated, profile]);
+
+  // Allow access to verify routes even when authenticated
+  if (
+    isAuthenticated &&
+    allowedRoutesWhenAuthenticated.includes(location.pathname as any)
+  ) {
+    return <Outlet />;
+  }
 
   if (!isAuthenticated) {
     return <Outlet />;

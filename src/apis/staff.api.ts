@@ -236,3 +236,110 @@ export const verifyStaffInviteAndResetPassword = async (
   );
   return response.data;
 };
+
+// ========== SOS & INCIDENTS ENDPOINTS ==========
+
+export interface SOSAlert {
+  id: string;
+  residentName: string;
+  residentId: string;
+  roomBed: string;
+  type: "fall" | "abnormal_vitals" | "emergency_button";
+  timestamp: string;
+  vitalSnapshot?: string;
+  severity: "high" | "medium" | "low";
+  status: "pending" | "acknowledged" | "in_progress" | "resolved" | "escalated";
+  timer: number;
+}
+
+export const getSOSAlerts = async (): Promise<{
+  message: string;
+  data: SOSAlert[];
+}> => {
+  const response = await request.get("/api/staff/incidents/alerts");
+  return response.data;
+};
+
+export interface UpdateAlertStatusPayload {
+  status: "acknowledged" | "in_progress" | "resolved" | "escalated";
+  resolutionNotes?: string;
+}
+
+export const updateAlertStatus = async (
+  alert_id: string,
+  data: UpdateAlertStatusPayload
+): Promise<{ message: string; data: any }> => {
+  const response = await request.patch(
+    `/api/staff/incidents/alerts/${alert_id}/status`,
+    data
+  );
+  return response.data;
+};
+
+export interface AbnormalVitalsResponse {
+  resident_id: string;
+  measured_at: string;
+  vital_snapshot: string;
+  abnormalities: Array<{
+    type: string;
+    value: number;
+    level: "warning" | "critical";
+  }>;
+  severity: "high" | "medium" | "low";
+}
+
+export const getAbnormalVitals = async (
+  resident_id: string
+): Promise<{
+  message: string;
+  data: AbnormalVitalsResponse | null;
+}> => {
+  const response = await request.get(
+    `/api/staff/incidents/residents/${resident_id}/abnormal-vitals`
+  );
+  return response.data;
+};
+
+export interface CreateIncidentReportPayload {
+  resident_id: string;
+  incident_type:
+    | "fall"
+    | "health_event"
+    | "behavioral"
+    | "environmental_hazard";
+  root_cause?: string;
+  actions_taken: string;
+  outcome: string;
+  occurred_at: string; // ISO date string
+  staff_on_duty?: string;
+  images?: string[];
+}
+
+export const createIncidentReport = async (
+  data: CreateIncidentReportPayload
+): Promise<{ message: string; data: any }> => {
+  const response = await request.post("/api/staff/incidents/reports", data);
+  return response.data;
+};
+
+export interface IncidentReport {
+  id: string;
+  residentId: string;
+  residentName: string;
+  incidentType: string;
+  rootCause: string;
+  actionsTaken: string;
+  outcome: string;
+  timeOccurred: string;
+  dateOccurred: string;
+  staffOnDuty: string;
+  images: string[];
+}
+
+export const getIncidentReports = async (): Promise<{
+  message: string;
+  data: IncidentReport[];
+}> => {
+  const response = await request.get("/api/staff/incidents/reports");
+  return response.data;
+};

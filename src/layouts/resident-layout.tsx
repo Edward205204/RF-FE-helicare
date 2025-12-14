@@ -31,7 +31,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
 
   // Handle logout
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
       removeLocalStorage();
       navigate(pathConst.signin);
     }
@@ -41,7 +41,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
   const residentName =
     (profile as any)?.resident?.full_name ||
     (profile as any)?.email?.split("@")[0] ||
-    "Resident";
+    "Cư dân";
 
   // Lấy initials từ tên
   const getInitials = (name: string) => {
@@ -76,7 +76,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
                   <p className="text-sm font-medium text-gray-900">
                     {residentName}
                   </p>
-                  <p className="text-xs text-gray-500">Resident</p>
+                  <p className="text-xs text-gray-500">Cư dân</p>
                 </div>
               </button>
             </DropdownMenuTrigger>
@@ -86,7 +86,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
                 className="cursor-pointer"
               >
                 <Lock className="mr-2 h-4 w-4" />
-                <span>Change Password</span>
+                <span>Đổi mật khẩu</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -126,7 +126,7 @@ const ResidentLayout: React.FC<{ children: React.ReactNode }> = ({
             className="w-full flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <LogOut className="h-5 w-5" />
-            <span>Logout</span>
+            <span>Đăng xuất</span>
           </Button>
         </div>
       </aside>
