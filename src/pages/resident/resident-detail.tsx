@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { ArrowLeft, User, Calendar, Phone, Mail, MapPin } from "lucide-react";
 import path from "@/constants/path";
+import { ResidentHealthSummary } from "@/components/shared/resident-health-summary";
 
 export default function ResidentDetail(): React.JSX.Element {
   const { resident_id } = useParams<{ resident_id: string }>();
@@ -150,7 +151,8 @@ export default function ResidentDetail(): React.JSX.Element {
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Khối thông tin cá nhân + health chart */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Thông tin cơ bản */}
               <div className="lg:col-span-1">
@@ -240,143 +242,148 @@ export default function ResidentDetail(): React.JSX.Element {
                 </Card>
               </div>
 
-              {/* Danh sách Assessment và Người thân */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Danh sách Assessment */}
-                <Card className="rounded-2xl border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Danh sách đánh giá
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {assessments.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">
-                        Không có đánh giá nào
-                      </p>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Thời gian</TableHead>
-                              <TableHead>Nhiệt độ (°C)</TableHead>
-                              <TableHead>Huyết áp</TableHead>
-                              <TableHead>Nhịp tim</TableHead>
-                              <TableHead>Nhịp thở</TableHead>
-                              <TableHead>SpO₂ (%)</TableHead>
-                              <TableHead>Ghi chú</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {assessments.map((assessment) => (
-                              <TableRow key={assessment.assessment_id}>
-                                <TableCell>
-                                  {formatDateTime(assessment.created_at)}
-                                </TableCell>
-                                <TableCell>
-                                  {assessment.temperature_c
-                                    ? `${assessment.temperature_c}°C`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {assessment.blood_pressure_systolic &&
-                                  assessment.blood_pressure_diastolic
-                                    ? `${assessment.blood_pressure_systolic}/${assessment.blood_pressure_diastolic}`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {assessment.heart_rate
-                                    ? `${assessment.heart_rate} bpm`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {assessment.respiratory_rate
-                                    ? `${assessment.respiratory_rate} /min`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {assessment.oxygen_saturation
-                                    ? `${assessment.oxygen_saturation}%`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell className="max-w-xs truncate">
-                                  {assessment.notes || "-"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+              {/* Health summary / chart */}
+              <div className="lg:col-span-2">
+                <ResidentHealthSummary residentId={resident.resident_id} />
+              </div>
+            </div>
 
-                {/* Danh sách Người thân */}
-                <Card className="rounded-2xl border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      Thành viên gia đình liên kết
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {familyMembers.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">
-                        Không có thành viên gia đình liên kết
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {familyMembers.map((member) => (
-                          <div
-                            key={member.link_id}
-                            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {member.full_name}
-                              </h3>
-                              <Badge
-                                variant={
-                                  member.status === "active"
-                                    ? "default"
-                                    : "secondary"
-                                }
-                              >
-                                {member.status === "active"
-                                  ? "Hoạt động"
-                                  : member.status}
-                              </Badge>
-                            </div>
-                            <div className="space-y-2 text-sm text-gray-600">
-                              {member.phone && (
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4" />
-                                  <span>{member.phone}</span>
-                                </div>
-                              )}
+            {/* Danh sách Assessment và Người thân */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Danh sách Assessment */}
+              <Card className="rounded-2xl border-gray-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Danh sách đánh giá
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {assessments.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">
+                      Không có đánh giá nào
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Thời gian</TableHead>
+                            <TableHead>Nhiệt độ (°C)</TableHead>
+                            <TableHead>Huyết áp</TableHead>
+                            <TableHead>Nhịp tim</TableHead>
+                            <TableHead>Nhịp thở</TableHead>
+                            <TableHead>SpO₂ (%)</TableHead>
+                            <TableHead>Ghi chú</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {assessments.map((assessment) => (
+                            <TableRow key={assessment.assessment_id}>
+                              <TableCell>
+                                {formatDateTime(assessment.created_at)}
+                              </TableCell>
+                              <TableCell>
+                                {assessment.temperature_c
+                                  ? `${assessment.temperature_c}°C`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {assessment.blood_pressure_systolic &&
+                                assessment.blood_pressure_diastolic
+                                  ? `${assessment.blood_pressure_systolic}/${assessment.blood_pressure_diastolic}`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {assessment.heart_rate
+                                  ? `${assessment.heart_rate} bpm`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {assessment.respiratory_rate
+                                  ? `${assessment.respiratory_rate} /min`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {assessment.oxygen_saturation
+                                  ? `${assessment.oxygen_saturation}%`
+                                  : "-"}
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {assessment.notes || "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Danh sách Người thân */}
+              <Card className="rounded-2xl border-gray-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Thành viên gia đình liên kết
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {familyMembers.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">
+                      Không có thành viên gia đình liên kết
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {familyMembers.map((member) => (
+                        <div
+                          key={member.link_id}
+                          className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {member.full_name}
+                            </h3>
+                            <Badge
+                              variant={
+                                member.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {member.status === "active"
+                                ? "Hoạt động"
+                                : member.status}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2 text-sm text-gray-600">
+                            {member.phone && (
                               <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4" />
-                                <span>{member.family_email}</span>
+                                <Phone className="h-4 w-4" />
+                                <span>{member.phone}</span>
                               </div>
-                              {member.address && (
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="h-4 w-4" />
-                                  <span>{member.address}</span>
-                                </div>
-                              )}
-                              <div className="text-xs text-gray-400 mt-2">
-                                Liên kết từ: {formatDate(member.created_at)}
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              <span>{member.family_email}</span>
+                            </div>
+                            {member.address && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{member.address}</span>
                               </div>
+                            )}
+                            <div className="text-xs text-gray-400 mt-2">
+                              Liên kết từ: {formatDate(member.created_at)}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>

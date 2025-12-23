@@ -935,12 +935,6 @@ export default function VitalSignForm() {
 
           <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-4">
             <Card className="border border-gray-200 bg-white shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Mô đun tính toán</CardTitle>
-                <p className="text-xs text-gray-500">
-                  Phiên bản {summaryQuery.data?.meta.engine_version ?? "—"}
-                </p>
-              </CardHeader>
               <CardContent className="space-y-3">
                 {summaryQuery.isLoading && (
                   <p className="text-sm text-gray-500">Đang tải tín hiệu...</p>

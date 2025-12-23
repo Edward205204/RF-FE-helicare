@@ -49,7 +49,7 @@ export const staffMenu: StaffMenuItem[] = [
     icon: <Plus size={20} />,
   },
   {
-    label: "Giao tiếp với gia đình",
+    label: "Cộng đồng",
     path: path.newsFeed,
     icon: <MessageSquare size={20} />,
   },

@@ -43,15 +43,54 @@ import {
   type CreateServiceContractReqBody,
   type BillingCycle,
 } from "@/apis/service-contract.api";
+import { usePaginationQuerySync } from "@/hooks/use-pagination-query";
+
+const RANGE = 2;
+type PaginationItem = number | "ellipsis";
+
+const buildPaginationItems = (
+  currentPage: number,
+  totalPages: number
+): PaginationItem[] => {
+  if (totalPages <= 1) return [1];
+
+  const candidates = new Set<number>();
+  for (let i = currentPage - RANGE; i <= currentPage + RANGE; i += 1) {
+    if (i >= 1 && i <= totalPages) {
+      candidates.add(i);
+    }
+  }
+  candidates.add(1);
+  if (totalPages >= 2) {
+    candidates.add(2);
+    candidates.add(totalPages);
+    if (totalPages - 1 > 0) {
+      candidates.add(totalPages - 1);
+    }
+  }
+
+  const sorted = Array.from(candidates).sort((a, b) => a - b);
+  const result: PaginationItem[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0) {
+      const prev = sorted[index - 1];
+      if (page - prev > 1) {
+        result.push("ellipsis");
+      }
+    }
+    result.push(page);
+  });
+  return result;
+};
 
 const AdminResidentsManagement: React.FC = () => {
+  const { page, limit, setPage } = usePaginationQuerySync(10);
   const [residents, setResidents] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [roomFilter, setRoomFilter] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<any | null>(null);
   const [formData, setFormData] = useState({
@@ -71,19 +110,30 @@ const AdminResidentsManagement: React.FC = () => {
     amount: "",
   });
 
-  const itemsPerPage = 10;
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }>({
+    page,
+    limit,
+    total: 0,
+    totalPages: 1,
+  });
 
   useEffect(() => {
     loadData();
-  }, [currentPage, statusFilter, roomFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, statusFilter, roomFilter]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [residentsRes, roomsRes] = await Promise.all([
         getAdminResidents({
-          page: currentPage,
-          limit: itemsPerPage,
+          page,
+          limit,
           status: statusFilter as any,
           room_id: roomFilter || undefined,
         }),
@@ -91,6 +141,18 @@ const AdminResidentsManagement: React.FC = () => {
       ]);
       setResidents(residentsRes.residents || []);
       setRooms(roomsRes.rooms || []);
+
+      const fallbackTotal = Math.max(
+        (page - 1) * limit + (residentsRes.residents?.length || 0),
+        residentsRes.residents?.length || 0
+      );
+      const fallbackMeta = {
+        page,
+        limit,
+        total: fallbackTotal,
+        totalPages: Math.max(1, Math.ceil(fallbackTotal / limit)),
+      };
+      setPagination(residentsRes.pagination || fallbackMeta);
     } catch (error: any) {
       toast.error("Không thể tải dữ liệu");
     } finally {
@@ -104,6 +166,20 @@ const AdminResidentsManagement: React.FC = () => {
       r.full_name?.toLowerCase().includes(search.toLowerCase())
     );
   }, [residents, search]);
+
+  const paginationItems = useMemo(() => {
+    const totalPages = pagination.totalPages || 1;
+    return buildPaginationItems(page, totalPages);
+  }, [page, pagination.totalPages]);
+
+  const totalResidents = pagination.total ?? residents.length;
+  const showingFrom = totalResidents === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo =
+    totalResidents === 0
+      ? 0
+      : Math.min(totalResidents, showingFrom + residents.length - 1);
+  const canGoPrev = page > 1;
+  const canGoNext = page < pagination.totalPages;
 
   const handleCreate = () => {
     setEditingResident(null);
@@ -468,14 +544,14 @@ const AdminResidentsManagement: React.FC = () => {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             className="border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
                             onClick={() => handleAudit(resident.resident_id)}
                           >
                             Kiểm toán
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -483,6 +559,57 @@ const AdminResidentsManagement: React.FC = () => {
                 )}
               </TableBody>
             </Table>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-4">
+              <p className="text-sm text-gray-600">
+                Hiển thị{" "}
+                <span className="font-semibold">
+                  {totalResidents === 0 ? 0 : showingFrom} - {showingTo}
+                </span>{" "}
+                trong tổng số{" "}
+                <span className="font-semibold">{totalResidents}</span> cư dân
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => canGoPrev && setPage(page - 1)}
+                  disabled={!canGoPrev}
+                  className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer bg-white"
+                >
+                  Trước
+                </button>
+                {paginationItems.map((item, idx) =>
+                  item === "ellipsis" ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-2 text-gray-500"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setPage(item)}
+                      className={`px-3 py-1 rounded border text-sm cursor-pointer ${
+                        item === page
+                          ? "bg-[#5985d8] text-white border-[#5985d8]"
+                          : "bg-white text-gray-700"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+                <button
+                  type="button"
+                  onClick={() => canGoNext && setPage(page + 1)}
+                  disabled={!canGoNext}
+                  className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer bg-white"
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

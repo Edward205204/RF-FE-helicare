@@ -18,6 +18,7 @@ import {
 import { getRooms, type RoomResponse } from "@/apis/room.api";
 import { usePaginationQuerySync } from "@/hooks/use-pagination-query";
 import { toast } from "react-toastify";
+import { EyeIcon } from "lucide-react";
 
 type Resident = ResidentResponse & {
   age?: number;
@@ -459,15 +460,15 @@ export default function ListResident(): React.JSX.Element {
                               <td className="px-4 py-4 text-gray-800 text-sm">
                                 <div className="flex gap-2">
                                   <button
-                                    className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                                    className="bg-white rounded-full p-2 cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onClickView(r);
                                     }}
                                   >
-                                    Xem
+                                    <EyeIcon className="w-4 h-4 text-blue-500 bg-white" />
                                   </button>
-                                  <button
+                                  {/* <button
                                     className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -484,7 +485,7 @@ export default function ListResident(): React.JSX.Element {
                                     }}
                                   >
                                     Xóa
-                                  </button>
+                                  </button> */}
                                 </div>
                               </td>
                             </tr>

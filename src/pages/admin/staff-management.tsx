@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { Input } from "@/components/ui";
@@ -44,8 +44,49 @@ import {
 import { useNavigate } from "react-router-dom";
 import path from "@/constants/path";
 
+import { usePaginationQuerySync } from "@/hooks/use-pagination-query";
+
+const RANGE = 2;
+type PaginationItem = number | "ellipsis";
+
+const buildPaginationItems = (
+  currentPage: number,
+  totalPages: number
+): PaginationItem[] => {
+  if (totalPages <= 1) return [1];
+
+  const candidates = new Set<number>();
+  for (let i = currentPage - RANGE; i <= currentPage + RANGE; i += 1) {
+    if (i >= 1 && i <= totalPages) {
+      candidates.add(i);
+    }
+  }
+  candidates.add(1);
+  if (totalPages >= 2) {
+    candidates.add(2);
+    candidates.add(totalPages);
+    if (totalPages - 1 > 0) {
+      candidates.add(totalPages - 1);
+    }
+  }
+
+  const sorted = Array.from(candidates).sort((a, b) => a - b);
+  const result: PaginationItem[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0) {
+      const prev = sorted[index - 1];
+      if (page - prev > 1) {
+        result.push("ellipsis");
+      }
+    }
+    result.push(page);
+  });
+  return result;
+};
+
 const AdminStaffManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { page, limit, setPage } = usePaginationQuerySync(10);
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -65,10 +106,26 @@ const AdminStaffManagement: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [showAudit, setShowAudit] = useState(false);
 
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  }>({
+    page,
+    limit,
+    total: 0,
+    totalPages: 1,
+  });
+
   useEffect(() => {
     checkRole();
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, search, roleFilter, statusFilter]);
 
   const checkRole = async () => {
     try {
@@ -85,6 +142,8 @@ const AdminStaffManagement: React.FC = () => {
     try {
       setLoading(true);
       const response = await getAdminStaff({
+        page,
+        limit,
         search: search || undefined,
         role:
           roleFilter === "all"
@@ -96,6 +155,18 @@ const AdminStaffManagement: React.FC = () => {
             : (statusFilter as "active" | "inactive" | "pending"),
       });
       setStaff(response.staff || []);
+
+      const fallbackTotal = Math.max(
+        (page - 1) * limit + (response.staff?.length || 0),
+        response.staff?.length || 0
+      );
+      const fallbackMeta = {
+        page,
+        limit,
+        total: fallbackTotal,
+        totalPages: Math.max(1, Math.ceil(fallbackTotal / limit)),
+      };
+      setPagination(response.pagination || fallbackMeta);
     } catch (error: any) {
       toast.error("Không thể tải dữ liệu");
     } finally {
@@ -103,9 +174,19 @@ const AdminStaffManagement: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [search, roleFilter, statusFilter]);
+  const paginationItems = useMemo(() => {
+    const totalPages = pagination.totalPages || 1;
+    return buildPaginationItems(page, totalPages);
+  }, [page, pagination.totalPages]);
+
+  const totalStaff = pagination.total ?? staff.length;
+  const showingFrom = totalStaff === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo =
+    totalStaff === 0
+      ? 0
+      : Math.min(totalStaff, showingFrom + staff.length - 1);
+  const canGoPrev = page > 1;
+  const canGoNext = page < pagination.totalPages;
 
   const handleCreate = () => {
     if (!isRootAdmin) {
@@ -478,16 +559,16 @@ const AdminStaffManagement: React.FC = () => {
                               handleResetPassword(staffMember.user_id)
                             }
                           >
-                            Đổi mật khẩu
+                            Reset mật khẩu
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             className="border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
                             onClick={() => handleAudit(staffMember.user_id)}
                           >
                             Kiểm toán
-                          </Button>
+                          </Button> */}
                           {staffMember.status === "pending" && (
                             <>
                               <Button
@@ -519,22 +600,22 @@ const AdminStaffManagement: React.FC = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             className="border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
                             onClick={() => handleAssign(staffMember.user_id)}
                           >
                             Gán
-                          </Button>
-                          <Button
+                          </Button> */}
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             className="border-orange-200 text-orange-700 bg-orange-50 hover:bg-orange-100"
                             onClick={() => handleUnassign(staffMember.user_id)}
                           >
                             Hủy gán
-                          </Button>
+                          </Button> */}
                           {isRootAdmin && staffMember.role !== "RootAdmin" && (
                             <Button
                               variant="destructive"
@@ -551,6 +632,57 @@ const AdminStaffManagement: React.FC = () => {
                 )}
               </TableBody>
             </Table>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-4">
+              <p className="text-sm text-gray-600">
+                Hiển thị{" "}
+                <span className="font-semibold">
+                  {totalStaff === 0 ? 0 : showingFrom} - {showingTo}
+                </span>{" "}
+                trong tổng số{" "}
+                <span className="font-semibold">{totalStaff}</span> nhân viên
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => canGoPrev && setPage(page - 1)}
+                  disabled={!canGoPrev}
+                  className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer bg-white"
+                >
+                  Trước
+                </button>
+                {paginationItems.map((item, idx) =>
+                  item === "ellipsis" ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-2 text-gray-500"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setPage(item)}
+                      className={`px-3 py-1 rounded border text-sm cursor-pointer ${
+                        item === page
+                          ? "bg-[#5985d8] text-white border-[#5985d8]"
+                          : "bg-white text-gray-700"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+                <button
+                  type="button"
+                  onClick={() => canGoNext && setPage(page + 1)}
+                  disabled={!canGoNext}
+                  className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer bg-white"
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

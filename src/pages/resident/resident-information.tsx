@@ -532,7 +532,7 @@ const ResidentInformation: React.FC = () => {
                   <header className="mb-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-900">
-                        Tạo cư dân
+                        Tạo lập hồ sơ
                       </h2>
                       <p className="text-sm text-slate-500">
                         Thông tin cá nhân & tình trạng sức khỏe ban đầu
