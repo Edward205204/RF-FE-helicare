@@ -64,6 +64,7 @@ import ResidentVitalSigns from "@/pages/resident/resident-vital-signs";
 import ResidentRoom from "@/pages/resident/resident-room";
 import ResidentNotifications from "@/pages/resident/resident-notifications";
 import ResidentChangePassword from "@/pages/resident/resident-change-password";
+import Error404 from "@/pages/error/error-404";
 
 export default function useReactRouter() {
   const routeElements = useRoutes([
@@ -505,7 +506,7 @@ export default function useReactRouter() {
 
     {
       path: "*",
-      element: <></>,
+      element: <Error404 />,
     },
   ]);
   return routeElements;

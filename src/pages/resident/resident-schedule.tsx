@@ -62,14 +62,27 @@ export function ResidentSchedule() {
 
   // Get resident_id from profile
   const residentId = (profile as any)?.resident?.resident_id;
-  const residentInfo: ResidentResponse | null = profile?.resident
-    ? {
-        resident_id: (profile as any).resident.resident_id,
-        full_name: (profile as any).resident.full_name,
-        gender: (profile as any).resident.gender || "male",
-        date_of_birth: (profile as any).resident.date_of_birth,
-        room: (profile as any).resident.room,
-      }
+  const resident = (profile as any)?.resident;
+  // Get room_id from room object or directly from resident
+  const roomId = resident?.room?.room_id || resident?.room_id;
+
+  console.log("[ResidentSchedule] Profile data:", {
+    residentId,
+    roomId,
+    resident: resident,
+    room: resident?.room,
+  });
+
+  const residentInfo: ResidentResponse | null = resident
+    ? ({
+        resident_id: resident.resident_id,
+        full_name: resident.full_name,
+        gender: resident.gender || "male",
+        date_of_birth: resident.date_of_birth,
+        room: resident.room,
+        room_id: roomId, // Add room_id explicitly
+        created_at: resident.created_at || new Date().toISOString(), // Add required field
+      } as ResidentResponse)
     : null;
 
   // Fetch visits for this resident only
@@ -144,7 +157,16 @@ export function ResidentSchedule() {
 
   // Fetch events for this resident's room
   const fetchRoomEvents = useCallback(async (): Promise<EventResponse[]> => {
+    console.log("[fetchRoomEvents] Called with:", {
+      residentId,
+      room_id: residentInfo?.room_id,
+      hasResidentInfo: !!residentInfo,
+    });
+
     if (!residentId || !residentInfo?.room_id) {
+      console.log(
+        "[fetchRoomEvents] Early return - missing residentId or room_id"
+      );
       return [];
     }
 
@@ -153,30 +175,75 @@ export function ResidentSchedule() {
       const viewEnd = days[days.length - 1];
       viewEnd.setHours(23, 59, 59, 999);
 
+      console.log("[fetchRoomEvents] Calling API with:", {
+        room_id: residentInfo.room_id,
+        start_date: viewStart.toISOString(),
+        end_date: viewEnd.toISOString(),
+      });
+
       const response = await getEventsByRoom(residentInfo.room_id, {
         start_date: viewStart.toISOString(),
         end_date: viewEnd.toISOString(),
       });
 
-      return response.data?.events || [];
-    } catch (error) {
-      console.error("Failed to fetch room events:", error);
+      console.log("[fetchRoomEvents] API Response:", response);
+      console.log("[fetchRoomEvents] response.data:", response.data);
+      console.log(
+        "[fetchRoomEvents] response.data?.events:",
+        response.data?.events
+      );
+      console.log(
+        "[fetchRoomEvents] response.data?.data:",
+        response.data?.data
+      );
+
+      const events = response.data?.events || response.data?.data || [];
+      console.log("[fetchRoomEvents] Returning events:", events.length, events);
+
+      // Backend returns { data: { events: EventResponse[], total: number } }
+      return events;
+    } catch (error: any) {
+      console.error("[fetchRoomEvents] ERROR:", error);
+      console.error("[fetchRoomEvents] Error details:", {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+      });
       return [];
     }
   }, [days, residentId, residentInfo?.room_id]);
 
   const refreshEvents = useCallback(async () => {
+    console.log("[refreshEvents] Called with residentId:", residentId);
+
     if (!residentId) {
+      console.log("[refreshEvents] Early return - no residentId");
       setEventsState([]);
       return;
     }
 
     try {
+      console.log("[refreshEvents] Fetching all events...");
       const [visitsData, schedulesData, roomEventsData] = await Promise.all([
-        fetchResidentVisits().catch(() => []),
-        fetchSchedules().catch(() => []),
-        fetchRoomEvents().catch(() => []),
+        fetchResidentVisits().catch((err) => {
+          console.error("[refreshEvents] Error fetching visits:", err);
+          return [];
+        }),
+        fetchSchedules().catch((err) => {
+          console.error("[refreshEvents] Error fetching schedules:", err);
+          return [];
+        }),
+        fetchRoomEvents().catch((err) => {
+          console.error("[refreshEvents] Error fetching room events:", err);
+          return [];
+        }),
       ]);
+
+      console.log("[refreshEvents] Fetched data:", {
+        visits: visitsData.length,
+        schedules: schedulesData.length,
+        roomEvents: roomEventsData.length,
+      });
 
       // Filter visits to only show this resident's visits
       const filteredVisits = visitsData.filter(
@@ -227,12 +294,9 @@ export function ResidentSchedule() {
           location: s.resident?.room_id
             ? `Room ${s.resident.room_id}`
             : s.activity?.name || "Unknown",
-          staff:
-            s.staff?.staffProfile?.full_name ||
-            s.assigned_staff_name ||
-            "Staff",
-          capacity: s.activity?.max_participants || undefined,
-          registered: s.participant_count || undefined,
+          staff: s.staff?.staffProfile?.full_name || "Staff",
+          capacity: 0, // Default value since max_participants doesn't exist
+          registered: 0, // Default value since participant_count doesn't exist
           note: s.notes || s.description || "",
         };
       });
@@ -276,8 +340,8 @@ export function ResidentSchedule() {
           type: "visit" as const,
           location: v.institution?.name || "Nursing Home",
           staff: v.family_user?.familyProfile?.full_name || "Family Member",
-          capacity: undefined, // Visit không có capacity field
-          registered: undefined, // Visit không có registered field
+          capacity: 0, // Default value for visits
+          registered: 0, // Default value for visits
           note: v.notes || "",
           qr_code_data: v.qr_code_data,
           qr_expires_at: v.qr_expires_at,
@@ -324,8 +388,8 @@ export function ResidentSchedule() {
           type: "care" as const,
           location: e.location,
           staff: "Event",
-          capacity: undefined,
-          registered: undefined,
+          capacity: 0, // Default value for institution events
+          registered: 0, // Default value for institution events
           note: `${startTime} - ${endTime}`,
         };
       });

@@ -104,10 +104,10 @@ export function EventBlock({ ev, residents = [] }: EventBlockProps) {
             <div className="flex items-center gap-2 text-slate-600">
               <Clock className="h-4 w-4" /> {ev.start}–{ev.end}
             </div>
-            <div className="text-slate-600">Loc: {ev.location}</div>
-            <div className="text-slate-600">Staff: {ev.staff}</div>
+            <div className="text-slate-600">Địa điểm: {ev.location}</div>
+            <div className="text-slate-600">Nhân viên: {ev.staff}</div>
             <div className="text-slate-600">
-              Note: {ev.note || "No notes available"}
+              Ghi chú: {ev.note || "Không có ghi chú"}
             </div>
 
             <div className="flex flex-col items-start gap-1">
@@ -116,17 +116,17 @@ export function EventBlock({ ev, residents = [] }: EventBlockProps) {
                 {count}/{ev.capacity}
               </Badge>
               {full ? (
-                <Badge variant="destructive">Full</Badge>
+                <Badge variant="destructive">Đã đầy</Badge>
               ) : (
                 <span className="text-slate-500 text-xs">
-                  Remaining: <b>{remaining}</b>
+                  Còn lại: <b>{remaining}</b>
                 </span>
               )}
             </div>
 
             {ev.type === "visit" && (
               <div className="space-y-1">
-                <div className="text-xs text-slate-500">Resident</div>
+                <div className="text-xs text-slate-500">Cư dân</div>
                 <ResidentCombobox
                   value={selectedResident}
                   onChange={setSelectedResident}
@@ -134,7 +134,7 @@ export function EventBlock({ ev, residents = [] }: EventBlockProps) {
                     id: r.resident_id,
                     name: r.full_name,
                   }))}
-                  placeholder="Select resident…"
+                  placeholder="Chọn cư dân…"
                 />
               </div>
             )}
@@ -146,7 +146,7 @@ export function EventBlock({ ev, residents = [] }: EventBlockProps) {
                 onClick={onRegister}
                 disabled={!canRegister}
               >
-                {mine ? "Registered" : "Register"}
+                {mine ? "Đã đăng ký" : "Đăng ký"}
               </Button>
               <Button
                 size="sm"
@@ -154,7 +154,7 @@ export function EventBlock({ ev, residents = [] }: EventBlockProps) {
                 onClick={onCancel}
                 disabled={!mine}
               >
-                Cancel
+                Hủy
               </Button>
             </div>
           </CardContent>

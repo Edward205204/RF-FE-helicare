@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import path from "@/constants/path";
@@ -9,8 +9,10 @@ import {
   deleteRoom,
   type RoomResponse,
   type CreateRoomData,
+  type RoomListMeta,
 } from "@/apis/room.api";
 import { toast } from "react-toastify";
+import { usePaginationQuerySync } from "@/hooks/use-pagination-query";
 import {
   Dialog,
   DialogContent,
@@ -39,10 +41,55 @@ import {
   type RoomChangeRequestResponse,
 } from "@/apis/room.api";
 
+const RANGE = 2;
+type PaginationItem = number | "ellipsis";
+
+const buildPaginationItems = (
+  currentPage: number,
+  totalPages: number
+): PaginationItem[] => {
+  if (totalPages <= 1) return [1];
+
+  const candidates = new Set<number>();
+  for (let i = currentPage - RANGE; i <= currentPage + RANGE; i += 1) {
+    if (i >= 1 && i <= totalPages) {
+      candidates.add(i);
+    }
+  }
+  candidates.add(1);
+  if (totalPages >= 2) {
+    candidates.add(2);
+    candidates.add(totalPages);
+    if (totalPages - 1 > 0) {
+      candidates.add(totalPages - 1);
+    }
+  }
+
+  const sorted = Array.from(candidates).sort((a, b) => a - b);
+  const result: PaginationItem[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0) {
+      const prev = sorted[index - 1];
+      if (page - prev > 1) {
+        result.push("ellipsis");
+      }
+    }
+    result.push(page);
+  });
+  return result;
+};
+
 export default function RoomManagement(): React.JSX.Element {
   const navigate = useNavigate();
+  const { page, limit, setPage, setLimit } = usePaginationQuerySync(10);
   const [rooms, setRooms] = useState<RoomResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<RoomListMeta>({
+    page,
+    limit,
+    total: 0,
+    totalPages: 1,
+  });
   const [showDialog, setShowDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentRoom, setCurrentRoom] = useState<RoomResponse | null>(null);
@@ -68,21 +115,39 @@ export default function RoomManagement(): React.JSX.Element {
   const [capacity, setCapacity] = useState(1);
   const [notes, setNotes] = useState("");
 
-  const fetchRooms = async () => {
+  const fetchRooms = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getRooms();
-      setRooms(response.data || []);
+      const result = await getRooms({
+        page,
+        limit,
+      });
+      setRooms(result.rooms || []);
+
+      const fallbackTotal = Math.max(
+        (page - 1) * limit + result.rooms.length,
+        result.rooms.length
+      );
+      const fallbackMeta: RoomListMeta = {
+        page,
+        limit,
+        total: fallbackTotal,
+        totalPages: Math.max(1, Math.ceil(fallbackTotal / limit)),
+      };
+      setPagination(result.pagination || fallbackMeta);
     } catch (error: any) {
       console.error("Error fetching rooms:", error);
       toast.error(error.response?.data?.message || "Failed to load rooms");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit]);
 
   useEffect(() => {
     fetchRooms();
+  }, [fetchRooms]);
+
+  useEffect(() => {
     fetchRoomChangeRequests();
   }, [filterStatus]);
 
@@ -250,12 +315,24 @@ export default function RoomManagement(): React.JSX.Element {
     }
   };
 
+  const paginationItems = useMemo(() => {
+    const totalPages = pagination.totalPages || 1;
+    return buildPaginationItems(page, totalPages);
+  }, [page, pagination.totalPages]);
+
+  const totalRooms = pagination.total ?? rooms.length;
+  const showingFrom = totalRooms === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo =
+    totalRooms === 0 ? 0 : Math.min(totalRooms, showingFrom + rooms.length - 1);
+  const canGoPrev = page > 1;
+  const canGoNext = page < pagination.totalPages;
+
   const today = new Date().toLocaleDateString("vi-VN");
 
   return (
-    <div className="w-full h-full max-w-full overflow-x-hidden bg-white">
-      <div className="relative w-full h-full max-w-full p-4 md:p-6 overflow-x-hidden">
-        <section className="w-full h-full max-w-full rounded-3xl bg-white/95 ring-1 ring-black/5 shadow-lg overflow-hidden flex flex-col">
+    <div className="w-full min-h-screen max-w-full overflow-x-hidden bg-white">
+      <div className="relative w-full max-w-full p-4 md:p-6 overflow-x-hidden">
+        <section className="w-full max-w-full rounded-3xl bg-white/95 ring-1 ring-black/5 shadow-lg flex flex-col">
           <header className="px-6 py-6 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex-shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col gap-2">
@@ -275,12 +352,20 @@ export default function RoomManagement(): React.JSX.Element {
             </div>
           </header>
 
-          <div className="flex-1 overflow-hidden p-6 min-h-0">
-            <div className="w-full h-full overflow-y-auto overflow-x-hidden">
+          <div className="p-6">
+            <div className="w-full overflow-x-hidden">
               <Tabs defaultValue="rooms" className="w-full">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="rooms">Danh sách phòng</TabsTrigger>
-                  <TabsTrigger value="requests">
+                  <TabsTrigger
+                    value="rooms"
+                    className="data-[state=active]:bg-[#5985d8] data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+                  >
+                    Danh sách phòng
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="requests"
+                    className="data-[state=active]:bg-[#5985d8] data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+                  >
                     Yêu cầu đổi phòng
                     {roomChangeRequests.filter((r) => r.status === "pending")
                       .length > 0 && (
@@ -428,6 +513,72 @@ export default function RoomManagement(): React.JSX.Element {
                           )}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <span>
+                        Hiển thị {showingFrom}-{showingTo} / {pagination.total}{" "}
+                        phòng
+                      </span>
+                      <label className="flex items-center gap-2">
+                        <span className="text-gray-600 whitespace-nowrap">
+                          Số hàng mỗi trang
+                        </span>
+                        <select
+                          value={limit}
+                          onChange={(e) => setLimit(Number(e.target.value))}
+                          className="rounded-lg border border-gray-200 px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#5985d8]"
+                        >
+                          {[10, 20, 50].map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => canGoPrev && setPage(page - 1)}
+                        disabled={!canGoPrev}
+                        className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer"
+                      >
+                        Trước
+                      </button>
+                      {paginationItems.map((item, idx) =>
+                        item === "ellipsis" ? (
+                          <span
+                            key={`ellipsis-${idx}`}
+                            className="px-2 text-gray-500"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => setPage(item)}
+                            className={`px-3 py-1 rounded border text-sm cursor-pointer ${
+                              item === page
+                                ? "bg-[#5985d8] text-white border-[#5985d8]"
+                                : "bg-white text-gray-700"
+                            }`}
+                          >
+                            {item}
+                          </button>
+                        )
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => canGoNext && setPage(page + 1)}
+                        disabled={!canGoNext}
+                        className="px-3 py-1 rounded border text-sm disabled:opacity-50 cursor-pointer"
+                      >
+                        Sau
+                      </button>
                     </div>
                   </div>
                 </TabsContent>

@@ -126,6 +126,33 @@ const buildPaginationItems = (
   return result;
 };
 
+/**
+ * Tính toán trạng thái sự kiện dựa vào thời điểm hiện tại
+ */
+const calculateEventStatus = (
+  date: string,
+  startTime: string,
+  endTime: string,
+  currentStatus: EventStatus
+): EventStatus => {
+  // Nếu đã bị hủy, giữ nguyên trạng thái hủy
+  if (currentStatus === "Cancelled") {
+    return "Cancelled";
+  }
+
+  const now = new Date();
+  const startDateTime = new Date(`${date}T${startTime}`);
+  const endDateTime = new Date(`${date}T${endTime}`);
+
+  if (now < startDateTime) {
+    return "Upcoming";
+  } else if (now >= startDateTime && now < endDateTime) {
+    return "Ongoing";
+  } else {
+    return "Ended";
+  }
+};
+
 const StaffEventManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,14 +180,33 @@ const StaffEventManagementPage: React.FC = () => {
     defaultValues,
   });
 
-  // sync local hour/minute with form's startTime
+  // Tính toán lại trạng thái khi ngày/giờ thay đổi trong form
+  const dateValue = form.watch("date");
   const startTimeValue = form.watch("startTime");
+  const endTimeValue = form.watch("endTime");
+  const currentStatus = form.watch("status");
+
   useEffect(() => {
-    const st = startTimeValue || "";
-    if (st && st.includes(":")) {
-      st.split(":"); // Split the time string without assigning unused variables
+    if (dateValue && startTimeValue && endTimeValue && editingEventId) {
+      const calculatedStatus = calculateEventStatus(
+        dateValue,
+        startTimeValue,
+        endTimeValue,
+        currentStatus || "Upcoming"
+      );
+      // Cập nhật trạng thái trong form để hiển thị
+      if (calculatedStatus !== currentStatus) {
+        form.setValue("status", calculatedStatus);
+      }
     }
-  }, [startTimeValue]);
+  }, [
+    dateValue,
+    startTimeValue,
+    endTimeValue,
+    editingEventId,
+    currentStatus,
+    form,
+  ]);
 
   // Shared function to refresh events with pagination
   const refreshEventsList = useCallback(async () => {
@@ -225,7 +271,7 @@ const StaffEventManagementPage: React.FC = () => {
           getRooms(),
         ]);
 
-        setRooms(roomsResponse.data || []);
+        setRooms(roomsResponse.rooms || []);
         console.log(
           "Initial fetch completed:",
           eventsResponse.length,
@@ -381,6 +427,24 @@ const StaffEventManagementPage: React.FC = () => {
 
   const openEditDialog = (event: StaffEvent) => {
     try {
+      // Tính toán trạng thái dựa vào thời điểm hiện tại
+      const calculatedStatus = calculateEventStatus(
+        event.date,
+        event.startTime,
+        event.endTime,
+        event.status
+      );
+
+      // Kiểm tra nếu trạng thái là Ongoing hoặc Ended thì không cho chỉnh sửa
+      if (calculatedStatus === "Ongoing" || calculatedStatus === "Ended") {
+        toast.warning(
+          `Không thể chỉnh sửa sự kiện có trạng thái "${
+            calculatedStatus === "Ongoing" ? "Đang diễn ra" : "Đã kết thúc"
+          }".`
+        );
+        return;
+      }
+
       setEditingEventId(event.id);
 
       // event.startTime và event.endTime là string "HH:MM", event.date là "YYYY-MM-DD"
@@ -398,7 +462,7 @@ const StaffEventManagementPage: React.FC = () => {
         careSubType: event.careSubType || "",
         frequency: event.frequency || "",
         roomIds: event.roomIds || [],
-        status: event.status,
+        status: calculatedStatus, // Sử dụng trạng thái đã tính toán
       });
 
       setDialogOpen(true);
@@ -636,12 +700,45 @@ const StaffEventManagementPage: React.FC = () => {
                   </TableCell>
                   <TableCell>{event.location}</TableCell>
                   <TableCell>
-                    {event.roomIds && event.roomIds.length > 0
-                      ? rooms
-                          .filter((r) => event.roomIds?.includes(r.room_id))
-                          .map((r) => r.room_number)
-                          .join(", ")
-                      : "—"}
+                    {(() => {
+                      if (!event.roomIds || event.roomIds.length === 0) {
+                        return <span className="text-gray-400">—</span>;
+                      }
+                      
+                      const eventRooms = rooms.filter((r) =>
+                        event.roomIds?.includes(r.room_id)
+                      );
+                      const maxDisplay = 3;
+                      const displayRooms = eventRooms.slice(0, maxDisplay);
+                      const remainingCount = eventRooms.length - maxDisplay;
+                      
+                      return (
+                        <div className="flex flex-wrap gap-1 items-center justify-center">
+                          {displayRooms.map((room) => (
+                            <Badge
+                              key={room.room_id}
+                              variant="outline"
+                              className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                              title={`Phòng ${room.room_number} (${room.type})`}
+                            >
+                              {room.room_number}
+                            </Badge>
+                          ))}
+                          {remainingCount > 0 && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5 bg-gray-50 text-gray-600 border-gray-200"
+                              title={eventRooms
+                                .slice(maxDisplay)
+                                .map((r) => r.room_number)
+                                .join(", ")}
+                            >
+                              +{remainingCount}
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>{event.frequency || "—"}</TableCell>
                   <TableCell>{event.careSubType || "—"}</TableCell>
@@ -662,14 +759,42 @@ const StaffEventManagementPage: React.FC = () => {
                   </TableCell>
 
                   <TableCell className="grid grid-cols-3 ">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white border border-slate-200 cursor-pointer hover:bg-blue-500 hover:text-white"
-                      onClick={() => openEditDialog(event)}
-                    >
-                      Sửa
-                    </Button>
+                    {(() => {
+                      const calculatedStatus = calculateEventStatus(
+                        event.date,
+                        event.startTime,
+                        event.endTime,
+                        event.status
+                      );
+                      const isDisabled =
+                        calculatedStatus === "Ongoing" ||
+                        calculatedStatus === "Ended";
+
+                      return (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`bg-white border border-slate-200 ${
+                            isDisabled
+                              ? "cursor-not-allowed opacity-50"
+                              : "cursor-pointer hover:bg-blue-500 hover:text-white"
+                          }`}
+                          onClick={() => openEditDialog(event)}
+                          disabled={isDisabled}
+                          title={
+                            isDisabled
+                              ? `Không thể chỉnh sửa sự kiện có trạng thái "${
+                                  calculatedStatus === "Ongoing"
+                                    ? "Đang diễn ra"
+                                    : "Đã kết thúc"
+                                }"`
+                              : "Chỉnh sửa sự kiện"
+                          }
+                        >
+                          Sửa
+                        </Button>
+                      );
+                    })()}
                     <Button
                       variant="destructive"
                       size="sm"
@@ -921,27 +1046,30 @@ const StaffEventManagementPage: React.FC = () => {
                   <Input {...form.register("location")} className="flex-1" />
                 </div>
 
-                {/* 6. STATUS */}
+                {/* 6. STATUS - Chỉ hiển thị, không cho chỉnh sửa */}
                 <div className="flex items-center gap-4">
                   <label className="w-36 text-sm font-medium">Trạng thái</label>
-                  <Select
-                    value={form.watch("status")}
-                    onValueChange={(v) => form.setValue("status", v as any)}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Upcoming">Sắp diễn ra</SelectItem>
-                      <SelectItem value="Cancelled">Đã hủy</SelectItem>
-                      <SelectItem value="Ongoing" disabled>
-                        Đang diễn ra (tự động)
-                      </SelectItem>
-                      <SelectItem value="Ended" disabled>
-                        Đã kết thúc (tự động)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex-1">
+                    <Badge
+                      className={
+                        form.watch("status") === "Upcoming"
+                          ? "bg-blue-500 text-white hover:bg-blue-500"
+                          : form.watch("status") === "Ongoing"
+                          ? "bg-green-500 text-white hover:bg-green-500"
+                          : form.watch("status") === "Ended"
+                          ? "bg-gray-400 text-white hover:bg-gray-400"
+                          : "bg-red-500 text-white hover:bg-red-500"
+                      }
+                    >
+                      {form.watch("status") === "Upcoming"
+                        ? "Sắp diễn ra"
+                        : form.watch("status") === "Ongoing"
+                        ? "Đang diễn ra"
+                        : form.watch("status") === "Ended"
+                        ? "Đã kết thúc"
+                        : "Đã hủy"}
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* BUTTONS */}

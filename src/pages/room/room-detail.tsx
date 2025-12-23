@@ -68,7 +68,7 @@ export default function RoomDetail(): React.JSX.Element {
 
       setRoom(roomRes.data || roomRes);
       setResidents(residentsRes.data || residentsRes);
-      setAllRooms(allRoomsRes.rooms || allRoomsRes.data || []);
+      setAllRooms(allRoomsRes.rooms || []);
     } catch (error: any) {
       console.error("Error fetching room data:", error);
       toast.error(

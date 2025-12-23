@@ -91,7 +91,7 @@ export default function ListResident(): React.JSX.Element {
     setRoomsLoading(true);
     try {
       const response = await getRooms();
-      setRooms(response.data || []);
+      setRooms(response.rooms || []);
     } catch (error: any) {
       console.error("Error fetching rooms:", error);
       toast.error("Không thể tải danh sách phòng");

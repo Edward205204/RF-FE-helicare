@@ -120,9 +120,9 @@ export function TimeBlockSlot({
         disabled={isDisabled}
         title={
           isPastDate
-            ? "Cannot schedule for past date"
+            ? "Không thể đặt lịch cho ngày đã qua"
             : isTimeBlockPassed
-            ? "This time slot has passed"
+            ? "Khung giờ này đã qua"
             : ""
         }
       >
@@ -132,13 +132,13 @@ export function TimeBlockSlot({
             {availability.current_visitors}/{availability.max_visitors}
           </span>
         )}
-        {isFull && <span className="text-[10px] text-red-500">Full</span>}
+        {isFull && <span className="text-[10px] text-red-500">Đã đầy</span>}
         {!allowBooking && (
-          <span className="text-[10px] text-gray-400">View only</span>
+          <span className="text-[10px] text-gray-400">Chỉ xem</span>
         )}
         {!selectedResidentId && allowBooking && (
           <span className="text-[10px] text-gray-400">
-            Select resident to book
+            Chọn cư dân để đặt lịch
           </span>
         )}
       </button>
@@ -153,10 +153,10 @@ export function TimeBlockSlot({
             >
               ×
             </button>
-            <h3 className="text-lg font-semibold mb-4">Book Visit</h3>
+            <h3 className="text-lg font-semibold mb-4">Đặt lịch thăm viếng</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Date</label>
+                <label className="text-sm font-medium mb-1 block">Ngày</label>
                 <Input
                   type="date"
                   value={dayISO}
@@ -166,7 +166,7 @@ export function TimeBlockSlot({
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">
-                  Time Slot
+                  Khung giờ
                 </label>
                 <Input
                   value={blockLabel}
@@ -175,15 +175,13 @@ export function TimeBlockSlot({
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">
-                  Resident
-                </label>
+                <label className="text-sm font-medium mb-1 block">Cư dân</label>
                 <Input
                   value={
                     selectedResidentName ||
                     residents.find((r) => r.resident_id === selectedResidentId)
                       ?.full_name ||
-                    "No resident selected"
+                    "Chưa chọn cư dân"
                   }
                   disabled
                   className="border-none shadow-sm"
@@ -191,12 +189,12 @@ export function TimeBlockSlot({
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">
-                  Notes (optional)
+                  Ghi chú (tùy chọn)
                 </label>
                 <Input
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes..."
+                  placeholder="Nhập ghi chú..."
                   className="border-none shadow-sm"
                 />
               </div>
@@ -206,7 +204,7 @@ export function TimeBlockSlot({
                   className="bg-blue-500 text-white hover:bg-blue-600 border-none shadow-sm cursor-pointer"
                   disabled={!selectedResidentId || isFull || isTimeBlockPassed}
                 >
-                  Book
+                  Đặt lịch
                 </Button>
                 <Button
                   type="button"
@@ -214,7 +212,7 @@ export function TimeBlockSlot({
                   onClick={() => setActiveSlot(null)}
                   className="border-none shadow-sm cursor-pointer hover:bg-gray-100"
                 >
-                  Cancel
+                  Hủy
                 </Button>
               </div>
             </form>

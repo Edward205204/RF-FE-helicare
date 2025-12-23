@@ -102,3 +102,11 @@ export const resendFamilyLink = async () => {
   const response = await request.post("/auth/family-link/resend");
   return response.data;
 };
+
+export const createFamilyAccount = async (data: {
+  email: string;
+  full_name: string;
+}) => {
+  const response = await request.post("/auth/create-family-account", data);
+  return response.data;
+};

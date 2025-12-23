@@ -29,12 +29,12 @@ export const staffMenu: StaffMenuItem[] = [
     icon: <User size={20} />,
   },
   {
-    label: "Nhập chỉ số sinh tồn",
+    label: "Nhập chỉ số sức khỏe",
     path: path.vitalSignForm,
     icon: <Activity size={20} />,
   },
   {
-    label: "Thuốc & Kế hoạch chăm sóc",
+    label: "Thuốc",
     path: path.staffMedicationCareplan,
     icon: <Pill size={20} />,
   },
@@ -79,12 +79,12 @@ export const staffMenu: StaffMenuItem[] = [
     icon: <Bed size={20} />,
   },
   {
-    label: "SOS & Sự cố",
+    label: "Báo cáo sự cố",
     path: path.staffIncidents,
     icon: <AlertTriangle size={20} />,
   },
   {
-    label: "Yêu cầu dịch vụ",
+    label: "Thanh toán",
     path: path.staffServiceRequests,
     icon: <CreditCard size={20} />,
   },
@@ -94,7 +94,7 @@ export const staffMenu: StaffMenuItem[] = [
     icon: <MessageSquare size={20} />,
   },
   {
-    label: "Quản lý mật khẩu cư dân",
+    label: "Tài khoản cư dân",
     path: path.staffResidentPasswordManagement,
     icon: <Lock size={20} />,
   },

@@ -80,6 +80,7 @@ export default function StaffCreateEvent(): React.JSX.Element {
   const [careSubType, setCareSubType] =
     useState<CareSubTypeLocal>("VitalCheck");
   const [roomIds, setRoomIds] = useState<string[]>([]);
+  const [applyToAllRooms, setApplyToAllRooms] = useState<boolean>(false); // Default: not apply to all
   const [freq, setFreq] = useState<Frequency>("OneTime");
   const [location, setLocation] = useState<string>("");
 
@@ -94,7 +95,8 @@ export default function StaffCreateEvent(): React.JSX.Element {
     const fetchData = async () => {
       try {
         const roomsResponse = await getRooms();
-        setRooms(roomsResponse.data || []);
+        const roomsData = roomsResponse.rooms || [];
+        setRooms(roomsData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Không thể tải dữ liệu phòng");
@@ -102,6 +104,17 @@ export default function StaffCreateEvent(): React.JSX.Element {
     };
     fetchData();
   }, []);
+
+  // Update roomIds when applyToAllRooms changes
+  React.useEffect(() => {
+    if (applyToAllRooms && rooms.length > 0) {
+      const allRoomIds = rooms.map((room) => room.room_id);
+      setRoomIds(allRoomIds);
+    } else if (!applyToAllRooms) {
+      // When unchecking "apply to all", reset to no rooms selected
+      setRoomIds([]);
+    }
+  }, [applyToAllRooms, rooms.length]);
 
   const valid = useMemo(() => {
     if (!scheduledAt || !endAt || !eventName.trim()) return false;
@@ -125,7 +138,11 @@ export default function StaffCreateEvent(): React.JSX.Element {
         start_time: startISO,
         end_time: endISO,
         location: location || undefined, // Will default to institution name on backend
-        room_ids: roomIds.length > 0 ? roomIds : undefined,
+        room_ids: applyToAllRooms
+          ? [] // Empty array means apply to all rooms
+          : roomIds.length > 0
+          ? roomIds
+          : undefined,
       };
 
       // Add care configuration only for Care events
@@ -345,40 +362,82 @@ export default function StaffCreateEvent(): React.JSX.Element {
                   </div>
 
                   {/* Multi-room selection for special care events */}
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-4 md:col-span-2">
                     <Label>
                       Phòng (Tùy chọn - cho sự kiện chăm sóc đặc biệt)
                     </Label>
-                    <MultiSelect
-                      options={rooms.map((room) => ({
-                        value: room.room_id,
-                        label: `Phòng ${room.room_number} (${room.type})`,
-                      }))}
-                      value={rooms
-                        .filter((r) => roomIds.includes(r.room_id))
-                        .map((r) => ({
-                          value: r.room_id,
-                          label: `Phòng ${r.room_number} (${r.type})`,
-                        }))}
-                      onChange={(selected) =>
-                        setRoomIds(
-                          (selected || []).map((option) => option.value)
-                        )
-                      }
-                      placeholder="Chọn phòng (tùy chọn)..."
-                      isMulti
-                      className="react-select-container"
-                      classNamePrefix="react-select"
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          borderRadius: "0.5rem",
-                          borderColor: "#e2e8f0",
-                          minHeight: "40px",
-                          fontSize: "0.875rem",
-                        }),
-                      }}
-                    />
+
+                    {/* Apply to all rooms checkbox - separate section */}
+                    <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
+                      <input
+                        type="checkbox"
+                        id="apply-to-all-rooms"
+                        checked={applyToAllRooms}
+                        onChange={(e) => {
+                          setApplyToAllRooms(e.target.checked);
+                        }}
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      />
+                      <Label
+                        htmlFor="apply-to-all-rooms"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Áp dụng cho tất cả
+                      </Label>
+                    </div>
+
+                    {/* MultiSelect section - separate section */}
+                    <div>
+                      {!applyToAllRooms ? (
+                        <MultiSelect
+                          options={rooms.map((room) => ({
+                            value: room.room_id,
+                            label: `Phòng ${room.room_number || "N/A"} (${
+                              room.type === "single"
+                                ? "Đơn"
+                                : room.type === "double"
+                                ? "Đôi"
+                                : "Nhiều giường"
+                            })`,
+                          }))}
+                          value={rooms
+                            .filter((r) => roomIds.includes(r.room_id))
+                            .map((r) => ({
+                              value: r.room_id,
+                              label: `Phòng ${r.room_number || "N/A"} (${
+                                r.type === "single"
+                                  ? "Đơn"
+                                  : r.type === "double"
+                                  ? "Đôi"
+                                  : "Nhiều giường"
+                              })`,
+                            }))}
+                          onChange={(selected) => {
+                            const selectedValues = (selected || []).map(
+                              (option) => option.value
+                            );
+                            setRoomIds(selectedValues);
+                          }}
+                          placeholder="Chọn phòng (tùy chọn)..."
+                          isMulti
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              borderRadius: "0.5rem",
+                              borderColor: "#e2e8f0",
+                              minHeight: "40px",
+                              fontSize: "0.875rem",
+                            }),
+                          }}
+                        />
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-slate-500 bg-gray-50 border border-gray-200 rounded-md">
+                          Đã áp dụng cho tất cả phòng
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -435,14 +494,16 @@ export default function StaffCreateEvent(): React.JSX.Element {
                         <span className="text-slate-500">Tần suất</span>
                         <span className="font-medium">{freq}</span>
                       </div>
-                      {roomIds.length > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Phòng</span>
-                          <span className="font-medium">
-                            Đã chọn {roomIds.length}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Phòng</span>
+                        <span className="font-medium">
+                          {applyToAllRooms
+                            ? "Tất cả phòng"
+                            : roomIds.length > 0
+                            ? `Đã chọn ${roomIds.length}`
+                            : "Chưa chọn"}
+                        </span>
+                      </div>
                     </>
                   )}
 

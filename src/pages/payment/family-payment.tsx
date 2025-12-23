@@ -54,7 +54,9 @@ const PaymentModuleFamily: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedContract, setSelectedContract] =
     useState<ServiceContractResponse | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<
+    PaymentMethod | "TRANSFER" | ""
+  >("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] =
@@ -209,16 +211,54 @@ const PaymentModuleFamily: React.FC = () => {
 
     try {
       if (paymentMethod === "VNPAY") {
-        // Thanh toán VNPay
+        // Thanh toán VNPay gốc (Real VNPay - redirect đến trang VNPay)
         const periodDates = calculatePeriodDates(selectedContract);
-        const response = await createVNPayPayment({
-          contract_id: selectedContract.contract_id,
-          period_start: periodDates.start,
-          period_end: periodDates.end,
-        });
+        const response = await createVNPayPayment(
+          {
+            contract_id: selectedContract.contract_id,
+            period_start: periodDates.start,
+            period_end: periodDates.end,
+          },
+          false // false = real VNPay mode
+        );
 
-        // Redirect đến VNPay
-        window.location.href = response.data.payment_url;
+        // Real VNPay trả về: { data: { payment_url, payment_id, order_id } }
+        if (response.data && "payment_url" in response.data) {
+          console.log("✅ Redirecting to VNPay:", response.data.payment_url);
+          // Redirect đến trang VNPay
+          window.location.href = response.data.payment_url;
+        } else {
+          console.error("❌ ERROR: Unexpected response format:", response);
+          toast.error("Lỗi: Không nhận được URL thanh toán VNPay");
+        }
+      } else if (paymentMethod === "TRANSFER") {
+        // Chuyển khoản nhanh (Mock mode - xử lý ngay)
+        const periodDates = calculatePeriodDates(selectedContract);
+        const response = await createVNPayPayment(
+          {
+            contract_id: selectedContract.contract_id,
+            period_start: periodDates.start,
+            period_end: periodDates.end,
+          },
+          true // true = mock mode
+        );
+
+        // Mock mode trả về: { data: { status, payment_id, ... } }
+        if (response.data && "status" in response.data) {
+          console.log("✅ Mock payment result:", response.data.status);
+          if (response.data.status === "SUCCESS") {
+            toast.success("Thanh toán thành công!");
+            // Reload để cập nhật danh sách contract
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            toast.error(response.message || "Thanh toán thất bại");
+          }
+        } else {
+          console.error("❌ ERROR: Unexpected response format:", response);
+          toast.error("Lỗi: Không nhận được kết quả thanh toán");
+        }
       } else if (paymentMethod === "CASH") {
         // Tạo payment với CASH (cần upload proof)
         const periodDates = calculatePeriodDates(selectedContract);
@@ -400,6 +440,16 @@ const PaymentModuleFamily: React.FC = () => {
       default:
         return <Badge className="text-sm">Không rõ</Badge>;
     }
+  };
+
+  // Helper để hiển thị badge cho payment method (bao gồm TRANSFER)
+  const getPaymentMethodBadgeWithTransfer = (
+    method: PaymentMethod | "TRANSFER"
+  ) => {
+    if (method === "TRANSFER") {
+      return <Badge className="text-sm bg-green-500">Chuyển khoản nhanh</Badge>;
+    }
+    return getPaymentMethodBadge(method);
   };
 
   if (loading) {
@@ -707,13 +757,19 @@ const PaymentModuleFamily: React.FC = () => {
             <RadioGroup
               value={paymentMethod}
               onValueChange={(value) =>
-                setPaymentMethod(value as PaymentMethod)
+                setPaymentMethod(value as PaymentMethod | "TRANSFER")
               }
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="VNPAY" id="vnpay" />
                 <Label htmlFor="vnpay" className="text-lg cursor-pointer">
-                  VNPay (Thanh toán trực tuyến)
+                  VNPay (Thanh toán trực tuyến qua VNPay)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="TRANSFER" id="transfer" />
+                <Label htmlFor="transfer" className="text-lg cursor-pointer">
+                  Chuyển khoản nhanh
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -723,7 +779,7 @@ const PaymentModuleFamily: React.FC = () => {
                 </Label>
               </div>
             </RadioGroup>
-            {paymentMethod === "CASH" && (
+            {(paymentMethod === "CASH" || paymentMethod === "TRANSFER") && (
               <div className="space-y-2">
                 <Label htmlFor="notes">Ghi chú (tùy chọn)</Label>
                 <Textarea

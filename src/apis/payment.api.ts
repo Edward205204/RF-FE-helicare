@@ -184,10 +184,93 @@ export const cancelPayment = async (
 
 // ========== VNPAY ENDPOINTS ==========
 
-// Tạo VNPay payment URL
+// Tạo VNPay payment URL (hoặc mock payment nếu mock=true)
 export const createVNPayPayment = async (
-  data: CreateVNPayPaymentReqBody
-): Promise<{ message: string; data: VNPayPaymentUrlResponse }> => {
-  const response = await request.post("/api/payments/vnpay/create", data);
+  data: CreateVNPayPaymentReqBody,
+  mock: boolean = true // Mặc định dùng mock mode
+): Promise<{
+  message: string;
+  data:
+    | VNPayPaymentUrlResponse
+    | {
+        payment_id: string;
+        status: string;
+        vnpay_order_id: string;
+        vnpay_transaction_no: string;
+      };
+}> => {
+  // Gửi mock param trong URL query string - ĐẢM BẢO có dấu ? và = đúng
+  const mockParam = mock ? "true" : "false";
+  const url = `/api/payments/vnpay/create?mock=${mockParam}`;
+  console.log("🚀 Calling VNPay API with URL:", url, "mock param:", mockParam);
+  const response = await request.post(url, data);
+  console.log("📦 VNPay API Response:", response);
+  return response.data;
+};
+
+// ========== DBM ACCOUNT ENDPOINTS (Mock Bank Account) ==========
+
+export interface PaymentStatisticsResponse {
+  totalPayments: number;
+  successfulPayments: number;
+  failedPayments: number;
+  totalAmount: number;
+  successfulAmount: number;
+  paymentByMethod: Array<{
+    payment_method: string;
+    _count: { payment_method: number };
+    _sum: { amount: number | null };
+  }>;
+  paymentByStatus: Array<{
+    status: string;
+    _count: { status: number };
+    _sum: { amount: number | null };
+  }>;
+}
+
+export interface RevenueAnalyticsResponse {
+  series: Array<{
+    date: string;
+    value: number;
+  }>;
+}
+
+export interface RevenueByMethodResponse {
+  method: string;
+  totalAmount: number;
+  count: number;
+}
+
+// Lấy thống kê thanh toán cho viện
+export const getPaymentStatistics = async (params?: {
+  start_date?: string;
+  end_date?: string;
+}): Promise<{ message: string; data: PaymentStatisticsResponse }> => {
+  const response = await request.get("/api/payments/dbm/statistics", {
+    params,
+  });
+  return response.data;
+};
+
+// Lấy revenue analytics theo thời gian
+export const getRevenueAnalytics = async (params?: {
+  start_date?: string;
+  end_date?: string;
+  granularity?: "day" | "week" | "month";
+}): Promise<{ message: string; data: RevenueAnalyticsResponse }> => {
+  const response = await request.get("/api/payments/dbm/revenue/analytics", {
+    params,
+  });
+  return response.data;
+};
+
+// Lấy revenue theo phương thức thanh toán
+export const getRevenueByPaymentMethod = async (params?: {
+  start_date?: string;
+  end_date?: string;
+}): Promise<{ message: string; data: RevenueByMethodResponse[] }> => {
+  const response = await request.get("/api/payments/dbm/revenue/by-method", {
+    params,
+  });
   return response.data;
 };

@@ -38,7 +38,7 @@ import { X, CalendarIcon, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { createResident } from "@/apis/resident.api";
-import { checkUserByEmail } from "@/apis/auth.api";
+import { checkUserByEmail, createFamilyAccount } from "@/apis/auth.api";
 import { getRooms, type RoomResponse } from "@/apis/room.api";
 import { getAllergenTags } from "@/apis/menu-planner.api";
 import {
@@ -111,6 +111,12 @@ const ResidentInformation: React.FC = () => {
     verified: false,
   });
   const [checkingEmail, setCheckingEmail] = useState(false);
+  const [showCreateAccountDialog, setShowCreateAccountDialog] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [createAccountForm, setCreateAccountForm] = useState({
+    full_name: "",
+    email: "",
+  });
 
   // Fetch rooms (chỉ lấy phòng còn trống)
   useEffect(() => {
@@ -118,7 +124,7 @@ const ResidentInformation: React.FC = () => {
       try {
         setLoadingRooms(true);
         const response = await getRooms(); // Lấy từ token, không cần institutionId
-        const allRooms = response.data || [];
+        const allRooms = response.rooms || [];
         // Chỉ hiển thị phòng còn trống
         const availableRooms = allRooms.filter(
           (room: RoomResponse) => room.current_occupancy < room.capacity
@@ -248,12 +254,59 @@ const ResidentInformation: React.FC = () => {
         email,
         verified: false,
       });
+      // Nếu không tìm thấy, hiển thị thông báo và cho phép tạo tài khoản
       toast.error(
         error.response?.data?.message ||
           "Không tìm thấy thành viên gia đình hoặc chưa đăng ký"
       );
+      // Không reset verified để có thể hiển thị nút tạo tài khoản
     } finally {
       setCheckingEmail(false);
+    }
+  };
+
+  const handleCreateFamilyAccount = async () => {
+    const email = createAccountForm.email.trim();
+    const fullName = createAccountForm.full_name.trim();
+
+    if (!email) {
+      toast.error("Vui lòng nhập địa chỉ email");
+      return;
+    }
+
+    if (!fullName) {
+      toast.error("Vui lòng nhập họ và tên");
+      return;
+    }
+
+    try {
+      setCreatingAccount(true);
+      const response = await createFamilyAccount({
+        email,
+        full_name: fullName,
+      });
+
+      toast.success(
+        "Tài khoản đã được tạo thành công! Email kích hoạt đã được gửi. Bạn có thể tiếp tục tạo cư dân và về nhà kích hoạt tài khoản sau.",
+        { autoClose: 5000 }
+      );
+
+      // Đóng popup và cập nhật familyContact để form có thể submit
+      setShowCreateAccountDialog(false);
+      setCreateAccountForm({ full_name: "", email: "" });
+      setFamilyContact({
+        email,
+        user_id: response.data?.user_id, // Lưu user_id để có thể submit form
+        full_name: fullName,
+        verified: false, // Chưa verify email nhưng đã có tài khoản
+      });
+    } catch (error: any) {
+      console.error("Error creating family account:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể tạo tài khoản gia đình"
+      );
+    } finally {
+      setCreatingAccount(false);
     }
   };
 
@@ -263,7 +316,7 @@ const ResidentInformation: React.FC = () => {
       isValidDob(dob) &&
       gender &&
       familyContact.email.trim() &&
-      familyContact.verified
+      (familyContact.verified || familyContact.user_id) // Cho phép submit nếu đã verified hoặc đã có user_id (đã tạo tài khoản)
   );
 
   // Allergies
@@ -385,8 +438,9 @@ const ResidentInformation: React.FC = () => {
   };
 
   const handleConfirm = async () => {
-    if (!familyContact.verified) {
-      toast.error("Vui lòng xác minh email gia đình trước");
+    // Cho phép submit nếu đã verified hoặc đã có user_id (đã tạo tài khoản)
+    if (!familyContact.verified && !familyContact.user_id) {
+      toast.error("Vui lòng xác minh email gia đình hoặc tạo tài khoản trước");
       return;
     }
 
@@ -399,7 +453,7 @@ const ResidentInformation: React.FC = () => {
         notes: notes || undefined,
         room_id:
           selectedRoom && selectedRoom.trim() !== "" ? selectedRoom : undefined, // Add room_id (chỉ gửi nếu có value)
-        family_user_id: familyContact.user_id, // Link với family member
+        family_user_id: familyContact.user_id, // Link với family member (có thể chưa verify email)
         chronicDiseases: comorbidities.map((disease) => ({
           name: disease,
           severity: "MODERATE" as const, // Default severity
@@ -662,6 +716,25 @@ const ResidentInformation: React.FC = () => {
                                   </span>
                                 </div>
                               )}
+                            {!familyContact.verified && (
+                              <div className="flex flex-col gap-2 mt-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setCreateAccountForm({
+                                      email: "",
+                                      full_name: "",
+                                    });
+                                    setShowCreateAccountDialog(true);
+                                  }}
+                                  className="w-full bg-blue-500 text-white hover:bg-blue-600"
+                                  size="sm"
+                                >
+                                  Tạo tài khoản
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -1170,6 +1243,85 @@ const ResidentInformation: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Family Account Dialog */}
+      <Dialog
+        open={showCreateAccountDialog}
+        onOpenChange={setShowCreateAccountDialog}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Tạo tài khoản gia đình
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Điền thông tin để tạo tài khoản cho thành viên gia đình. Email
+              kích hoạt sẽ được gửi đến địa chỉ email này.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Họ và tên *
+              </Label>
+              <Input
+                value={createAccountForm.full_name}
+                onChange={(e) =>
+                  setCreateAccountForm({
+                    ...createAccountForm,
+                    full_name: e.target.value,
+                  })
+                }
+                placeholder="Nhập họ và tên"
+                className="border-gray-200 shadow-none bg-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Địa chỉ email *
+              </Label>
+              <Input
+                type="email"
+                value={createAccountForm.email}
+                onChange={(e) =>
+                  setCreateAccountForm({
+                    ...createAccountForm,
+                    email: e.target.value,
+                  })
+                }
+                placeholder="family@example.com"
+                className="border-gray-200 shadow-none bg-white"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowCreateAccountDialog(false);
+                  setCreateAccountForm({ full_name: "", email: "" });
+                }}
+                className="flex-1 border-gray-200"
+                disabled={creatingAccount}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCreateFamilyAccount}
+                className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+                disabled={
+                  creatingAccount ||
+                  !createAccountForm.email.trim() ||
+                  !createAccountForm.full_name.trim()
+                }
+              >
+                {creatingAccount ? "Đang tạo..." : "Tạo tài khoản"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

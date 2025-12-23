@@ -58,7 +58,7 @@ export function QRCodeDisplay({
             QR Code Check-in
           </h3>
           <p className="text-sm text-gray-600">
-            Use this code to check-in when visiting
+            Sử dụng qr code này khi đến thăm viếng
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export function QRCodeDisplay({
 
         <div className="mb-4 text-sm text-gray-600">
           <p>
-            <strong>Expires:</strong> {formatExpiryDate(expiresAt)}
+            <strong>Hết hạn:</strong> {formatExpiryDate(expiresAt)}
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export function QRCodeDisplay({
             className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Copy className="w-4 h-4" />
-            Copy
+            Sao chép
           </Button>
 
           <Button
@@ -110,7 +110,7 @@ export function QRCodeDisplay({
             className="flex items-center gap-2 border-none shadow-sm cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            Download
+            Tải xuống
           </Button>
         </div>
 
@@ -120,7 +120,7 @@ export function QRCodeDisplay({
             onClick={onClose}
             className="mt-4 w-full border-none shadow-sm cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
           >
-            Close
+            Đóng
           </Button>
         )}
       </div>

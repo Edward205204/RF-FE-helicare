@@ -216,7 +216,7 @@ export default function VitalSignForm() {
           getRooms(), // Lấy từ token, không cần institutionId
         ]);
         setResidents(residentsRes.residents || []);
-        setRooms(roomsRes.data || []);
+        setRooms(roomsRes.rooms || []);
       } catch (error) {
         console.error("Error fetching data:", error);
       }

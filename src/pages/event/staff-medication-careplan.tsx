@@ -144,7 +144,7 @@ const MedicationCarePlan: React.FC = () => {
 
       setMedications(medsRes.data || []);
       setResidents(residentsRes.residents || []);
-      setRooms(roomsRes.data || []);
+      setRooms(roomsRes.rooms || []);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error(error.response?.data?.message || "Không thể tải dữ liệu");

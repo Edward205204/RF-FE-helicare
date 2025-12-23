@@ -7,6 +7,28 @@ import { getPaymentById, PaymentResponse } from "@/apis/payment.api";
 import { toast } from "react-toastify";
 import path from "@/constants/path";
 
+// Map VNPay response codes to Vietnamese messages
+const getVNPayErrorMessage = (responseCode: string | null): string => {
+  if (!responseCode) return "Thanh toán thất bại";
+
+  const messages: Record<string, string> = {
+    "00": "Giao dịch thành công",
+    "07": "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).",
+    "09": "Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking",
+    "10": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",
+    "11": "Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch.",
+    "12": "Thẻ/Tài khoản bị khóa.",
+    "13": "Nhập sai mật khẩu xác thực giao dịch (OTP). Xin vui lòng thực hiện lại giao dịch.",
+    "51": "Tài khoản không đủ số dư để thực hiện giao dịch.",
+    "65": "Tài khoản đã vượt quá hạn mức giao dịch trong ngày.",
+    "75": "Ngân hàng thanh toán đang bảo trì.",
+    "79": "Nhập sai mật khẩu thanh toán quá số lần quy định. Xin vui lòng thực hiện lại giao dịch.",
+    "99": "Lỗi không xác định",
+  };
+
+  return messages[responseCode] || `Lỗi không xác định (Mã: ${responseCode})`;
+};
+
 const PaymentResult: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -200,7 +222,9 @@ const PaymentResult: React.FC = () => {
                 </h2>
                 <p className="text-gray-600 mb-4">
                   {error ||
-                    "Giao dịch của bạn không thể được xử lý. Vui lòng thử lại."}
+                    (payment?.vnpay_response_code
+                      ? getVNPayErrorMessage(payment.vnpay_response_code)
+                      : "Giao dịch của bạn không thể được xử lý. Vui lòng thử lại.")}
                 </p>
                 {payment && (
                   <div className="border-t pt-4 mt-4 space-y-3 text-left">
@@ -216,6 +240,24 @@ const PaymentResult: React.FC = () => {
                         {formatCurrency(payment.amount)}
                       </span>
                     </div>
+                    {payment.vnpay_response_code && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Mã lỗi VNPay:</span>
+                        <span className="font-semibold text-red-600">
+                          {payment.vnpay_response_code}
+                        </span>
+                      </div>
+                    )}
+                    {payment.vnpay_transaction_no && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">
+                          Mã giao dịch VNPay:
+                        </span>
+                        <span className="font-semibold">
+                          {payment.vnpay_transaction_no}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

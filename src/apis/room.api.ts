@@ -24,10 +24,48 @@ export interface CreateRoomData {
   notes?: string;
 }
 
+export interface RoomListParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface RoomListMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface RoomListResult {
+  rooms: RoomResponse[];
+  pagination?: RoomListMeta;
+}
+
 // Lấy danh sách rooms (institution_id lấy từ token BE)
-export const getRooms = async () => {
-  const response = await request.get(`/api/rooms/rooms`);
-  return response.data;
+export const getRooms = async (
+  params?: RoomListParams
+): Promise<RoomListResult> => {
+  const response = await request.get(`/api/rooms/rooms`, {
+    params: params
+      ? {
+          page: params.page,
+          limit: params.limit,
+        }
+      : undefined,
+  });
+
+  const payload = response.data?.data;
+
+  if (Array.isArray(payload)) {
+    return {
+      rooms: payload,
+    };
+  }
+
+  return {
+    rooms: payload?.rooms || [],
+    pagination: payload?.pagination,
+  };
 };
 
 // Lấy thông tin room theo ID

@@ -84,7 +84,7 @@ export function Calendar() {
         // Only log if it's not a connection error (backend might not be running)
         if (error.code !== "ERR_NETWORK" && error.code !== "ECONNREFUSED") {
           console.error("Failed to fetch residents:", error);
-          toast.error("Cannot load resident list. Please try again later.");
+          toast.error("Không thể tải danh sách cư dân. Vui lòng thử lại sau.");
         } else {
           // Backend not running - silent fail, will retry when backend is up
           console.warn("Backend not available, residents will be empty");
@@ -259,8 +259,8 @@ export function Calendar() {
           resident_id: s.resident_id || undefined,
           location: s.resident?.room_id
             ? `Room ${s.resident.room_id}`
-            : s.activity?.name || "Location TBD",
-          staff: s.staff?.staffProfile?.full_name || "Staff",
+            : s.activity?.name || "Địa điểm chưa xác định",
+          staff: s.staff?.staffProfile?.full_name || "Nhân viên",
           capacity: 1, // TODO: Get from activity.max_participants when available in API
           registered: 1, // TODO: Calculate from actual registrations
           note: s.notes || s.description || "",
@@ -297,7 +297,7 @@ export function Calendar() {
         const timeBlockLabel = v.time_block
           ? TIME_BLOCKS.find((tb) => tb.value === v.time_block)?.label ||
             v.time_block
-          : "Family Visit";
+          : "Thăm viếng gia đình";
 
         return {
           id: v.visit_id,
@@ -307,8 +307,8 @@ export function Calendar() {
           time_block: v.time_block || undefined,
           name: timeBlockLabel,
           type: "visit" as const,
-          location: v.institution?.name || "Nursing Home",
-          staff: v.family_user?.familyProfile?.full_name || "Relative",
+          location: v.institution?.name || "Viện dưỡng lão",
+          staff: v.family_user?.familyProfile?.full_name || "Người thân",
           capacity: undefined,
           registered: undefined,
           note: v.notes || "",
@@ -327,11 +327,11 @@ export function Calendar() {
       .map((e) => {
         const startDate = new Date(e.start_time);
         const dateStr = formatDateISO(startDate);
-        const startTime = startDate.toLocaleTimeString("en-GB", {
+        const startTime = startDate.toLocaleTimeString("vi-VN", {
           hour: "2-digit",
           minute: "2-digit",
         });
-        const endTime = new Date(e.end_time).toLocaleTimeString("en-GB", {
+        const endTime = new Date(e.end_time).toLocaleTimeString("vi-VN", {
           hour: "2-digit",
           minute: "2-digit",
         });
@@ -356,7 +356,7 @@ export function Calendar() {
           name: e.name,
           type: "care" as const,
           location: e.location,
-          staff: "Event",
+          staff: "Sự kiện",
           capacity: undefined,
           registered: undefined,
           note: `${startTime} - ${endTime}`,
@@ -383,7 +383,7 @@ export function Calendar() {
       const response = await visitApi.createVisit(requestData);
 
       const visit = response.data as VisitResponse;
-      toast.success("Visit booked successfully!");
+      toast.success("Đặt lịch thăm viếng thành công!");
 
       // Optimistically inject new visit into calendar state
       const [newVisitEvent] = mapFamilyVisitToEvent([visit]);
@@ -418,13 +418,13 @@ export function Calendar() {
             .map(([field, err]: [string, any]) => {
               const fieldName =
                 field === "visit_date"
-                  ? "Visit Date"
+                  ? "Ngày thăm"
                   : field === "time_block"
-                  ? "Time Slot"
+                  ? "Khung giờ"
                   : field === "resident_id"
-                  ? "Resident"
+                  ? "Cư dân"
                   : field === "visit_time"
-                  ? "Time"
+                  ? "Thời gian"
                   : field;
               const msg = err.msg || err.message || "Unknown error";
               return `${fieldName}: ${msg}`;
@@ -434,7 +434,7 @@ export function Calendar() {
         } else if (errorData.message) {
           toast.error(errorData.message);
         } else {
-          toast.error("Validation error. Please check the information.");
+          toast.error("Lỗi xác thực. Vui lòng kiểm tra lại thông tin.");
         }
         return;
       }
@@ -453,7 +453,8 @@ export function Calendar() {
         toast.error(`Cannot book. Suggestions:\n${suggestionsText}`);
       } else {
         toast.error(
-          error.response?.data?.message || "Cannot book. Please try again."
+          error.response?.data?.message ||
+            "Không thể đặt lịch. Vui lòng thử lại."
         );
       }
     }
@@ -467,7 +468,7 @@ export function Calendar() {
       setShowQRDialog(true);
     } catch (error) {
       console.error("Failed to fetch visit:", error);
-      toast.error("Cannot load visit info.");
+      toast.error("Không thể tải thông tin thăm viếng.");
     }
   };
 
@@ -477,7 +478,7 @@ export function Calendar() {
     try {
       setIsCancelling(true);
       await visitApi.cancelVisit(selectedVisit.visit_id);
-      toast.success("Visit canceled successfully!");
+      toast.success("Hủy lịch thăm viếng thành công!");
 
       await refreshEvents();
 
@@ -489,7 +490,7 @@ export function Calendar() {
       console.error("Failed to cancel visit:", error);
       toast.error(
         error.response?.data?.message ||
-          "Cannot cancel visit. Please try again."
+          "Không thể hủy lịch thăm viếng. Vui lòng thử lại."
       );
     } finally {
       setIsCancelling(false);
@@ -528,8 +529,8 @@ export function Calendar() {
       {eventTypeFilter !== "all" && (
         <div className="px-4 text-xs text-slate-500">
           {eventTypeFilter === "care"
-            ? "Only showing care activities. Visit slots are still reserved in the background."
-            : "Only showing visits. Care activities still exist in the background."}
+            ? "Chỉ hiển thị hoạt động chăm sóc. Các khung giờ thăm viếng vẫn được giữ trong nền."
+            : "Chỉ hiển thị thăm viếng. Các hoạt động chăm sóc vẫn tồn tại trong nền."}
         </div>
       )}
       ...
@@ -552,7 +553,7 @@ export function Calendar() {
       <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
         <DialogContent className="border-none shadow-sm bg-white">
           <DialogHeader>
-            <DialogTitle>Visit Details</DialogTitle>
+            <DialogTitle>Chi tiết thăm viếng</DialogTitle>
           </DialogHeader>
           {selectedVisit && (
             <div className="space-y-4">
@@ -567,7 +568,7 @@ export function Calendar() {
               {/* Visit Details */}
               <div className="space-y-2 text-sm">
                 <div>
-                  <strong>Date:</strong>{" "}
+                  <strong>Ngày:</strong>{" "}
                   {(() => {
                     // Parse date correctly to avoid timezone issues
                     const dateStr = selectedVisit.visit_date;
@@ -575,15 +576,15 @@ export function Calendar() {
                       // If it's already YYYY-MM-DD format, parse as local date
                       const [year, month, day] = dateStr.split("-").map(Number);
                       const date = new Date(year, month - 1, day);
-                      return date.toLocaleDateString("en-US");
+                      return date.toLocaleDateString("vi-VN");
                     }
                     // Otherwise parse normally
-                    return new Date(dateStr).toLocaleDateString("en-US");
+                    return new Date(dateStr).toLocaleDateString("vi-VN");
                   })()}
                 </div>
                 {selectedVisit.time_block && (
                   <div>
-                    <strong>Time Slot:</strong>{" "}
+                    <strong>Khung giờ:</strong>
                     {TIME_BLOCKS.find(
                       (tb) => tb.value === selectedVisit.time_block
                     )?.label || selectedVisit.time_block}
@@ -591,13 +592,12 @@ export function Calendar() {
                 )}
                 {selectedVisit.resident && (
                   <div>
-                    <strong>Resident:</strong>{" "}
-                    {selectedVisit.resident.full_name}
+                    <strong>Cư dân:</strong> {selectedVisit.resident.full_name}
                   </div>
                 )}
                 {selectedVisit.notes && (
                   <div>
-                    <strong>Notes:</strong> {selectedVisit.notes}
+                    <strong>Ghi chú:</strong> {selectedVisit.notes}
                   </div>
                 )}
               </div>
@@ -611,7 +611,7 @@ export function Calendar() {
                 }}
                 className="w-full border-none shadow-sm cursor-pointer bg-red-500 text-white hover:bg-red-600"
               >
-                Cancel Visit
+                Hủy lịch thăm viếng
               </Button>
             </div>
           )}
@@ -621,16 +621,16 @@ export function Calendar() {
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent className="border-none shadow-sm bg-white">
           <DialogHeader>
-            <DialogTitle>Confirm Cancellation</DialogTitle>
+            <DialogTitle>Xác nhận hủy lịch</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              Are you sure you want to cancel this visit?
+              Bạn có chắc chắn muốn hủy lịch thăm viếng này không?
             </p>
             {selectedVisit && (
               <div className="text-sm space-y-1">
                 <div>
-                  <strong>Date:</strong>{" "}
+                  <strong>Ngày:</strong>{" "}
                   {(() => {
                     // Parse date correctly to avoid timezone issues
                     const dateStr = selectedVisit.visit_date;
@@ -638,15 +638,15 @@ export function Calendar() {
                       // If it's already YYYY-MM-DD format, parse as local date
                       const [year, month, day] = dateStr.split("-").map(Number);
                       const date = new Date(year, month - 1, day);
-                      return date.toLocaleDateString("en-US");
+                      return date.toLocaleDateString("vi-VN");
                     }
                     // Otherwise parse normally
-                    return new Date(dateStr).toLocaleDateString("en-US");
+                    return new Date(dateStr).toLocaleDateString("vi-VN");
                   })()}
                 </div>
                 {selectedVisit.time_block && (
                   <div>
-                    <strong>Time Slot:</strong>{" "}
+                    <strong>Khung giờ:</strong>{" "}
                     {TIME_BLOCKS.find(
                       (tb) => tb.value === selectedVisit.time_block
                     )?.label || selectedVisit.time_block}
@@ -664,7 +664,7 @@ export function Calendar() {
                 disabled={isCancelling}
                 className="border-none shadow-sm cursor-pointer"
               >
-                No
+                Không
               </Button>
               <Button
                 variant="destructive"
@@ -672,7 +672,7 @@ export function Calendar() {
                 disabled={isCancelling}
                 className="border-none shadow-sm"
               >
-                {isCancelling ? "Cancelling..." : "Yes, cancel visit"}
+                {isCancelling ? "Đang hủy..." : "Có, hủy lịch thăm viếng"}
               </Button>
             </div>
           </div>

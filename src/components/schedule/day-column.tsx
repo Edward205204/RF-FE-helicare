@@ -103,7 +103,7 @@ export function DayColumn({
           isPastDate ? "text-gray-400" : ""
         }`}
       >
-        {date.toLocaleDateString("en-US", {
+        {date.toLocaleDateString("vi-VN", {
           weekday: "short",
           day: "2-digit",
           month: "short",
@@ -207,7 +207,7 @@ export function DayColumn({
               >
                 <div className="font-medium text-xs truncate">{ev.name}</div>
                 <div className="text-[10px] text-gray-500 mt-1">
-                  {isCareEvent ? "Care" : "Booked"}
+                  {isCareEvent ? "Chăm sóc" : "Đã đặt"}
                 </div>
                 {ev.staff && (
                   <div className="text-[10px] text-gray-400 mt-0.5 truncate">
@@ -236,7 +236,7 @@ export function DayColumn({
                 }}
               >
                 <div className="font-semibold truncate text-[11px]">
-                  Booked for another resident
+                  Đã đặt cho cư dân khác
                 </div>
                 {otherResidentName && (
                   <div className="truncate mt-0.5">{otherResidentName}</div>
