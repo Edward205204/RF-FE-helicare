@@ -273,7 +273,6 @@ const checkLowSugarWarning = (dish: Dish, residents: Resident[]): boolean => {
   );
 };
 
-// --- COMPONENT DISH DETAIL DIALOG ---
 const DishDetailDialog = ({
   dish,
   nutrition,
@@ -425,44 +424,105 @@ const DishDetailDialog = ({
 
           {/* Allergy Warnings - Using Backend API Data */}
           {allergyWarnings && allergyWarnings.total_affected > 0 && (
-            <Alert className="bg-red-50 border-red-200">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
               <AlertDescription>
-                <strong className="text-red-700">Cảnh báo dị ứng</strong>
-                <p className="text-sm text-red-600 mt-1">
-                  Món này chứa chất gây dị ứng ảnh hưởng đến{" "}
-                  {allergyWarnings.total_affected} cư dân:
-                </p>
-                <ul className="list-disc list-inside mt-1 text-sm text-red-600">
-                  {allergyWarnings.affected_residents.slice(0, 5).map((r) => (
-                    <li key={r.resident_id}>
-                      {r.resident_name} - Dị ứng với: {r.allergen_substance}
-                    </li>
-                  ))}
-                  {allergyWarnings.affected_residents.length > 5 && (
-                    <li>
-                      ...và {allergyWarnings.affected_residents.length - 5} cư
-                      dân khác
-                    </li>
-                  )}
-                </ul>
-                {allergyWarnings.suggested_alternatives &&
-                  allergyWarnings.suggested_alternatives.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-sm font-semibold text-red-700">
-                        Gợi ý món thay thế an toàn:
-                      </p>
-                      <ul className="list-disc list-inside mt-1 text-sm text-red-600">
-                        {allergyWarnings.suggested_alternatives.map((alt) => (
-                          <li key={alt.dish_id}>{alt.dish_name}</li>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-amber-800">
+                      📋 Báo cáo dị ứng
+                    </strong>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Món này chứa chất gây dị ứng ảnh hưởng đến{" "}
+                      <strong>{allergyWarnings.total_affected}</strong> cư dân.
+                    </p>
+                  </div>
+
+                  {/* Explanation of handling */}
+                  <div className="bg-white rounded-lg p-3 border border-amber-200 mt-2">
+                    <p className="text-xs font-semibold text-amber-800 mb-1">
+                      💡 Cách xử lý:
+                    </p>
+                    <ul className="text-xs text-amber-700 space-y-1">
+                      <li className="flex items-start">
+                        <span className="mr-2">✓</span>
+                        <span>
+                          <strong>Món chính</strong> vẫn được giữ cho{" "}
+                          {detailedBreakdown
+                            ? detailedBreakdown.regular_servings
+                            : "những"}{" "}
+                          cư dân <strong>không bị dị ứng</strong>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-2">✓</span>
+                        <span>
+                          Chỉ{" "}
+                          <strong>
+                            {specialPortions?.allergy_safe || 0} cư dân bị dị
+                            ứng
+                          </strong>{" "}
+                          sẽ nhận <strong>phần đặc biệt</strong> (loại bỏ nguyên
+                          liệu gây dị ứng)
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Affected residents list */}
+                  <div className="mt-2">
+                    <p className="text-xs font-semibold text-amber-800 mb-1">
+                      Danh sách cư dân bị ảnh hưởng:
+                    </p>
+                    <ul className="list-disc list-inside text-xs text-amber-700 space-y-0.5">
+                      {allergyWarnings.affected_residents
+                        .slice(0, 5)
+                        .map((r) => (
+                          <li key={r.resident_id}>
+                            {r.resident_name} - Dị ứng với:{" "}
+                            <strong>{r.allergen_substance}</strong>
+                          </li>
                         ))}
-                      </ul>
-                    </div>
-                  )}
-                <p className="text-xs text-red-500 mt-2 italic">
-                  Phần đặc biệt cần: {specialPortions?.allergy_safe || 0} phần
-                  an toàn dị ứng
-                </p>
+                      {allergyWarnings.affected_residents.length > 5 && (
+                        <li className="text-amber-600">
+                          ...và {allergyWarnings.affected_residents.length - 5}{" "}
+                          cư dân khác
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Suggested alternatives (optional) */}
+                  {allergyWarnings.suggested_alternatives &&
+                    allergyWarnings.suggested_alternatives.length > 0 && (
+                      <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-xs font-semibold text-blue-800 mb-1">
+                          💡 Gợi ý món thay thế (tùy chọn):
+                        </p>
+                        <p className="text-xs text-blue-700 mb-1">
+                          Nếu muốn thay đổi món hoàn toàn, có thể tham khảo các
+                          món sau:
+                        </p>
+                        <ul className="list-disc list-inside text-xs text-blue-700">
+                          {allergyWarnings.suggested_alternatives.map((alt) => (
+                            <li key={alt.dish_id}>{alt.dish_name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {/* Summary */}
+                  <div className="mt-2 pt-2 border-t border-amber-200">
+                    <p className="text-xs text-amber-700">
+                      <strong>Tóm tắt:</strong>{" "}
+                      {detailedBreakdown
+                        ? `${detailedBreakdown.regular_servings} phần thường`
+                        : "Phần thường"}{" "}
+                      + {specialPortions?.allergy_safe || 0} phần đặc biệt
+                      (không có chất dị ứng)
+                    </p>
+                  </div>
+                </div>
               </AlertDescription>
             </Alert>
           )}
@@ -522,7 +582,7 @@ const DishDetailDialog = ({
                     <div className="bg-red-50 rounded-lg p-3 border border-red-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-red-900">
-                          ⚠️ Phần an toàn dị ứng
+                          ⚠️ Phần dành cho người dị ứng
                         </span>
                         <span className="text-xl font-bold text-red-700">
                           {
@@ -628,7 +688,7 @@ const DishDetailDialog = ({
                     {detailedBreakdown.special_servings.allergy_safe.count >
                       0 && (
                       <div>
-                        <div className="text-gray-500">An toàn dị ứng</div>
+                        <div className="text-gray-500">Phần không dị ứng</div>
                         <div className="font-semibold text-red-700">
                           {detailedBreakdown.nutrition_breakdown.allergy_safe.calories.toFixed(
                             0
@@ -701,7 +761,7 @@ const DishDetailDialog = ({
                         <div key={idx} className="mb-3 last:mb-0">
                           <div className="font-semibold text-orange-800 mb-1">
                             {mod.modification_type === "allergy_safe"
-                              ? "⚠️ An toàn dị ứng"
+                              ? "⚠️ Loại bỏ chất dị ứng"
                               : mod.modification_type === "low_sugar"
                               ? "🍯 Ít đường"
                               : "🧂 Ít muối"}
@@ -750,7 +810,7 @@ const DishDetailDialog = ({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                 {specialPortions.allergy_safe > 0 && (
                   <div>
-                    <span className="text-gray-600">An toàn dị ứng:</span>
+                    <span className="text-gray-600">Phần không dị ứng:</span>
                     <span className="ml-2 font-semibold">
                       {specialPortions.allergy_safe}
                     </span>
@@ -2031,7 +2091,7 @@ const NutritionPage: React.FC = () => {
                         </div>
                         <div className="bg-white rounded-lg p-2 shadow-sm">
                           <div className="text-xs text-gray-500">
-                            An toàn dị ứng
+                            Phần không dị ứng
                           </div>
                           <div className="text-xl font-bold text-red-700">
                             {
@@ -2143,7 +2203,7 @@ const NutritionPage: React.FC = () => {
                                   .special_servings.allergy_safe.count > 0 && (
                                   <div className="bg-red-50 rounded p-2 border border-red-200">
                                     <div className="text-xs text-red-700">
-                                      An toàn dị ứng
+                                      Phần không dị ứng
                                     </div>
                                     <div className="font-bold text-red-900">
                                       {
